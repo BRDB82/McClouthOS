@@ -3,7 +3,7 @@
 #!/bin/bash
 
 # Redirect stout and stderr to njord.txt and still output to console
-exec > >(tee -i njord.txt)
+exec > >(tee -i mcclouthos.log)
 exec 2>&1
 
 echo -ne "
@@ -306,6 +306,9 @@ timezone
 clear
 logo
 keymap
+#clear
+#logo
+#device
 
 echo "Setting up mirrors for optimal download"
 is=$(curl -4 -s ifconfig.io/country_code)
