@@ -1,2 +1,2 @@
-# McCLouthOS
+# McClouthOS
 McClouth OS
