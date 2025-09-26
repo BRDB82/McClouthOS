@@ -4,3 +4,5 @@ McClouth OS (Built on Rocky)
 Two variants will be available:
   * Server: codename Njord
   * Workstation: codename Skadi (for future release)
+
+mcclouth-base-install.sh will install a base system, and will in turn use mcclouth-setup to do the installation for the machine, and if already installed, it can be used to add services or remove services etc.
