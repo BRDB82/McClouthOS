@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#!/bin/bash
-
 # Redirect stout and stderr to njord.txt and still output to console
 exec > >(tee -i mcclouthos.log)
 exec 2>&1
@@ -285,6 +283,20 @@ userinfo () {
     export NAME_OF_MACHINE=$name_of_machine
 }
 
+system() {
+  #ask user whether to install a server or a workstation
+  echo -ne "
+Please select which system you want to install from this list
+"
+    # These are default key maps commonly supported on Rocky Linux
+    options=(server workstation)
+
+    select_option "${options[@]}"
+    system_choice=${options[$?]}
+
+    echo -ne "Your system of choice: ${system_choice} \n"
+}
+
 clear() {
   printf "\033[H\033[J" #clear
 }
@@ -308,7 +320,7 @@ logo
 keymap
 #clear
 #logo
-#device
+#system
 
 echo "Setting up mirrors for optimal download"
 is=$(curl -4 -s ifconfig.io/country_code)
