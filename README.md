@@ -2,4 +2,4 @@
 McClouth Incorporated
 Multi-Distro Linux OS
 
-We're currently building a Rocky Server versions, other distros and a workstation version will be available in the future
+We're currently building a Rocky Server version, other distros and a workstation versions will be available in the future
