@@ -295,6 +295,8 @@ Please select which system you want to install from this list
     system_choice=${options[$?]}
 
     echo -ne "Your system of choice: ${system_choice} \n"
+
+    ./mcclouth-setup
 }
 
 clear() {
@@ -318,9 +320,9 @@ timezone
 clear
 logo
 keymap
-#clear
-#logo
-#system
+clear
+logo
+system
 
 echo "Setting up mirrors for optimal download"
 is=$(curl -4 -s ifconfig.io/country_code)
