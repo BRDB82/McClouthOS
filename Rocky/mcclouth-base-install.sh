@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Redirect stout and stderr to njord.txt and still output to console
+# Redirect stout and stderr to mcclouthos.log and still output to console
 exec > >(tee -i mcclouthos.log)
 exec 2>&1
 
@@ -108,7 +108,7 @@ select_option() {
     return $selected
 }
 
-# @description Displays MI - Njord Server logo
+# @description Displays McClouth OS logo
 # @noargs
 logo() {
 # This will be shown on every set as user is progressing
