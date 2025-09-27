@@ -598,6 +598,9 @@ cp -p /usr/local/bin/common /usr/local/bin/dnfcommon
 cp -p /usr/local/bin/rhel-chroot.sh /usr/local/bin/rhel-chroot
 cp -p /usr/local/bin/genfstab.sh /usr/local/bin/genfstab
 cp -p /usr/local/bin/fstab-helpers /usr/local/bin/fstab-helpers
+weget https://raw.githubusercontent.com/BRDB/McClouthOS/main/Rocky/mcclouth-setup.sh
+  chmod +x mcclouth-setup.sh
+  mv mcclouth-setup.sh /usr/bin/mcclouth-setup
 dnf install -y git ntp
 cp /etc/dnf/dnf.conf /etc/dnf/dnf.conf.bak
 
