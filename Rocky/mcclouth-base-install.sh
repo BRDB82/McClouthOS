@@ -606,7 +606,7 @@ wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-instal
   mv genfstab.sh /usr/bin/genfstab
 wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/fstab-helpers
   mv fstab-helpers /usr/bin/fstab-helpers
-wget https://raw.githubusercontent.com/BRDB/McClouthOS/main/Rocky/mcclouth-setup.sh
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh
   chmod +x mcclouth-setup.sh
   mv mcclouth-setup.sh /usr/bin/mcclouth-setup
 dnf install -y git ntp
