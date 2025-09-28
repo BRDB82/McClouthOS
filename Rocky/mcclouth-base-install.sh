@@ -51,7 +51,6 @@ background_checks() {
     root_check
     rhel_check
     dnf_check
-    docker_check
 }
 
 select_option() {
