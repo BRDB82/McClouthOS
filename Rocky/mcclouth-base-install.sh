@@ -593,11 +593,19 @@ echo -ne "
 dnf install -y curl git wget chrony
 dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
 dnf install -y rsync grub2
-cp -p /usr/local/bin/dnfstrap.sh /usr/local/bin/dnfstrap
-cp -p /usr/local/bin/common /usr/local/bin/dnfcommon
-cp -p /usr/local/bin/rhel-chroot.sh /usr/local/bin/rhel-chroot
-cp -p /usr/local/bin/genfstab.sh /usr/local/bin/genfstab
-cp -p /usr/local/bin/fstab-helpers /usr/local/bin/fstab-helpers
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/dnfstrap.sh
+  chmod +x dnfstrap.sh
+  mv dnfstrap.sh /usr/bin/dnfstrap
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/common
+  mv common /usr/bin/dnfcommon
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/rhel-chroot.sh
+  chmod +x rhel-chroot.sh
+  mv rhel-chroot.sh /usr/bin/rhel-chroot
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/genfstab.sh
+  chmod +x genfstab.sh
+  mv genfstab.sh /usr/bin/genfstab
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/fstab-helpers
+  mv fstab-helpers /usr/bin/fstab-helpers
 weget https://raw.githubusercontent.com/BRDB/McClouthOS/main/Rocky/mcclouth-setup.sh
   chmod +x mcclouth-setup.sh
   mv mcclouth-setup.sh /usr/bin/mcclouth-setup
