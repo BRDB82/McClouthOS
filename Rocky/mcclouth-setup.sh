@@ -15,6 +15,29 @@ Extended installation [Server/Workstation]
 "
 CONFIG_FILE="/etc/mcclouth/mcclouth.conf"
 
+usage() {
+  cat <<EOF
+Usage: ${0##*/} [system_type]
+
+Arguments:
+  server        Install server components
+  workstation   Install workstation environment
+
+Options:
+  -h            Print this help message
+
+Description:
+  This script installs McClouth OS components into the current system context.
+  If no system_type is provided, the script attempts to read from the config file.
+
+Examples:
+  ${0##*/} server
+  ${0##*/} workstation
+
+EOF
+  exit 1
+}
+
 # If no argument is passed, try to read from config
 if [ -z "$1" ]; then
     if [ -f "$CONFIG_FILE" ]; then
