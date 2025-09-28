@@ -296,7 +296,8 @@ Please select which system you want to install from this list
 
     echo -ne "Your system of choice: ${system_choice} \n"
 
-    ./mcclouth-setup
+    #./mcclouth-setup
+    export SYSTEM_OF_CHOICE=$system_choice
 }
 
 clear() {
@@ -749,6 +750,13 @@ echo "  Chrony (NTP) enabled"
 systemctl disable network.service 2>/dev/null || true
 systemctl enable NetworkManager.service
 echo "  NetworkManager enabled"
+
+echo -ne "
+-------------------------------------------------------------------------
+                    Install $SYSTEM_OF_CHOICE
+-------------------------------------------------------------------------
+"
+mcclouth-setup "$SYSTEM_OF_CHOICE"
 
 echo -ne "
 -------------------------------------------------------------------------
