@@ -39,6 +39,16 @@ EOF
   exit 1
 }
 
+server_instal() {
+if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" = "none" ]; } \
+   && { ! command -v dmidecode &> /dev/null || ! [[ "$(dmidecode -s system-product-name 2>/dev/null)" =~ (VMware|KVM|HVM|Bochs|QEMU) ]]; } \
+   && ! grep -qi hypervisor /proc/cpuinfo; then
+	  echo "Real hardware"
+else
+  echo "Virtual hardware"
+fi
+}
+
 # If no argument is passed, try to read from config
 if [ -z "$1" ]; then
     if [ -f "$CONFIG_FILE" ]; then
@@ -68,8 +78,7 @@ fi
 case "$1" in
   server)
     echo "Installing server components..."
-    echo "adjusted version!!"
-    #server install logic here
+    server_install
     ;;
   workstation)
     echo "Installing workstation environment..."
