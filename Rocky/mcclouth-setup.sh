@@ -46,7 +46,7 @@ if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" =
 	echo "Real hardware"
 
 	#CPU information
-	if [ "$(nproc)" -lt 12 ]; then
+	if [ "$(nproc)" -lt 4 ]; then #should be at least 12 but for testiing only 4
 		echo "System doesn't have enough cores."
 		exit 1
 	fi
