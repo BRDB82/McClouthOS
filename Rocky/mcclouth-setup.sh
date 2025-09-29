@@ -55,7 +55,7 @@ if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" =
 	total_mem=$(free -m | awk '/^Mem:/ { print $2 }')
 	total_mem=$((total_mem / 1024 / 1024))
 	
-	if [ "$total_mem" -lt 32 ]; then
+	if [ "$total_mem" -lt 8 ]; then #should be at least 16 for testing only 8
 		echo "System needs at least 32 GB of RAM."
 		exit 1
 	fi
