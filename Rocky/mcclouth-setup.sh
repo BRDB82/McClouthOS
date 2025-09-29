@@ -58,7 +58,8 @@ if [ -z "$1" ]; then
         exit 1
       }
       chmod +x "/usr/bin/mcclouth-setup.new"
-      mv -f "/usr/bin/mcclouth-setup.new /usr/bin/mcclouth-setup"
+      mv -f "/usr/bin/mcclouth-setup.new" "/usr/bin/mcclouth-setup"
+      exit 1
     fi
 else
     system_type="$1"
