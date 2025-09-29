@@ -503,7 +503,7 @@ echo "x86_64" > "/mnt/etc/dnf/vars/basearch"
 echo "rocky" > "/mnt/etc/dnf/vars/rltype"
 cp /etc/os-release /mnt/etc
 #if [[ ! -d "/sys/firmware/efi" ]]; then
-    dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules --assumeyes
+    dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules nano --assumeyes
 #else
 #    dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 --assumeyes
 #fi
