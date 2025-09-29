@@ -68,6 +68,7 @@ fi
 case "$1" in
   server)
     echo "Installing server components..."
+    echo "adjusted version!!"
     #server install logic here
     ;;
   workstation)
