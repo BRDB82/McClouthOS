@@ -51,7 +51,7 @@ if [ -z "$1" ]; then
     if [ "$1" == "--help" ]]; then
       usage
       exit 1
-    elseif [ "$1" == "--update" ]]; then
+    elif [ "$1" == "--update" ]]; then
       curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh" -o "/usr/bin/mcclouth-setup.new" || {
         echo "update failed"
         rm "/usr/bin/mcclouth-setup.new"
