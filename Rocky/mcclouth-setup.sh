@@ -58,19 +58,18 @@ if [ -z "$1" ]; then
         usage
         exit 1
     fi
-    if [ "$1" == "--help" ]]; then
-      usage
-      exit 1
-    elif [ "$1" == "--update" ]]; then
-      curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh" -o "/usr/bin/mcclouth-setup.new" || {
-        echo "update failed"
-        rm "/usr/bin/mcclouth-setup.new"
-        exit 1
-      }
-      chmod +x "/usr/bin/mcclouth-setup.new"
-      mv -f "/usr/bin/mcclouth-setup.new" "/usr/bin/mcclouth-setup"
-      exit 1
-    fi
+elif [ "$1" == "--help" ]]; then
+    usage
+    exit 1
+elif [ "$1" == "--update" ]]; then
+	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh" -o "/usr/bin/mcclouth-setup.new" || {
+	echo "update failed"
+	rm "/usr/bin/mcclouth-setup.new"
+	exit 1
+	}
+	chmod +x "/usr/bin/mcclouth-setup.new"
+	mv -f "/usr/bin/mcclouth-setup.new" "/usr/bin/mcclouth-setup"
+	exit 1
 else
     system_type="$1"
 fi
