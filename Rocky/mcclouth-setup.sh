@@ -43,7 +43,22 @@ server_install() {
 if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" = "none" ]; } \
    && { ! command -v dmidecode &> /dev/null || ! [[ "$(dmidecode -s system-product-name 2>/dev/null)" =~ (VMware|KVM|HVM|Bochs|QEMU) ]]; } \
    && ! grep -qi hypervisor /proc/cpuinfo; then
-	  echo "Real hardware"
+	echo "Real hardware"
+
+	#CPU information
+	if [ "$(nproc)" -lt 12 ]; then
+		echo "System doesn't have enough cores."
+		exit 1
+	fi
+
+	#Memory Information
+	total_mem=$(free -m | awk '/^Mem:/ { print $2 }')
+	total_mem=$((total_mem / 1024 / 1024))
+	
+	if [ "$total_mem" -lt 32 ]; then
+		echo "System needs at least 32 GB of RAM."
+		exit 1
+	fi
 else
   echo "Virtual hardware"
 fi
