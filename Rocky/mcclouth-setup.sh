@@ -39,7 +39,7 @@ EOF
   exit 1
 }
 
-server_instal() {
+server_install() {
 if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" = "none" ]; } \
    && { ! command -v dmidecode &> /dev/null || ! [[ "$(dmidecode -s system-product-name 2>/dev/null)" =~ (VMware|KVM|HVM|Bochs|QEMU) ]]; } \
    && ! grep -qi hypervisor /proc/cpuinfo; then
@@ -58,10 +58,9 @@ if [ -z "$1" ]; then
         usage
         exit 1
     fi
-elif [ "$1" == "--help" ]]; then
     usage
     exit 1
-elif [ "$1" == "--update" ]]; then
+elif [ "$1" == "--update" ]; then
 	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh" -o "/usr/bin/mcclouth-setup.new" || {
 	echo "update failed"
 	rm "/usr/bin/mcclouth-setup.new"
