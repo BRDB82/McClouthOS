@@ -11,7 +11,7 @@ echo -ne "
 ██║╚██╔╝██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ██╔══██║    ██║   ██║╚════██║
 ██║ ╚═╝ ██║╚██████╗╚██████╗███████╗╚██████╔╝╚██████╔╝   ██║   ██║  ██║    ╚██████╔╝███████║
 ╚═╝     ╚═╝ ╚═════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝     ╚═════╝ ╚══════╝
-
+BIOS
 --------------------------------------------------------------------------------------------
                 Automated McClouth OS Base Installer (powered by Rocky)
 --------------------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ echo -ne "
 ██║╚██╔╝██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ██╔══██║    ██║   ██║╚════██║
 ██║ ╚═╝ ██║╚██████╗╚██████╗███████╗╚██████╔╝╚██████╔╝   ██║   ██║  ██║    ╚██████╔╝███████║
 ╚═╝     ╚═╝ ╚═════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝     ╚═════╝ ╚══════╝
-
+BIOS
 -------------------------------------------------------------------------------------------
                       Please select presetup settings for your system
 -------------------------------------------------------------------------------------------
@@ -424,7 +424,7 @@ wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-instal
   mv fstab-helpers /usr/bin/fstab-helpers
 echo -ne "
 -------------------------------------------------------------------------
-                    Formatting Disk
+                    Formatting Disk (BIOS only)
 -------------------------------------------------------------------------
 "
 umount -A --recursive /mnt # make sure everything is unmounted before we start
@@ -434,11 +434,9 @@ sgdisk -a 2048 -o "${DISK}" # new gpt disk 2048 alignment
 
 # create partitions
 sgdisk -n 1::+1G --typecode=1:8300 --change-name=1:'BOOT' "${DISK}" # partition 1 (BIOS Boot Partition)
-sgdisk -n 2::+1G --typecode=2:ef00 --change-name=2:'EFIBOOT' "${DISK}" # partition 2 (UEFI Boot Partition)
-sgdisk -n 3::-0 --typecode=3:8300 --change-name=3:'ROOT' "${DISK}" # partition 3 (Root), default start, remaining
-if [[ ! -d "/sys/firmware/efi" ]]; then # Checking for bios system
-    sgdisk -A 1:set:2 "${DISK}"
-fi
+sgdisk -n 2::-0 --typecode=3:8300 --change-name=3:'ROOT' "${DISK}" # partition 3 (Root), default start, remaining
+sgdisk -A 1:set:2 "${DISK}"
+
 partprobe "${DISK}" # reread partition table to ensure it is correct
 
 # make filesystems
@@ -450,37 +448,32 @@ echo -ne "
 if [[ "${DISK}" =~ "nvme" ]]; then
     partition1=${DISK}p1
     partition2=${DISK}p2
-    partition3=${DISK}p3
 else
     partition1=${DISK}1
     partition2=${DISK}2
-    partition3=${DISK}3
 fi
 
 mkfs.ext4 -L BOOT "${partition1}"
 mkfs.fat -F32 -n "EFIBOOT" "${partition2}"
 
 if [[ "${FS}" == "xfs" ]]; then 
-    mkfs.xfs -f -L ROOT "${partition3}"
-    mount -t xfs "${partition3}" /mnt
+    mkfs.xfs -f -L ROOT "${partition2}"
+    mount -t xfs "${partition2}" /mnt
 elif [[ "${FS}" == "ext4" ]]; then
-    mkfs.ext4 "${partition3}"
-    mount -t ext4 "${partition3}" /mnt
+    mkfs.ext4 "${partition2}"
+    mount -t ext4 "${partition2}" /mnt
 fi
 
 BOOT_UUID=$(blkid -s UUID -o value "${partition1}")
-EFI_UUID=$(blkid -s UUID -o value "${partition2}")
 
 sync
 if ! mountpoint -q /mnt; then
-    echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
+    echo "ERROR! Failed to mount ${partition2} to /mnt after multiple attempts."
     exit 1
 fi
 
 mkdir -p /mnt/boot
 mount -U "${BOOT_UUID}" /mnt/boot/
-mkdir -p /mnt/boot/efi
-mount -U "${EFI_UUID}" /mnt/boot/efi
 
 if ! grep -qs '/mnt' /proc/mounts; then
     echo "Drive is not mounted, cannot continue"
@@ -502,11 +495,7 @@ echo "$VERSION" > "/mnt/etc/dnf/vars/releasever"
 echo "x86_64" > "/mnt/etc/dnf/vars/basearch"
 echo "rocky" > "/mnt/etc/dnf/vars/rltype"
 cp /etc/os-release /mnt/etc
-#if [[ ! -d "/sys/firmware/efi" ]]; then
-    dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules nano --assumeyes
-#else
-#    dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 --assumeyes
-#fi
+dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 nano --assumeyes
 
 # Import official GPG key (optional, for repo trust)
 find /etc/pki/rpm-gpg/ -type f -name 'RPM-GPG-KEY-*' -exec install -Dm644 {} /mnt{} \;
@@ -528,17 +517,12 @@ echo -ne "
                     GRUB BIOS Bootloader Install & Check
 -------------------------------------------------------------------------
 "
-#if [[ -d "/sys/firmware/efi" ]]; then
-    grub2-install \
-      --target=x86_64-efi \
-      --efi-directory=/mnt/boot/efi \
-      --bootloader-id=rocky \
-      --boot-directory=/mnt/boot \
-      --recheck \
-      --force
-#else
-#    grub2-install --boot-directory=/mnt/boot "${DISK}"
-#fi
+grub2-install \
+  --target=386-pc \
+  --boot-directory=/mnt/boot \
+  --recheck \
+  --force
+
 echo -ne "
 -------------------------------------------------------------------------
                     Checking for low memory systems <8G
@@ -716,7 +700,7 @@ echo -ne "
 ██║╚██╔╝██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ██╔══██║    ██║   ██║╚════██║
 ██║ ╚═╝ ██║╚██████╗╚██████╗███████╗╚██████╔╝╚██████╔╝   ██║   ██║  ██║    ╚██████╔╝███████║
 ╚═╝     ╚═╝ ╚═════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝     ╚═════╝ ╚══════╝
-
+BIOS
 --------------------------------------------------------------------------------------------
                 Automated McClouth OS Base Installer (powered by Rocky)
 --------------------------------------------------------------------------------------------
@@ -725,7 +709,7 @@ Final Setup and Configurations
 GRUB EFI Bootloader Install & Check
 "
 #if [[ -d "/sys/firmware/efi" ]]; then
-    grub2-install --efi-directory=/boot "${DISK}"
+    grub2-install --boot-directory=/boot "${DISK}"
 #fi
 
 echo -ne "
@@ -733,11 +717,6 @@ echo -ne "
                Creating Grub Boot Menu
 -------------------------------------------------------------------------
 "
-
-# Set kernel parameter for decrypting the drive
-if [[ "${FS}" == "luks" ]]; then
-    sed -i "s%GRUB_CMDLINE_LINUX=\"%GRUB_CMDLINE_LINUX=\"cryptdevice=UUID=${ENCRYPTED_PARTITION_UUID}:ROOT root=/dev/mapper/ROOT %g" /etc/default/grub
-fi
 
 # Add splash screen
 sed -i 's/GRUB_CMDLINE_LINUX="[^"]*/& splash /' /etc/default/grub
