@@ -24,7 +24,8 @@ Arguments:
   workstation   Install workstation environment
 
 Options:
-  -h            Print this help message
+  --help        Print this help message
+  --update      Update to the latest version
 
 Description:
   This script installs McClouth OS components into the current system context.
@@ -44,7 +45,20 @@ if [ -z "$1" ]; then
         system_type=$(grep '^system_type=' "$CONFIG_FILE" | cut -d'=' -f2)
     else
         echo "Error: No system type provided and config file not found."
+        usage
         exit 1
+    fi
+    if [ "$1" == "--help" ]]; then
+      usage
+      exit 1
+    elseif [ "$1" == "--update" ]]; then
+      curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh" -o "/usr/bin/mcclouth-setup.new" || {
+        echo "update failed"
+        rm "/usr/bin/mcclouth-setup.new"
+        exit 1
+      }
+      chmod +x "/usr/bin/mcclouth-setup.new"
+      mv -f "/usr/bin/mcclouth-setup.new /usr/bin/mcclouth-setup"
     fi
 else
     system_type="$1"
