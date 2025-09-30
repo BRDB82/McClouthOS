@@ -433,12 +433,17 @@ sgdisk -n 1::+1G --typecode=1:8300 --change-name=1:'BOOT' "${DISK}" # partition 
 sgdisk -n 2::-0 --typecode=2:8300 --change-name=2:'ROOT' "${DISK}" # partition 2 (Root), default start, remaining
 sgdisk -A 1:set:2 "${DISK}"
 
+dmsetup remove_all || true
+udevadm control --stop-exec-queue
+udevadm control --start-exec-queue
+
 partprobe "${DISK}" # reread partition table to ensure it is correct
 kpartx -d "${DISK}"
 kpartx -a "${DISK}"
 partx -u "${DISK}"
 
 udevadm settle # wait until udev is ready
+sleep 2
 
 # make filesystems
 echo -ne "
