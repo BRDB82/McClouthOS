@@ -424,15 +424,21 @@ echo -ne "
 "
 umount -A --recursive /mnt # make sure everything is unmounted before we start
 # disk prep
+wipefs -a "${DISK}"
 sgdisk -Z "${DISK}" # zap all on disk
 sgdisk -a 2048 -o "${DISK}" # new gpt disk 2048 alignment
 
 # create partitions
 sgdisk -n 1::+1G --typecode=1:8300 --change-name=1:'BOOT' "${DISK}" # partition 1 (BIOS Boot Partition)
-sgdisk -n 2::-0 --typecode=3:8300 --change-name=3:'ROOT' "${DISK}" # partition 3 (Root), default start, remaining
+sgdisk -n 2::-0 --typecode=2:8300 --change-name=2:'ROOT' "${DISK}" # partition 2 (Root), default start, remaining
 sgdisk -A 1:set:2 "${DISK}"
 
 partprobe "${DISK}" # reread partition table to ensure it is correct
+kpartx -d "${DISK}"
+kpartx -a "${DISK}"
+partx -u "${DISK}"
+
+udevadm settle # wait until udev is ready
 
 # make filesystems
 echo -ne "
