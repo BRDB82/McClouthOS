@@ -331,7 +331,7 @@ timedatectl set-ntp true
 if ! grep -qi '^ID=rocky' /etc/os-release 2>/dev/null; then
   # Only support Rocky for now
   # Only legacy
-  VERSION="9.6"
+  VERSION="8.10"
 
   [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
   [ -d /tmp/rocky-repos.d ] || mkdir /tmp/rocky-repos.d
