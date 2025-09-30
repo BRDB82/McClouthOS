@@ -449,7 +449,6 @@ else
 fi
 
 mkfs.ext4 -L BOOT "${partition1}"
-mkfs.fat -F32 -n "EFIBOOT" "${partition2}"
 
 if [[ "${FS}" == "xfs" ]]; then 
     mkfs.xfs -f -L ROOT "${partition2}"
