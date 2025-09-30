@@ -436,12 +436,7 @@ sgdisk -A 1:set:2 "${DISK}"
 dmsetup remove_all || true
 udevadm control --stop-exec-queue
 udevadm control --start-exec-queue
-
 partprobe "${DISK}" # reread partition table to ensure it is correct
-kpartx -d "${DISK}"
-kpartx -a "${DISK}"
-partx -u "${DISK}"
-
 udevadm settle # wait until udev is ready
 sleep 2
 
