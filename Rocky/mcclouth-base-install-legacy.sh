@@ -330,13 +330,8 @@ timedatectl set-ntp true
 #determine RHEL derivative, currently only Rocky is supported
 if ! grep -qi '^ID=rocky' /etc/os-release 2>/dev/null; then
   # Only support Rocky for now
-
-  # Detect latest Rocky Linux version
-  VERSION=$(curl -s https://download.rockylinux.org/pub/rocky/ | \
-    sed 's/href=/\n&/g' | \
-    awk -F'"' '/href="[0-9]+\.[0-9]+\/"/ {print $2}' | \
-    sed 's/\/$//' | \
-    sort -V | tail -1)
+  # Only legacy
+  VERSION="9.6"
 
   [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
   [ -d /tmp/rocky-repos.d ] || mkdir /tmp/rocky-repos.d
@@ -365,11 +360,11 @@ if ! grep -qi '^ID=rocky' /etc/os-release 2>/dev/null; then
   MAJOR=$(echo "$VERSION" | cut -d. -f1)
   cat > /etc/os-release <<EOF
 NAME="Rocky Linux"
-VERSION="$VERSION (Red Quartz)"
+VERSION="$VERSION (Blue Onyx)"
 ID="rocky"
 VERSION_ID="$VERSION"
 PLATFORM_ID="platform:el$MAJOR"
-PRETTY_NAME="Rocky Linux $VERSION (Red Quartz)"
+PRETTY_NAME="Rocky Linux $VERSION (Blue Onyx)"
 ANSI_COLOR="0;34"
 CPE_NAME="cpe:/o:rocky:rocky:$VERSION"
 HOME_URL="https://rockylinux.org/"
