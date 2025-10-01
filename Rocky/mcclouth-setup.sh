@@ -19,7 +19,7 @@ echo -ne "
 Extended installation [Server/Workstation]
 
 --------------------------------------------------------------------------------------------
-             Automated McClouth OS Extended Installer (powered by Rocky)
+             Automated McClouth OS Extended Installer (powered by Alma)
 --------------------------------------------------------------------------------------------
 "
 CONFIG_FILE="/etc/mcclouth/mcclouth.conf"
