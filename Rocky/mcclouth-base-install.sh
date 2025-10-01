@@ -528,6 +528,25 @@ echo -ne "
                     GRUB BIOS Bootloader Install & Check
 -------------------------------------------------------------------------
 "
+#add NVRAM check and delete no longer needed so we can do the following
+efibootmgr -v | grep Boot
+
+echo ""
+read -p "Give all entries to remove, or enter stop to continue: " input
+
+if [[ "$input" == "stop" ]]; then
+  echo ""
+else
+ for bootnum in $input; do
+      if [[ "$bootnum" =~ ^[0-9]+$ ]]; then
+          echo "Removing entry $bootnum..."
+          sudo efibootmgr -B -b "$bootnum"
+      else
+          echo "Invalid entry: '$bootnum'"
+      fi
+  done
+fi
+
 #if [[ -d "/sys/firmware/efi" ]]; then
     grub2-install \
       --target=x86_64-efi \
