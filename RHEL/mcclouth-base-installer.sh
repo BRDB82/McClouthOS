@@ -1,45 +1,20 @@
+
 #!/bin/bash
 
 # Redirect stout and stderr to mcclouthos.log and still output to console
 exec > >(tee -i mcclouthos.log)
 exec 2>&1
 
-echo -ne "
-███╗   ███╗ ██████╗ ██████╗██╗      ██████╗ ██╗   ██╗████████╗██╗  ██╗     ██████╗ ███████╗
-████╗ ████║██╔════╝██╔════╝██║     ██╔═══██╗██║   ██║╚══██╔══╝██║  ██║    ██╔═══██╗██╔════╝
-██╔████╔██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ███████║    ██║   ██║███████╗
-██║╚██╔╝██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ██╔══██║    ██║   ██║╚════██║
-██║ ╚═╝ ██║╚██████╗╚██████╗███████╗╚██████╔╝╚██████╔╝   ██║   ██║  ██║    ╚██████╔╝███████║
-╚═╝     ╚═╝ ╚═════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝     ╚═════╝ ╚══════╝
 
---------------------------------------------------------------------------------------------
-                Automated McClouth OS Base Installer (powered by Alma)
---------------------------------------------------------------------------------------------
-
-Verifying Rocky Linux ISO is Booted
-
-"
-
-if ! ps aux | grep "[a]naconda" > /dev/null; then
- echo "This script must be run from a Alma Linux ISO environment."
- exit 1
-fi
-
-root_check() {
-    if [[ "$(id -u)" != "0" ]]; then
-        echo -ne "ERROR! This script must be run under the 'root' user!\n"
-        exit 0
-    fi
+check_background() {
+    check_rhel
+    detect_rhel
+    check_root
+    check_release
+    check_dnf
 }
 
-rhel_check() {
-    if [[ ! -e /etc/redhat-release ]]; then
-        echo -ne "ERROR! This script must be run on RedHat-based Linux!\n"
-        exit 0
-    fi
-}
-
-dnf_check() {
+check_dnf() {
     if [[ -f /var/lib/dnf/lock ]] || ps -e | grep -w -E 'dnf|yum' >/dev/null; then
         echo "ERROR! DNF is blocked."
         echo -ne "If not running remove /var/lib/dnf/lock or kill the running process.\n"
@@ -47,10 +22,126 @@ dnf_check() {
     fi
 }
 
-background_checks() {
-    root_check
-    rhel_check
-    dnf_check
+check_release() {
+    if [[ ! -e /etc/redhat-release ]]; then
+        echo -ne "ERROR! This script must be run on RedHat-based Linux!\n"
+        exit 0
+    fi
+}
+
+check_rhel() {
+    if ! ps aux | grep "[a]naconda" > /dev/null; then
+        echo "This script must be run from a RHEL Linux ISO environment."
+        exit 1
+    fi
+}
+
+check_root() {
+    if [[ "$(id -u)" != "0" ]]; then
+        echo -ne "ERROR! This script must be run under the 'root' user!\n"
+        exit 0
+    fi
+}
+
+clear() {
+  printf "\033[H\033[J" #clear
+}
+
+detect_rhel() {
+
+    distro_id=$(grep '^ID=' "/etc/os-release" 2>/dev/null | cut -d'=' -f2 | tr -d '"')
+
+}
+
+disk_fs () {
+    echo -ne "
+    Please Select your file system for both boot and root
+    "
+    options=("xfs" "ext4" "exit")
+    select_option "${options[@]}"
+
+    case $? in
+    0) export FS=xfs;;
+    1) export FS=ext4;;
+    2) exit ;;
+    *) echo "Wrong option please select again"; filesystem;;
+    esac
+}
+
+disk_part () {
+    echo -ne "
+------------------------------------------------------------------------
+    THIS WILL FORMAT AND DELETE ALL DATA ON THE DISK
+    Please make sure you know what you are doing because
+    after formatting your disk there is no way to get data back
+    *****BACKUP YOUR DATA BEFORE CONTINUING*****
+    ***I AM NOT RESPONSIBLE FOR ANY DATA LOSS***
+------------------------------------------------------------------------
+
+"
+
+    PS3='
+    Select the disk to install on: '
+    options=($(lsblk -n --output TYPE,KNAME,SIZE | awk '$1=="disk"{print "/dev/"$2"|"$3}'))
+
+    select_option "${options[@]}"
+    disk=${options[$?]%|*}
+
+    echo -e "\n${disk%|*} selected \n"
+        export DISK=${disk%|*}
+
+    drivessd
+}
+
+disk_type () {
+    echo -ne "
+Is this an SSD? yes/no:
+"
+    options=("Yes" "No")
+    select_option "${options[@]}"
+
+    case $? in
+        0)
+            export MOUNT_OPTIONS="noatime,commit=120"
+            ;;
+        1)
+            export MOUNT_OPTIONS="noatime,commit=120"
+            ;;
+        *)
+            echo "Wrong option. Try again"
+            drivessd
+            ;;
+    esac
+}
+
+keymap () {
+    echo -ne "
+Please select keyboard layout from this list
+"
+    # These are default key maps commonly supported on Alma Linux
+    options=(us by ca cf cz de dk es et fa fi fr gr hu il it lt lv mk nl no pl ro ru se sg ua uk)
+
+    select_option "${options[@]}"
+    keymap=${options[$?]}
+
+    echo -ne "Your keyboard layout: ${keymap} \n"
+    export KEYMAP=$keymap
+
+    # Apply the selected keymap using localectl
+    localectl set-keymap "$keymap"
+}
+
+logo() {
+# This will be shown on every set as user is progressing
+echo -ne "
+███╗   ███╗ ██████╗ ██████╗██╗      ██████╗ ██╗   ██╗████████╗██╗  ██╗     ██████╗ ███████╗
+████╗ ████║██╔════╝██╔════╝██║     ██╔═══██╗██║   ██║╚══██╔══╝██║  ██║    ██╔═══██╗██╔════╝
+██╔████╔██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ███████║    ██║   ██║███████╗
+██║╚██╔╝██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ██╔══██║    ██║   ██║╚════██║
+██║ ╚═╝ ██║╚██████╗╚██████╗███████╗╚██████╔╝╚██████╔╝   ██║   ██║  ██║    ╚██████╔╝███████║
+╚═╝     ╚═╝ ╚═════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝     ╚═════╝ ╚══════╝
+Powered by RHEL
+"
 }
 
 select_option() {
@@ -107,41 +198,24 @@ select_option() {
     return $selected
 }
 
-# @description Displays McClouth OS logo
-# @noargs
-logo() {
-# This will be shown on every set as user is progressing
-echo -ne "
-███╗   ███╗ ██████╗ ██████╗██╗      ██████╗ ██╗   ██╗████████╗██╗  ██╗     ██████╗ ███████╗
-████╗ ████║██╔════╝██╔════╝██║     ██╔═══██╗██║   ██║╚══██╔══╝██║  ██║    ██╔═══██╗██╔════╝
-██╔████╔██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ███████║    ██║   ██║███████╗
-██║╚██╔╝██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ██╔══██║    ██║   ██║╚════██║
-██║ ╚═╝ ██║╚██████╗╚██████╗███████╗╚██████╔╝╚██████╔╝   ██║   ██║  ██║    ╚██████╔╝███████║
-╚═╝     ╚═╝ ╚═════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝     ╚═════╝ ╚══════╝
-
--------------------------------------------------------------------------------------------
-                      Please select presetup settings for your system
--------------------------------------------------------------------------------------------
+system_choice() {
+  #ask user whether to install a server or a workstation
+  echo -ne "
+Please select which system you want to install from this list
 "
-}
-# @description This function will handle file systems. At this moment we are handling only
-# ext2, ext3, ext4, and xfs. Others will be added in future.
-filesystem () {
-    echo -ne "
-    Please Select your file system for both boot and root
-    "
-    options=("xfs" "ext4" "exit")
-    select_option "${options[@]}"
+    # These are default key maps commonly supported on Alma Linux
+    options=(server workstation)
 
-    case $? in
-    0) export FS=xfs;;
-    1) export FS=ext4;;
-    2) exit ;;
-    *) echo "Wrong option please select again"; filesystem;;
-    esac
+    select_option "${options[@]}"
+    system_choice=${options[$?]}
+
+    echo -ne "Your system of choice: ${system_choice} \n"
+
+    #./mcclouth-setup
+    export SYSTEM_OF_CHOICE=$system_choice
 }
-# @description Detects and sets timezone for Alma Linux.
-timezone () {
+
+system_timezone () {
     # Attempt to detect timezone using external service
     time_zone="$(curl --fail -s https://ipapi.co/timezone)"
     echo -ne "
@@ -169,70 +243,6 @@ System detected your timezone to be '$time_zone' \n"
             timezone
             ;;
     esac
-}
-# @description Set user's keyboard mapping for Alma Linux.
-keymap () {
-    echo -ne "
-Please select keyboard layout from this list
-"
-    # These are default key maps commonly supported on Alma Linux
-    options=(us by ca cf cz de dk es et fa fi fr gr hu il it lt lv mk nl no pl ro ru se sg ua uk)
-
-    select_option "${options[@]}"
-    keymap=${options[$?]}
-
-    echo -ne "Your keyboard layout: ${keymap} \n"
-    export KEYMAP=$keymap
-
-    # Apply the selected keymap using localectl
-    localectl set-keymap "$keymap"
-}
-# @description Choose whether drive is SSD or not for Alma Linux (non-Btrfs).
-drivessd () {
-    echo -ne "
-Is this an SSD? yes/no:
-"
-    options=("Yes" "No")
-    select_option "${options[@]}"
-
-    case $? in
-        0)
-            export MOUNT_OPTIONS="noatime,commit=120"
-            ;;
-        1)
-            export MOUNT_OPTIONS="noatime,commit=120"
-            ;;
-        *)
-            echo "Wrong option. Try again"
-            drivessd
-            ;;
-    esac
-}
-
-# @description Disk selection for drive to be used with installation.
-diskpart () {
-echo -ne "
-------------------------------------------------------------------------
-    THIS WILL FORMAT AND DELETE ALL DATA ON THE DISK
-    Please make sure you know what you are doing because
-    after formatting your disk there is no way to get data back
-    *****BACKUP YOUR DATA BEFORE CONTINUING*****
-    ***I AM NOT RESPONSIBLE FOR ANY DATA LOSS***
-------------------------------------------------------------------------
-
-"
-
-    PS3='
-    Select the disk to install on: '
-    options=($(lsblk -n --output TYPE,KNAME,SIZE | awk '$1=="disk"{print "/dev/"$2"|"$3}'))
-
-    select_option "${options[@]}"
-    disk=${options[$?]%|*}
-
-    echo -e "\n${disk%|*} selected \n"
-        export DISK=${disk%|*}
-
-    drivessd
 }
 
 # @description Gather username and password to be used for installation.
@@ -282,60 +292,67 @@ userinfo () {
     export NAME_OF_MACHINE=$name_of_machine
 }
 
-system() {
-  #ask user whether to install a server or a workstation
-  echo -ne "
-Please select which system you want to install from this list
+# main
+clear
+logo
+echo -ne "
+--------------------------------------------------------------------------------------------
+                    Automated McClouth OS Base Installer
+--------------------------------------------------------------------------------------------
+
 "
-    # These are default key maps commonly supported on Alma Linux
-    options=(server workstation)
 
-    select_option "${options[@]}"
-    system_choice=${options[$?]}
+check_background
 
-    echo -ne "Your system of choice: ${system_choice} \n"
-
-    #./mcclouth-setup
-    export SYSTEM_OF_CHOICE=$system_choice
-}
-
-clear() {
-  printf "\033[H\033[J" #clear
-}
-
-# Starting functions
-background_checks
 clear
 logo
+echo -ne "
+-------------------------------------------------------------------------------------------
+                      Please select presetup settings for your system
+-------------------------------------------------------------------------------------------
+
+"
 userinfo
-clear
-logo
-diskpart
-clear
-logo
-filesystem
-clear
-logo
-timezone
-clear
-logo
-keymap
-clear
-logo
-system
 
+clear
+logo
+disk_part
+
+clear
+logo
+disk_fs
+
+clear
+logo
+system_timezone
+
+clear
+logo
+system_keymap
+
+clear
+logo
+system_choice
+
+clear
+logo
+echo -ne "
+-------------------------------------------------------------------------------------------
+                      Setting up install environment
+-------------------------------------------------------------------------------------------
+
+"
 echo "Setting up mirrors for optimal download"
 is=$(curl -4 -s ifconfig.io/country_code)
 timedatectl set-ntp true
-#determine RHEL derivative, currently only Alma is supported
-if ! grep -qi '^ID=almalinux' /etc/os-release 2>/dev/null; then
-  # Only support Alma for now
 
-  # Detect latest Alma Linux version
-  VERSION=$(curl -s https://download.almalinux.org/pub/almalinux/ | \
-    sed 's/href=/\n&/g' | \
-    awk -F'"' '/href="[0-9]+\.[0-9]+\/"/ {print $2}' | \
-    sed 's/\/$//' | \
+#determine RHEL derivative, currently only Alma is supported
+if [[ "$distro_id" == "almalinux" ]]; then  
+
+  # Detect latest version
+  VERSION=$(curl -s https://repo.almalinux.org/almalinux/ | \
+    grep -oE 'href="[0-9]+\.[0-9]+/"' | \
+    sed 's/href="//; s/"//; s/\/$//' | \
     sort -V | tail -1)
 
   [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
