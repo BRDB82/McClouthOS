@@ -13,7 +13,7 @@ echo -ne "
 ╚═╝     ╚═╝ ╚═════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝     ╚═════╝ ╚══════╝
 
 --------------------------------------------------------------------------------------------
-                Automated McClouth OS Base Installer (powered by Rocky)
+                Automated McClouth OS Base Installer (powered by Alma)
 --------------------------------------------------------------------------------------------
 
 Verifying Rocky Linux ISO is Booted
@@ -21,7 +21,7 @@ Verifying Rocky Linux ISO is Booted
 "
 
 if ! ps aux | grep "[a]naconda" > /dev/null; then
- echo "This script must be run from a Rocky Linux ISO environment."
+ echo "This script must be run from a Alma Linux ISO environment."
  exit 1
 fi
 
@@ -140,7 +140,7 @@ filesystem () {
     *) echo "Wrong option please select again"; filesystem;;
     esac
 }
-# @description Detects and sets timezone for Rocky Linux.
+# @description Detects and sets timezone for Alma Linux.
 timezone () {
     # Attempt to detect timezone using external service
     time_zone="$(curl --fail -s https://ipapi.co/timezone)"
@@ -170,12 +170,12 @@ System detected your timezone to be '$time_zone' \n"
             ;;
     esac
 }
-# @description Set user's keyboard mapping for Rocky Linux.
+# @description Set user's keyboard mapping for Alma Linux.
 keymap () {
     echo -ne "
 Please select keyboard layout from this list
 "
-    # These are default key maps commonly supported on Rocky Linux
+    # These are default key maps commonly supported on Alma Linux
     options=(us by ca cf cz de dk es et fa fi fr gr hu il it lt lv mk nl no pl ro ru se sg ua uk)
 
     select_option "${options[@]}"
@@ -187,7 +187,7 @@ Please select keyboard layout from this list
     # Apply the selected keymap using localectl
     localectl set-keymap "$keymap"
 }
-# @description Choose whether drive is SSD or not for Rocky Linux (non-Btrfs).
+# @description Choose whether drive is SSD or not for Alma Linux (non-Btrfs).
 drivessd () {
     echo -ne "
 Is this an SSD? yes/no:
@@ -287,7 +287,7 @@ system() {
   echo -ne "
 Please select which system you want to install from this list
 "
-    # These are default key maps commonly supported on Rocky Linux
+    # These are default key maps commonly supported on Alma Linux
     options=(server workstation)
 
     select_option "${options[@]}"
@@ -327,68 +327,72 @@ system
 echo "Setting up mirrors for optimal download"
 is=$(curl -4 -s ifconfig.io/country_code)
 timedatectl set-ntp true
-#determine RHEL derivative, currently only Rocky is supported
-if ! grep -qi '^ID=rocky' /etc/os-release 2>/dev/null; then
-  # Only support Rocky for now
+#determine RHEL derivative, currently only Alma is supported
+if ! grep -qi '^ID=almalinux' /etc/os-release 2>/dev/null; then
+  # Only support Alma for now
 
-  # Detect latest Rocky Linux version
-  VERSION=$(curl -s https://download.rockylinux.org/pub/rocky/ | \
+  # Detect latest Alma Linux version
+  VERSION=$(curl -s https://download.almalinux.org/pub/almalinux/ | \
     sed 's/href=/\n&/g' | \
     awk -F'"' '/href="[0-9]+\.[0-9]+\/"/ {print $2}' | \
     sed 's/\/$//' | \
     sort -V | tail -1)
 
   [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
-  [ -d /tmp/rocky-repos.d ] || mkdir /tmp/rocky-repos.d
+  [ -d /tmp/alma-repos.d ] || mkdir /tmp/alma-repos.d
 
-  if [ ! -f /tmp/rocky-repos.d/BaseOS.repo ]; then
+  if [ ! -f /tmp/alma-repos.d/BaseOS.repo ]; then
     {
-      echo "[rocky-baseos]"
-      echo "name=Rocky Linux $VERSION - BaseOS"
-      echo "baseurl=https://dl.rockylinux.org/pub/rocky/$VERSION/BaseOS/x86_64/os/"
+      echo "[alma-baseos]"
+      echo "name=AlmaLinux $VERSION - BaseOS"
+      echo "baseurl=http://repo.almalinux.org/almalinux/$VERSION/BaseOS/x86_64/os/"
       echo "enabled=1"
       echo "gpgcheck=0"
-    } > /tmp/rocky-repos.d/BaseOS.repo
+    } > /tmp/alma-repos.d/BaseOS.repo
   fi
 
-  if [ ! -f /tmp/rocky-repos.d/AppStream.repo ]; then
+  if [ ! -f /tmp/alma-repos.d/AppStream.repo ]; then
     {
-      echo "[rocky-appstream]"
-      echo "name=Rocky Linux $VERSION - AppStream"
-      echo "baseurl=https://dl.rockylinux.org/pub/rocky/$VERSION/AppStream/x86_64/os/"
+      echo "[almaa-appstream]"
+      echo "name=AlmaLinux $VERSION - AppStream"
+      echo "baseurl=http://repo.almalinux.org/almalinux/$VERSION/AppStream/x86_64/os/"
       echo "enabled=1"
       echo "gpgcheck=0"
-    } > /tmp/rocky-repos.d/AppStream.repo
+    } > /tmp/alma-repos.d/AppStream.repo
   fi
 
-  # Create /etc/os-release for Rocky
+  # Create /etc/os-release for Alma
   MAJOR=$(echo "$VERSION" | cut -d. -f1)
   cat > /etc/os-release <<EOF
-NAME="Rocky Linux"
-VERSION="$VERSION (Red Quartz)"
-ID="rocky"
+NAME="AlmaLinux"
+VERSION="$VERSION (Purple Lion)"
+ID="almalinux"
+ID_like="rhel centos fedora
 VERSION_ID="$VERSION"
 PLATFORM_ID="platform:el$MAJOR"
-PRETTY_NAME="Rocky Linux $VERSION (Red Quartz)"
+PRETTY_NAME="AlmaLinux $VERSION (Purple Lion)"
 ANSI_COLOR="0;34"
-CPE_NAME="cpe:/o:rocky:rocky:$VERSION"
-HOME_URL="https://rockylinux.org/"
-BUG_REPORT_URL="https://bugs.rockylinux.org/"
+CPE_NAME="cpe:/o:almalinux:almalinux:$VERSION"
+HOME_URL="https://almalinux.org/"
+BUG_REPORT_URL="https://bugs.almalinux.org/"
+REDHAT_SUPPORT_PRODUCT="AlmaLinux"
+REDHAT_SUPPORT_PRODUCT_VERSION="$VERSION"
+
 EOF
 
 echo "releasever=$VERSION" >> /etc/dnf/dnf.conf
 else
-  # If Rocky is present, extract VERSION from os-release
+  # If Alma is present, extract VERSION from os-release
   VERSION=$(awk -F= '/^VERSION_ID=/{gsub(/"/,"",$2);print $2}' /etc/os-release)
 fi
 
-dnf --setopt=reposdir=/tmp/rocky-repos.d update -y
-dnf --setopt=reposdir=/tmp/rocky-repos.d clean all
-dnf --setopt=reposdir=/tmp/rocky-repos.d makecache
-dnf --setopt=reposdir=/tmp/rocky-repos.d install -y rpm
-dnf --setopt=reposdir=/tmp/rocky-repos.d install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
-mv /etc/yum.repos.d/epel*.repo /tmp/rocky-repos.d/
-dnf --setopt=reposdir=/tmp/rocky-repos.d install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
+dnf --setopt=reposdir=/tmp/alma-repos.d update -y
+dnf --setopt=reposdir=/tmp/alma-repos.d clean all
+dnf --setopt=reposdir=/tmp/alma-repos.d makecache
+dnf --setopt=reposdir=/tmp/alma-repos.d install -y rpm
+dnf --setopt=reposdir=/tmp/alma-repos.d install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
+mv /etc/yum.repos.d/epel*.repo /tmp/alma-repos.d/
+dnf --setopt=reposdir=/tmp/alma-repos.d install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
 dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
 setfont ter-118b
 
@@ -405,10 +409,10 @@ echo -ne "
                     Installing Prerequisites
 -------------------------------------------------------------------------
 "
-sed -i '/^\[repl\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rocky-repos.d/epel.repo
-sed -i '/^\[crb\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rocky-repos.d/epel.repo
+sed -i '/^\[repl\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/alma-repos.d/epel.repo
+sed -i '/^\[crb\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/alma-repos.d/epel.repo
 
-dnf --setopt=reposdir=/tmp/rocky-repos.d install -y gdisk
+dnf --setopt=reposdir=/tmp/alma-repos.d install -y gdisk
 wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/dnfstrap.sh
   chmod +x dnfstrap.sh
   mv dnfstrap.sh /usr/bin/dnfstrap
@@ -500,7 +504,7 @@ echo -ne "
 mkdir -p /mnt/etc/dnf/vars
 echo "$VERSION" > "/mnt/etc/dnf/vars/releasever"
 echo "x86_64" > "/mnt/etc/dnf/vars/basearch"
-echo "rocky" > "/mnt/etc/dnf/vars/rltype"
+echo "ga" > "/mnt/etc/dnf/vars/rltype"
 cp /etc/os-release /mnt/etc
 #if [[ ! -d "/sys/firmware/efi" ]]; then
     dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules nano --assumeyes
@@ -514,8 +518,8 @@ find /mnt/etc/pki/rpm-gpg/ -type f -name 'RPM-GPG-KEY-*' -exec rpm --root /mnt -
 
 
 # Copy repo configurations
-#cp /tmp/rocky-repos.d/*.repo /mnt/etc/yum.repos.d/
-#sed -i 's/^enabled=1/enabled=0/' /mnt/etc/yum.repos.d/rocky.repo
+#cp /tmp/alma-repos.d/*.repo /mnt/etc/yum.repos.d/
+#sed -i 's/^enabled=1/enabled=0/' /mnt/etc/yum.repos.d/alma.repo
 
 # Generate fstab
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -551,7 +555,7 @@ fi
     grub2-install \
       --target=x86_64-efi \
       --efi-directory=/mnt/boot/efi \
-      --bootloader-id=rocky \
+      --bootloader-id=almalinux \
       --boot-directory=/mnt/boot \
       --recheck \
       --force
