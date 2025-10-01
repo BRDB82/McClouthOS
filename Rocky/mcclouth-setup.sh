@@ -48,6 +48,14 @@ EOF
   exit 1
 }
 
+base_setup() {
+	#due to password issue due to SELinux
+	if ! semodule -l | grep -q "^local_passwd_fix"; then
+		ausearch -c passwd --raw | audit2allow -M local_passwd_fix
+		semodule -i local_passwd_fix.pp
+	fi
+}
+
 cockpit_setup() {
 	dnf install cockpit cockpit-networkmanager cockpit-storaged -y
 	systemctl enable --now cockpit.socket
@@ -169,9 +177,14 @@ if [ -z "$1" ]; then
     if [ -f "$CONFIG_FILE" ]; then
         system_type=$(grep '^system_type=' "$CONFIG_FILE" | cut -d'=' -f2)
     else
-        echo "Error: No system type provided and config file not found."
-        usage
-        exit 1
+		mih=R(hostname)
+		if [ "${mih:4:1}" == "S" ]; then
+			system_type="server"
+		else
+        	echo "Error: No system type provided and config file not found."
+        	usage
+        	exit 1
+		fi
     fi
     usage
     exit 1
@@ -188,9 +201,10 @@ else
     system_type="$1"
 fi
 
-case "$1" in
+case "$system_type" in
   server)
     echo "Installing server components..."
+	base_config
     server_install
     ;;
   workstation)
