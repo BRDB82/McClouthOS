@@ -540,7 +540,7 @@ else
  for bootnum in $input; do
       if [[ "$bootnum" =~ ^[0-9]+$ ]]; then
           echo "Removing entry $bootnum..."
-          sudo efibootmgr -B -b "$bootnum"
+          efibootmgr -B -b "$bootnum"
       else
           echo "Invalid entry: '$bootnum'"
       fi
