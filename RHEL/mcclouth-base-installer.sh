@@ -90,7 +90,7 @@ disk_part () {
     echo -e "\n${disk%|*} selected \n"
         export DISK=${disk%|*}
 
-    drivessd
+    disk_type
 }
 
 disk_type () {
@@ -109,7 +109,7 @@ Is this an SSD? yes/no:
             ;;
         *)
             echo "Wrong option. Try again"
-            drivessd
+            disk_type
             ;;
     esac
 }
@@ -196,6 +196,57 @@ select_option() {
     done
 
     return $selected
+}
+
+setup_mirrors() {
+   echo "Setting up mirrors for optimal download"
+    is=$(curl -4 -s ifconfig.io/country_code)
+    timedatectl set-ntp true
+
+    #determine RHEL derivative, currently only Alma is supported
+    if [[ "$distro_id" == "almalinux" ]]; then  
+
+        # Detect latest version
+        VERSION=$(curl -s https://repo.almalinux.org/almalinux/ | \
+            grep -oE 'href="[0-9]+\.[0-9]+/"' | \
+            sed 's/href="//; s/"//; s/\/$//' | \
+            sort -V | tail -1)
+
+        [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
+        [ -d /tmp/rhel-repos.d ] || mkdir /tmp/rhel.repos.d
+
+        if [ ! -f /tmp/rhel.repos.d/BaseOS.repo ]; then
+            {
+            echo "[rhel-baseos]"
+            echo "name=AlmaLinux $VERSION - BaseOS"
+            echo "baseurl=http://repo.almalinux.org/almalinux/$VERSION/BaseOS/x86_64/os/"
+            echo "enabled=1"
+            echo "gpgcheck=0"
+            } > /tmp/rhel.repos.d/BaseOS.repo
+        fi
+
+        if [ ! -f /tmp/alma.repos.d/AppStream.repo ]; then
+            {
+            echo "[alma-appstream]"
+            echo "name=AlmaLinux $VERSION - AppStream"
+            echo "baseurl=http://repo.almalinux.org/almalinux/$VERSION/AppStream/x86_64/os/"
+            echo "enabled=1"
+            echo "gpgcheck=0"
+            } > /tmp/alma.repos.d/AppStream.repo
+        fi
+
+        echo "releasever=$VERSION" >> /etc/dnf/dnf.conf
+        echo "$VERSION" > /etc/dnf/vars/releasever
+        echo "x86_64" > /etc/dnf/vars/basearch
+        echo "ga" > /etc/dnf/vars/rltype
+        echo "distroverpkg=almalinux-release" >> /etc/dnf/dnf.conf
+
+        rm -f /etc/yum.repos.d/*.repo
+
+        for f in /tmp/rhel.repos.d/*.repo; do
+            ln -s "$f" /etc/yum.repos.d/$(basename "$f")
+        done
+    fi
 }
 
 system_choice() {
@@ -342,107 +393,53 @@ echo -ne "
 -------------------------------------------------------------------------------------------
 
 "
-echo "Setting up mirrors for optimal download"
-is=$(curl -4 -s ifconfig.io/country_code)
-timedatectl set-ntp true
+setup_mirrors
 
-#determine RHEL derivative, currently only Alma is supported
-if [[ "$distro_id" == "almalinux" ]]; then  
-
-  # Detect latest version
-  VERSION=$(curl -s https://repo.almalinux.org/almalinux/ | \
-    grep -oE 'href="[0-9]+\.[0-9]+/"' | \
-    sed 's/href="//; s/"//; s/\/$//' | \
-    sort -V | tail -1)
-
-  [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
-  [ -d /tmp/alma-repos.d ] || mkdir /tmp/alma-repos.d
-
-  if [ ! -f /tmp/alma-repos.d/BaseOS.repo ]; then
-    {
-      echo "[alma-baseos]"
-      echo "name=AlmaLinux $VERSION - BaseOS"
-      echo "baseurl=http://repo.almalinux.org/almalinux/$VERSION/BaseOS/x86_64/os/"
-      echo "enabled=1"
-      echo "gpgcheck=0"
-    } > /tmp/alma-repos.d/BaseOS.repo
-  fi
-
-  if [ ! -f /tmp/alma-repos.d/AppStream.repo ]; then
-    {
-      echo "[almaa-appstream]"
-      echo "name=AlmaLinux $VERSION - AppStream"
-      echo "baseurl=http://repo.almalinux.org/almalinux/$VERSION/AppStream/x86_64/os/"
-      echo "enabled=1"
-      echo "gpgcheck=0"
-    } > /tmp/alma-repos.d/AppStream.repo
-  fi
-
-  # Create /etc/os-release for Alma
-  MAJOR=$(echo "$VERSION" | cut -d. -f1)
-  cat > /etc/os-release <<EOF
-NAME="AlmaLinux"
-VERSION="$VERSION (Purple Lion)"
-ID="almalinux"
-ID_like="rhel centos fedora
-VERSION_ID="$VERSION"
-PLATFORM_ID="platform:el$MAJOR"
-PRETTY_NAME="AlmaLinux $VERSION (Purple Lion)"
-ANSI_COLOR="0;34"
-CPE_NAME="cpe:/o:almalinux:almalinux:$VERSION"
-HOME_URL="https://almalinux.org/"
-BUG_REPORT_URL="https://bugs.almalinux.org/"
-REDHAT_SUPPORT_PRODUCT="AlmaLinux"
-REDHAT_SUPPORT_PRODUCT_VERSION="$VERSION"
-
-EOF
-
-echo "releasever=$VERSION" >> /etc/dnf/dnf.conf
-else
-  # If Alma is present, extract VERSION from os-release
-  VERSION=$(awk -F= '/^VERSION_ID=/{gsub(/"/,"",$2);print $2}' /etc/os-release)
-fi
-
-dnf --setopt=reposdir=/tmp/alma-repos.d update -y
-dnf --setopt=reposdir=/tmp/alma-repos.d clean all
-dnf --setopt=reposdir=/tmp/alma-repos.d makecache
-dnf --setopt=reposdir=/tmp/alma-repos.d install -y rpm
-dnf --setopt=reposdir=/tmp/alma-repos.d install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
-mv /etc/yum.repos.d/epel*.repo /tmp/alma-repos.d/
-dnf --setopt=reposdir=/tmp/alma-repos.d install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
+dnf --setopt=reposdir=/tmp/rhel.repos.d update -y
+dnf --setopt=reposdir=/tmp/rhel.repos.d clean all
+dnf --setopt=reposdir=/tmp/rhelrepos.d makecache
+dnf --setopt=reposdir=/tmp/rhel.repos.d install -y rpm
+dnf --setopt=reposdir=/tmp/rhel.repos.d install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
+mv /etc/yum.repos.d/epel*.repo /tmp/rhel-repos.d/
+dnf --setopt=reposdir=/tmp/rhel.repos.d install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
 dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
 setfont ter-118b
 
 systemctl enable systemd-resolved
 systemctl start systemd-resolved
-ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+#ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 cp /etc/resolv.conf /mnt/etc/resolv.conf
 
 if [ ! -d "/mnt" ]; then
     mkdir /mnt
 fi
+
+clear
+logo
 echo -ne "
 -------------------------------------------------------------------------
                     Installing Prerequisites
 -------------------------------------------------------------------------
 "
-sed -i '/^\[repl\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/alma-repos.d/epel.repo
-sed -i '/^\[crb\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/alma-repos.d/epel.repo
+#sed -i '/^\[repl\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
+#sed -i '/^\[crb\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
 
-dnf --setopt=reposdir=/tmp/alma-repos.d install -y gdisk
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/dnfstrap.sh
+dnf --setopt=reposdir=/tmp/rhel.repos.d install -y gdisk
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/dnfstrap.sh
   chmod +x dnfstrap.sh
   mv dnfstrap.sh /usr/bin/dnfstrap
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/common
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/common
   mv common /usr/bin/dnfcommon
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/rhel-chroot.sh
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/rhel-chroot.sh
   chmod +x rhel-chroot.sh
   mv rhel-chroot.sh /usr/bin/rhel-chroot
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/genfstab.sh
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/genfstab.sh
   chmod +x genfstab.sh
   mv genfstab.sh /usr/bin/genfstab
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/fstab-helpers
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/fstab-helpers
   mv fstab-helpers /usr/bin/fstab-helpers
+
+clear
 echo -ne "
 -------------------------------------------------------------------------
                     Formatting Disk
