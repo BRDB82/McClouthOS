@@ -240,7 +240,7 @@ fi
 case "$system_type" in
   server)
     echo "Installing server components..."
-	base_install
+	base_setup
     #server_install
     ;;
   workstation)
