@@ -206,6 +206,11 @@ else
       system_type="$1"
       ;;
     --update)
+		echo -ne "
+--------------------------------------------------------------------------------------------
+             Updating mcclouth-setup
+--------------------------------------------------------------------------------------------
+"
       curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh" -o "/usr/bin/mcclouth-setup.new" || {
 	      echo "update failed"
 	      rm "/usr/bin/mcclouth-setup.new"
@@ -226,7 +231,7 @@ fi
 case "$system_type" in
   server)
     echo "Installing server components..."
-	  base_install
+	base_install
     server_install
     ;;
   workstation)
