@@ -80,6 +80,7 @@ cockpit_setup() {
 			echo "ExecStartPre=/bin/mkdir -p /run/cockpit/tls"
 			echo "ExecStartPre=/bin/chown cockpit-ws:cockpit-ws /run/cockpit/tls"
 			echo "ExecStartPre=/bin/chmod 700 /run/cockpit/tls"
+			echo "ExecStart="
 			echo "ExecStart=/usr/libexec/cockpit-tls"
 		} > /etc/systemd/system/cockpit.service.d/fix-runtime.conf
 	fi
