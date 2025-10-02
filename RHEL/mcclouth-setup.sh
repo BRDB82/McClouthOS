@@ -211,7 +211,7 @@ else
              Updating mcclouth-setup
 --------------------------------------------------------------------------------------------
 "
-      curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh" -o "/usr/bin/mcclouth-setup.new" || {
+      curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup.sh" -o "/usr/bin/mcclouth-setup.new" || {
 	      echo "update failed"
 	      rm "/usr/bin/mcclouth-setup.new"
 	      exit 1
