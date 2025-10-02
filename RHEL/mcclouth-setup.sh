@@ -181,7 +181,7 @@ if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" =
 	
 	cockpit_setup
 
-	file_storage_setup
+	#file_storage_setup
 else
   echo "Virtual hardware"
 fi
@@ -241,7 +241,7 @@ case "$system_type" in
   server)
     echo "Installing server components..."
 	base_setup
-    #server_install
+    server_install
     ;;
   workstation)
     echo "Installing workstation environment..."
