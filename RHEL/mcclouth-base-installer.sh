@@ -232,7 +232,7 @@ setup_mirrors() {
             echo "baseurl=http://repo.almalinux.org/almalinux/$VERSION/AppStream/x86_64/os/"
             echo "enabled=1"
             echo "gpgcheck=0"
-            } > /tmp/alma.repos.d/AppStream.repo
+            } > /tmp/rhel.repos.d/AppStream.repo
         fi
 
         echo "releasever=$VERSION" >> /etc/dnf/dnf.conf
