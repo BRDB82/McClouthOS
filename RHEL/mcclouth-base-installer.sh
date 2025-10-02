@@ -53,6 +53,67 @@ detect_rhel() {
 
 }
 
+disk_create_filesystems () {
+    if [[ "${DISK}" =~ "nvme" ]]; then
+        partition1=${DISK}p1
+        partition2=${DISK}p2
+        partition3=${DISK}p3
+    else
+        partition1=${DISK}1
+        partition2=${DISK}2
+        partition3=${DISK}3
+    fi
+    
+    mkfs.ext4 -L BOOT "${partition1}"
+    mkfs.fat -F32 -n "EFIBOOT" "${partition2}"
+    
+    if [[ "${FS}" == "xfs" ]]; then 
+        mkfs.xfs -f -L ROOT "${partition3}"
+        mount -t xfs "${partition3}" /mnt
+    elif [[ "${FS}" == "ext4" ]]; then
+        mkfs.ext4 "${partition3}"
+        mount -t ext4 "${partition3}" /mnt
+    fi
+    
+    BOOT_UUID=$(blkid -s UUID -o value "${partition1}")
+    EFI_UUID=$(blkid -s UUID -o value "${partition2}")
+    
+    sync
+    if ! mountpoint -q /mnt; then
+        echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
+        exit 1
+    fi
+    
+    mkdir -p /mnt/boot
+    mount -U "${BOOT_UUID}" /mnt/boot/
+    mkdir -p /mnt/boot/efi
+    mount -U "${EFI_UUID}" /mnt/boot/efi
+    
+    if ! grep -qs '/mnt' /proc/mounts; then
+        echo "Drive is not mounted, cannot continue"
+        echo "Rebooting in 3 Seconds ..." && sleep 1
+        echo "Rebooting in 2 Seconds ..." && sleep 1
+        echo "Rebooting in 1 Second ..." && sleep 1
+        reboot now
+    fi
+}
+
+disk_format () {
+    umount -A --recursive /mnt # make sure everything is unmounted before we start
+    # disk prep
+    sgdisk -Z "${DISK}" # zap all on disk
+    sgdisk -a 2048 -o "${DISK}" # new gpt disk 2048 alignment
+    
+    # create partitions
+    sgdisk -n 1::+1G --typecode=1:8300 --change-name=1:'BOOT' "${DISK}" # partition 1 (BIOS Boot Partition)
+    sgdisk -n 2::+1G --typecode=2:ef00 --change-name=2:'EFIBOOT' "${DISK}" # partition 2 (UEFI Boot Partition)
+    sgdisk -n 3::-0 --typecode=3:8300 --change-name=3:'ROOT' "${DISK}" # partition 3 (Root), default start, remaining
+    if [[ ! -d "/sys/firmware/efi" ]]; then # Checking for bios system
+        sgdisk -A 1:set:2 "${DISK}"
+    fi
+    partprobe "${DISK}" # reread partition table to ensure it is correct
+}
+
 disk_fs () {
     echo -ne "
     Please Select your file system for both boot and root
@@ -66,6 +127,68 @@ disk_fs () {
     2) exit ;;
     *) echo "Wrong option please select again"; filesystem;;
     esac
+}
+
+disk_installbootloader() {
+    efibootmgr -v | grep Boot
+    
+    echo ""
+    read -p "Give all entries to remove, or enter stop to continue: " input
+    
+    if [[ "$input" == "stop" ]]; then
+      echo ""
+    else
+     for bootnum in $input; do
+          if [[ "$bootnum" =~ ^[0-9]+$ ]]; then
+              echo "Removing entry $bootnum..."
+              efibootmgr -B -b "$bootnum"
+          else
+              echo "Invalid entry: '$bootnum'"
+          fi
+      done
+    fi
+    
+    #if [[ -d "/sys/firmware/efi" ]]; then
+        grub2-install \
+          --target=x86_64-efi \
+          --efi-directory=/mnt/boot/efi \
+          --bootloader-id=almalinux \
+          --boot-directory=/mnt/boot \
+          --recheck \
+          --force
+    #else
+    #    grub2-install --boot-directory=/mnt/boot "${DISK}"
+    #fi
+}
+
+disk_installon() {
+    # Detect EFI and install base system
+    mkdir -p /mnt/etc/dnf/vars
+    echo "$VERSION" > "/mnt/etc/dnf/vars/releasever"
+    echo "x86_64" > "/mnt/etc/dnf/vars/basearch"
+    echo "ga" > "/mnt/etc/dnf/vars/rltype"
+    cp /etc/os-release /mnt/etc
+    #if [[ ! -d "/sys/firmware/efi" ]]; then
+        dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules nano --assumeyes
+    #else
+    #    dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 --assumeyes
+    #fi
+    
+    # Import official GPG key (optional, for repo trust)
+    find /etc/pki/rpm-gpg/ -type f -name 'RPM-GPG-KEY-*' -exec install -Dm644 {} /mnt{} \;
+    find /mnt/etc/pki/rpm-gpg/ -type f -name 'RPM-GPG-KEY-*' -exec rpm --root /mnt --import {} \;
+    
+    
+    # Copy repo configurations
+    #cp /tmp/alma-repos.d/*.repo /mnt/etc/yum.repos.d/
+    #sed -i 's/^enabled=1/enabled=0/' /mnt/etc/yum.repos.d/alma.repo
+    
+    # Generate fstab
+    genfstab -U /mnt >> /mnt/etc/fstab
+    echo "
+      Generated /etc/fstab:
+    "
+    cat /mnt/etc/fstab
 }
 
 disk_part () {
@@ -196,6 +319,47 @@ select_option() {
     done
 
     return $selected
+}
+
+setup_installer_environment() {
+    dnf --setopt=reposdir=/tmp/rhel.repos.d update -y
+    dnf --setopt=reposdir=/tmp/rhel.repos.d clean all
+    dnf --setopt=reposdir=/tmp/rhel.repos.d makecache
+    dnf --setopt=reposdir=/tmp/rhel.repos.d install -y rpm
+    dnf --setopt=reposdir=/tmp/rhel.repos.d install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
+    mv /etc/yum.repos.d/epel*.repo /tmp/rhel-repos.d/
+    dnf --setopt=reposdir=/tmp/rhel.repos.d install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
+    dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
+    setfont ter-118b
+    
+    systemctl enable systemd-resolved
+    systemctl start systemd-resolved
+    #ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+    cp /etc/resolv.conf /mnt/etc/resolv.conf
+
+    if [ ! -d "/mnt" ]; then
+        mkdir /mnt
+    fi
+}
+
+setup_installer_environment() {
+    #sed -i '/^\[repl\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
+    #sed -i '/^\[crb\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
+    
+    dnf --setopt=reposdir=/tmp/rhel.repos.d install -y gdisk
+    wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/dnfstrap.sh
+      chmod +x dnfstrap.sh
+      mv dnfstrap.sh /usr/bin/dnfstrap
+    wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/common
+      mv common /usr/bin/dnfcommon
+    wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/rhel-chroot.sh
+      chmod +x rhel-chroot.sh
+      mv rhel-chroot.sh /usr/bin/rhel-chroot
+    wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/genfstab.sh
+      chmod +x genfstab.sh
+      mv genfstab.sh /usr/bin/genfstab
+    wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/fstab-helpers
+      mv fstab-helpers /usr/bin/fstab-helpers
 }
 
 setup_mirrors() {
@@ -394,25 +558,7 @@ echo -ne "
 
 "
 setup_mirrors
-
-dnf --setopt=reposdir=/tmp/rhel.repos.d update -y
-dnf --setopt=reposdir=/tmp/rhel.repos.d clean all
-dnf --setopt=reposdir=/tmp/rhel.repos.d makecache
-dnf --setopt=reposdir=/tmp/rhel.repos.d install -y rpm
-dnf --setopt=reposdir=/tmp/rhel.repos.d install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
-mv /etc/yum.repos.d/epel*.repo /tmp/rhel-repos.d/
-dnf --setopt=reposdir=/tmp/rhel.repos.d install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
-dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
-setfont ter-118b
-
-systemctl enable systemd-resolved
-systemctl start systemd-resolved
-#ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
-cp /etc/resolv.conf /mnt/etc/resolv.conf
-
-if [ ! -d "/mnt" ]; then
-    mkdir /mnt
-fi
+setup_installer_environment
 
 clear
 logo
@@ -421,161 +567,47 @@ echo -ne "
                     Installing Prerequisites
 -------------------------------------------------------------------------
 "
-#sed -i '/^\[repl\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
-#sed -i '/^\[crb\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
-
-dnf --setopt=reposdir=/tmp/rhel.repos.d install -y gdisk
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/dnfstrap.sh
-  chmod +x dnfstrap.sh
-  mv dnfstrap.sh /usr/bin/dnfstrap
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/common
-  mv common /usr/bin/dnfcommon
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/rhel-chroot.sh
-  chmod +x rhel-chroot.sh
-  mv rhel-chroot.sh /usr/bin/rhel-chroot
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/genfstab.sh
-  chmod +x genfstab.sh
-  mv genfstab.sh /usr/bin/genfstab
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/fstab-helpers
-  mv fstab-helpers /usr/bin/fstab-helpers
+setup_installer_environment2
 
 clear
+logo
 echo -ne "
 -------------------------------------------------------------------------
                     Formatting Disk
 -------------------------------------------------------------------------
 "
-umount -A --recursive /mnt # make sure everything is unmounted before we start
-# disk prep
-sgdisk -Z "${DISK}" # zap all on disk
-sgdisk -a 2048 -o "${DISK}" # new gpt disk 2048 alignment
+disk_format
 
-# create partitions
-sgdisk -n 1::+1G --typecode=1:8300 --change-name=1:'BOOT' "${DISK}" # partition 1 (BIOS Boot Partition)
-sgdisk -n 2::+1G --typecode=2:ef00 --change-name=2:'EFIBOOT' "${DISK}" # partition 2 (UEFI Boot Partition)
-sgdisk -n 3::-0 --typecode=3:8300 --change-name=3:'ROOT' "${DISK}" # partition 3 (Root), default start, remaining
-if [[ ! -d "/sys/firmware/efi" ]]; then # Checking for bios system
-    sgdisk -A 1:set:2 "${DISK}"
-fi
-partprobe "${DISK}" # reread partition table to ensure it is correct
-
-# make filesystems
+clear
+logo
 echo -ne "
 -------------------------------------------------------------------------
                     Creating Filesystems
 -------------------------------------------------------------------------
 "
-if [[ "${DISK}" =~ "nvme" ]]; then
-    partition1=${DISK}p1
-    partition2=${DISK}p2
-    partition3=${DISK}p3
-else
-    partition1=${DISK}1
-    partition2=${DISK}2
-    partition3=${DISK}3
-fi
+disk_create_filesystems
 
-mkfs.ext4 -L BOOT "${partition1}"
-mkfs.fat -F32 -n "EFIBOOT" "${partition2}"
-
-if [[ "${FS}" == "xfs" ]]; then 
-    mkfs.xfs -f -L ROOT "${partition3}"
-    mount -t xfs "${partition3}" /mnt
-elif [[ "${FS}" == "ext4" ]]; then
-    mkfs.ext4 "${partition3}"
-    mount -t ext4 "${partition3}" /mnt
-fi
-
-BOOT_UUID=$(blkid -s UUID -o value "${partition1}")
-EFI_UUID=$(blkid -s UUID -o value "${partition2}")
-
-sync
-if ! mountpoint -q /mnt; then
-    echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
-    exit 1
-fi
-
-mkdir -p /mnt/boot
-mount -U "${BOOT_UUID}" /mnt/boot/
-mkdir -p /mnt/boot/efi
-mount -U "${EFI_UUID}" /mnt/boot/efi
-
-if ! grep -qs '/mnt' /proc/mounts; then
-    echo "Drive is not mounted, cannot continue"
-    echo "Rebooting in 3 Seconds ..." && sleep 1
-    echo "Rebooting in 2 Seconds ..." && sleep 1
-    echo "Rebooting in 1 Second ..." && sleep 1
-    reboot now
-fi
-
+clear
+logo
 echo -ne "
 -------------------------------------------------------------------------
                     RHEL Install on Main Drive
 -------------------------------------------------------------------------
 "
 
-# Detect EFI and install base system
-mkdir -p /mnt/etc/dnf/vars
-echo "$VERSION" > "/mnt/etc/dnf/vars/releasever"
-echo "x86_64" > "/mnt/etc/dnf/vars/basearch"
-echo "ga" > "/mnt/etc/dnf/vars/rltype"
-cp /etc/os-release /mnt/etc
-#if [[ ! -d "/sys/firmware/efi" ]]; then
-    dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules nano --assumeyes
-#else
-#    dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 --assumeyes
-#fi
+disk_installon
 
-# Import official GPG key (optional, for repo trust)
-find /etc/pki/rpm-gpg/ -type f -name 'RPM-GPG-KEY-*' -exec install -Dm644 {} /mnt{} \;
-find /mnt/etc/pki/rpm-gpg/ -type f -name 'RPM-GPG-KEY-*' -exec rpm --root /mnt --import {} \;
-
-
-# Copy repo configurations
-#cp /tmp/alma-repos.d/*.repo /mnt/etc/yum.repos.d/
-#sed -i 's/^enabled=1/enabled=0/' /mnt/etc/yum.repos.d/alma.repo
-
-# Generate fstab
-genfstab -U /mnt >> /mnt/etc/fstab
-echo "
-  Generated /etc/fstab:
-"
-cat /mnt/etc/fstab
+clear
+logo
 echo -ne "
 -------------------------------------------------------------------------
                     GRUB BIOS Bootloader Install & Check
 -------------------------------------------------------------------------
 "
-#add NVRAM check and delete no longer needed so we can do the following
-efibootmgr -v | grep Boot
+disk_installbootloader
 
-echo ""
-read -p "Give all entries to remove, or enter stop to continue: " input
-
-if [[ "$input" == "stop" ]]; then
-  echo ""
-else
- for bootnum in $input; do
-      if [[ "$bootnum" =~ ^[0-9]+$ ]]; then
-          echo "Removing entry $bootnum..."
-          efibootmgr -B -b "$bootnum"
-      else
-          echo "Invalid entry: '$bootnum'"
-      fi
-  done
-fi
-
-#if [[ -d "/sys/firmware/efi" ]]; then
-    grub2-install \
-      --target=x86_64-efi \
-      --efi-directory=/mnt/boot/efi \
-      --bootloader-id=almalinux \
-      --boot-directory=/mnt/boot \
-      --recheck \
-      --force
-#else
-#    grub2-install --boot-directory=/mnt/boot "${DISK}"
-#fi
+clear
+logo
 echo -ne "
 -------------------------------------------------------------------------
                     Checking for low memory systems <8G
@@ -630,18 +662,18 @@ echo -ne "
 dnf install -y curl git wget chrony
 dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
 dnf install -y rsync grub2
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/dnfstrap.sh
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/dnfstrap.sh
   chmod +x dnfstrap.sh
   mv dnfstrap.sh /usr/bin/dnfstrap
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/common
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/common
   mv common /usr/bin/dnfcommon
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/rhel-chroot.sh
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/rhel-chroot.sh
   chmod +x rhel-chroot.sh
   mv rhel-chroot.sh /usr/bin/rhel-chroot
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/genfstab.sh
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/genfstab.sh
   chmod +x genfstab.sh
   mv genfstab.sh /usr/bin/genfstab
-wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/rocky-installation-scripts/fstab-helpers
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/fstab-helpers
   mv fstab-helpers /usr/bin/fstab-helpers
 wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh
   chmod +x mcclouth-setup.sh
