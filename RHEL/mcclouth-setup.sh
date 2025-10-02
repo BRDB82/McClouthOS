@@ -63,10 +63,19 @@ base_setup() {
 }
 
 cockpit_setup() {
-	dnf install cockpit cockpit-networkmanager cockpit-storaged -y
-	systemctl enable --now cockpit.socket
-	firewall-cmd --add-service=cockpit --permanent
-	firewall-cmd --reload
+	if ! rpm -q cockpit &>/dev/null; then
+		dnf install cockpit cockpit-networkmanager cockpit-storaged -y
+	fi
+	if ! systemctl is-enabled cockpit.socket &>/dev/null; then
+		systemctl enable --now cockpit.socket
+	fi
+	if ! systemctl is-active cockpit.socket &>/dev/null; then
+		systemctl start cockpit.socket
+	fi
+	if ! firewall-cmd --list-services | grep -qw cockpit; then
+		firewall-cmd --add-service=cockpit --permanent
+		firewall-cmd --reload
+	fi
 }
 
 file_storage_setup() {
@@ -232,7 +241,7 @@ case "$system_type" in
   server)
     echo "Installing server components..."
 	base_install
-    server_install
+    #server_install
     ;;
   workstation)
     echo "Installing workstation environment..."
