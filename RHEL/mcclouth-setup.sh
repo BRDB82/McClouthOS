@@ -66,6 +66,24 @@ cockpit_setup() {
 	if ! rpm -q cockpit &>/dev/null; then
 		dnf install cockpit cockpit-networkmanager cockpit-storaged -y
 	fi
+	rm -f /etc/cockpit/ws-certs.d/*
+	/usr/libexec/cockpit-certificate-ensure
+	semanage fcontext -a -t cert_t '/etc/cockpit/ws-certs.d(/.*)?'
+	restorecon -Rv /etc/cockpit/ws-certs.d
+
+	mkdir -p /etc/systemd/system/cockpit.service.d
+	if [ ! -f /etc/systemd/system/cockpit.service.d/fix-runtime.conf ]; then
+		{
+			echo "[Service]"
+			echo "RuntimeDirectory=cockpit"
+			echo "Environment=RUNTIME_DIRECTORY=/run/cockpit"
+			echo "ExecStartPre=/bin/mkdir -p /run/cockpit/tls"
+			echo "ExecStartPre=/bin/chown cockpit-ws:cockpit-ws /run/cockpit/tls"
+			echo "ExecStartPre=/bin/chmod 700 /run/cockpit/tls"
+			echo "ExecStart=/usr/libexec/cockpit-tls"
+		} > /etc/systemd/system/cockpit.service.d/fix-runtime.conf
+	fi
+	
 	if ! systemctl is-enabled cockpit.socket &>/dev/null; then
 		systemctl enable --now cockpit.socket
 	fi
@@ -76,6 +94,10 @@ cockpit_setup() {
 		firewall-cmd --add-service=cockpit --permanent
 		firewall-cmd --reload
 	fi
+	sudo systemctl daemon-reexec
+	sudo systemctl daemon-reload
+	sudo systemctl reset-failed cockpit.socket cockpit.service
+	sudo systemctl restart cockpit.socket
 }
 
 file_storage_setup() {
