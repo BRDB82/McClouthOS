@@ -213,7 +213,7 @@ setup_mirrors() {
             sort -V | tail -1)
 
         [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
-        [ -d /tmp/rhel-repos.d ] || mkdir /tmp/rhel.repos.d
+        [ -d /tmp/rhel.repos.d ] || mkdir /tmp/rhel.repos.d
 
         if [ ! -f /tmp/rhel.repos.d/BaseOS.repo ]; then
             {
@@ -397,7 +397,7 @@ setup_mirrors
 
 dnf --setopt=reposdir=/tmp/rhel.repos.d update -y
 dnf --setopt=reposdir=/tmp/rhel.repos.d clean all
-dnf --setopt=reposdir=/tmp/rhelrepos.d makecache
+dnf --setopt=reposdir=/tmp/rhel.repos.d makecache
 dnf --setopt=reposdir=/tmp/rhel.repos.d install -y rpm
 dnf --setopt=reposdir=/tmp/rhel.repos.d install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
 mv /etc/yum.repos.d/epel*.repo /tmp/rhel-repos.d/
