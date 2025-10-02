@@ -800,7 +800,7 @@ echo -ne "
                     Install $SYSTEM_OF_CHOICE
 -------------------------------------------------------------------------
 "
-mcclouth-setup "$SYSTEM_OF_CHOICE"
+#mcclouth-setup "$SYSTEM_OF_CHOICE"
 
 echo -ne "
 -------------------------------------------------------------------------
