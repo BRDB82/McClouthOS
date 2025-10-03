@@ -371,10 +371,10 @@ setup_mirrors() {
     if [[ "$distro_id" == "rhel" ]]; then  
 
         # Detect latest version --- #sed 's/href="//; s/"//; s/\/$//' | \
-        VERSION=curl -s https://developers.redhat.com/products/rhel/download | \
+        VERSION=$(curl -s https://developers.redhat.com/products/rhel/download | \
             grep -oE 'Red HAt Enterprise Linux [0-9]+\.[0-9]+' | \
             grep -oE '[0-9]+\.[0-9]+' | \
-            sort -V | tail -1
+            sort -V | tail -1)
 
         [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
         [ -d /tmp/rhel.repos.d ] || mkdir /tmp/rhel.repos.d
