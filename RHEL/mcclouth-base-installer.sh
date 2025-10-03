@@ -152,7 +152,7 @@ disk_installbootloader() {
         grub2-install \
           --target=x86_64-efi \
           --efi-directory=/mnt/boot/efi \
-          --bootloader-id=almalinux \
+          --bootloader-id=McClouthOS \
           --boot-directory=/mnt/boot \
           --recheck \
           --force
@@ -166,7 +166,7 @@ disk_installon() {
     mkdir -p /mnt/etc/dnf/vars
     echo "$VERSION" > "/mnt/etc/dnf/vars/releasever"
     echo "x86_64" > "/mnt/etc/dnf/vars/basearch"
-    echo "ga" > "/mnt/etc/dnf/vars/rltype"
+    echo "production" > "/mnt/etc/dnf/vars/rltype"
     cp /etc/os-release /mnt/etc
     #if [[ ! -d "/sys/firmware/efi" ]]; then
         dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules nano --assumeyes
@@ -383,17 +383,17 @@ setup_mirrors() {
             {
             echo "[rhel-baseos]"
             echo "name=Red Hat Enterprise Linux $VERSION - BaseOS"
-            echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/BaseOS/x86_64/os/"
+            echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/BaseOS/production/os/"
             echo "enabled=1"
             echo "gpgcheck=0"
             } > /tmp/rhel.repos.d/BaseOS.repo
         fi
 
-        if [ ! -f /tmp/alma.repos.d/AppStream.repo ]; then
+        if [ ! -f /tmp/rhel.repos.d/AppStream.repo ]; then
             {
-            echo "[alma-appstream]"
+            echo "[rhel-appstream]"
             echo "name=Red Hat Enterprise Linux $VERSION - AppStream"
-            echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/AppStream/x86_64/os/"
+            echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/AppStream/production/os/"
             echo "enabled=1"
             echo "gpgcheck=0"
             } > /tmp/rhel.repos.d/AppStream.repo
@@ -402,8 +402,7 @@ setup_mirrors() {
         echo "releasever=$VERSION" >> /etc/dnf/dnf.conf
         echo "$VERSION" > /etc/dnf/vars/releasever
         echo "x86_64" > /etc/dnf/vars/basearch
-        echo "ga" > /etc/dnf/vars/rltype
-        echo "distroverpkg=almalinux-release" >> /etc/dnf/dnf.conf
+        echo "production" > /etc/dnf/vars/rltype
 
         rm -f /etc/yum.repos.d/*.repo
 
@@ -802,11 +801,6 @@ echo -ne "
                Creating Grub Boot Menu
 -------------------------------------------------------------------------
 "
-
-# Set kernel parameter for decrypting the drive
-if [[ "${FS}" == "luks" ]]; then
-    sed -i "s%GRUB_CMDLINE_LINUX=\"%GRUB_CMDLINE_LINUX=\"cryptdevice=UUID=${ENCRYPTED_PARTITION_UUID}:ROOT root=/dev/mapper/ROOT %g" /etc/default/grub
-fi
 
 # Add splash screen
 sed -i 's/GRUB_CMDLINE_LINUX="[^"]*/& splash /' /etc/default/grub
