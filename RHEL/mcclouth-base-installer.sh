@@ -367,13 +367,12 @@ setup_mirrors() {
     is=$(curl -4 -s ifconfig.io/country_code)
     timedatectl set-ntp true
 
-    #determine RHEL derivative, currently only Alma is supported
-    if [[ "$distro_id" == "almalinux" ]]; then  
+    if [[ "$distro_id" == "rhel" ]]; then  
 
-        # Detect latest version
-        VERSION=$(curl -s https://repo.almalinux.org/almalinux/ | \
-            grep -oE 'href="[0-9]+\.[0-9]+/"' | \
-            sed 's/href="//; s/"//; s/\/$//' | \
+        # Detect latest version --- #sed 's/href="//; s/"//; s/\/$//' | \
+        VERSION=curl -s https://developers.redhat.com/products/rhel/download | \
+            grep -oE 'Red HAt Enterprise Linux [0-9]+\.[0-9]+' | \
+            grep -oE '[0-9]+\.[0-9]+' | \
             sort -V | tail -1)
 
         [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
@@ -382,8 +381,8 @@ setup_mirrors() {
         if [ ! -f /tmp/rhel.repos.d/BaseOS.repo ]; then
             {
             echo "[rhel-baseos]"
-            echo "name=AlmaLinux $VERSION - BaseOS"
-            echo "baseurl=http://repo.almalinux.org/almalinux/$VERSION/BaseOS/x86_64/os/"
+            echo "name=Red Hat Enterprise Linux $VERSION - BaseOS"
+            echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/BaseOS/x86_64/os/"
             echo "enabled=1"
             echo "gpgcheck=0"
             } > /tmp/rhel.repos.d/BaseOS.repo
@@ -392,8 +391,8 @@ setup_mirrors() {
         if [ ! -f /tmp/alma.repos.d/AppStream.repo ]; then
             {
             echo "[alma-appstream]"
-            echo "name=AlmaLinux $VERSION - AppStream"
-            echo "baseurl=http://repo.almalinux.org/almalinux/$VERSION/AppStream/x86_64/os/"
+            echo "name=Red Hat Enterprise Linux $VERSION - AppStream"
+            echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/AppStream/x86_64/os/"
             echo "enabled=1"
             echo "gpgcheck=0"
             } > /tmp/rhel.repos.d/AppStream.repo
