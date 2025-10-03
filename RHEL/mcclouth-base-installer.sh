@@ -322,7 +322,10 @@ select_option() {
 }
 
 setup_installer_environment() {
-    subscription-manager register
+    subscription-manager register --force
+    sleep 5
+    subscription-manager attach --auto
+    sleep 5
     dnf --setopt=reposdir=/tmp/rhel.repos.d update -y
     dnf --setopt=reposdir=/tmp/rhel.repos.d clean all
     dnf --setopt=reposdir=/tmp/rhel.repos.d makecache
