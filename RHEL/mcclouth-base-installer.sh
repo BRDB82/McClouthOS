@@ -322,8 +322,14 @@ select_option() {
 }
 
 setup_installer_environment() {
-    subscription-manager register --force
+
+    read -p "Red Hat account: " RHELuser
+    read -s -p "Red Hat password: " RHELpasswd
+    echo
+    subscription-manager register --username="RHELuser" --password="RHELpasswd"
     sleep 5
+    unset RHELuser
+    unset RHELpasswd
     subscription-manager attach --auto
     sleep 5
     dnf --setopt=reposdir=/tmp/rhel.repos.d update -y
