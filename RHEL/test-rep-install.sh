@@ -47,7 +47,7 @@ while true; do
         break
     fi
 done
-subscription-manager attach --auto
+#subscription-manager attach --auto
 sleep 5
 dnf --setopt=reposdir=/tmp/rhel.repos.d update -y
 dnf --setopt=reposdir=/tmp/rhel.repos.d clean all
