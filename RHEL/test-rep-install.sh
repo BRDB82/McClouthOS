@@ -35,6 +35,14 @@ fi
 
 echo "✅ Gedetecteerde RHEL versie: $RHEL_VERSION"
 
+ENT_CERT=$(find /etc/pki/entitlement -type f -name "*.pem" ! -name "*-key.pem" | head -n 1)
+ENT_KEY=$(find /etc/pki/entitlement -type f -name "*-key.pem" | head -n 1)
+
+curl --cacert /etc/pki/tls/certs/ca-bundle.crt \
+     --cert "$ENT_CERT" \
+     --key "$ENT_KEY" \
+     https://cdn.redhat.com/content/dist/rhel/10/x86_64/baseos/os/Packages/
+
 # Check of systeem al geregistreerd is
 if subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"; then
   echo "✅ Systeem is al geregistreerd."
@@ -99,4 +107,4 @@ dnf install -y ca-certificates || true
 dnf install -y rpm
 
 echo "=== RHEL registration and repo setup complete. You can now install packages. ==="
-#update1852-011
+#update1852-012
