@@ -13,75 +13,90 @@ if [ "$1" == "--update" ]; then
 	exit 0
 fi
  
- VERSION=$(curl -s https://developers.redhat.com/products/rhel/download | \
-            grep -oE 'Red Hat Enterprise Linux [0-9]+\.[0-9]+' | \
-            grep -oE '[0-9]+\.[0-9]+' | \
-            sort -V | tail -1 | sed 's/$//')
-  
-[ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
-[ -d /tmp/rhel.repos.d ] || mkdir /tmp/rhel.repos.d
+ cho "=== RHEL Registration and Repo Setup Script ==="
 
-if ! subscription-manager status | grep -q "Registered"; then
-	while true; do
-		read -p "Red Hat account: " RHELuser
-		read -s -p "Red Hat password: " RHELpasswd
-		echo
-	
-		output=$(subscription-manager register --username="$RHELuser" --password="$RHELpasswd")
-		echo "$output"
-	
-	    if echo "$output" | grep -q "Invalid username or password. To create a login"; then
-	        echo "Please try again."
-	        unset RHELuser
-	        unset RHELpasswd
-	        sleep 2
-	    else
-	        unset RHELuser
-	        unset RHELpasswd
-	        break
-	    fi
-	done
+# Get latest RHEL version from Red Hat's download page (future-proof)
+echo "Detecting latest RHEL version..."
+RHEL_VERSION=$(curl -s https://cdn.redhat.com/content/dist/rhel/server/ | grep -oE 'href="[0-9]+\.[0-9]+/' | grep -oE '[0-9]+\.[0-9]+' | sort -V | tail -1)
+if [[ -z "$RHEL_VERSION" ]]; then
+    # fallback to developers.redhat.com if CDN fails
+    RHEL_VERSION=$(curl -s https://developers.redhat.com/products/rhel/download | grep -oE 'Red Hat Enterprise Linux [0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+' | sort -V | tail -1)
+fi
+if [[ -z "$RHEL_VERSION" ]]; then
+    echo "Could not detect RHEL version automatically."
+    exit 1
+fi
+echo "Detected RHEL version: $RHEL_VERSION"
+
+# Ensure repo directories exist
+mkdir -p /etc/yum.repos.d
+mkdir -p /tmp/rhel.repos.d
+
+# Prompt for Red Hat credentials and register
+while true; do
+    read -p "Red Hat account (username): " RHEL_USER
+    read -s -p "Red Hat password: " RHEL_PASS
+    echo
+    if [[ -z "$RHEL_USER" || -z "$RHEL_PASS" ]]; then
+        echo "Username and password required."
+        continue
+    fi
+    echo "Registering system with Red Hat..."
+    if output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" --no-auto-attach 2>&1); then
+        echo "$output"
+        break
+    else
+        echo "$output"
+        if echo "$output" | grep -qi "Invalid username or password"; then
+            echo "Invalid credentials, please try again."
+        else
+            echo "Registration failed, please check your account or network."
+        fi
+    fi
+done
+
+unset RHEL_USER
+unset RHEL_PASS
+
+# No attach step for RHEL 10.0, skip it
+
+# Get entitlement certs for repo SSL
+ENT_CERT=$(find /etc/pki/entitlement -type f -name "*.pem" ! -name "*-key.pem" | head -n 1)
+ENT_KEY=$(find /etc/pki/entitlement -type f -name "*-key.pem" | head -n 1)
+
+if [[ ! -f "$ENT_CERT" || ! -f "$ENT_KEY" ]]; then
+    echo "Entitlement certificates not found. Registration may have failed."
+    exit 2
 fi
 
-ENTITLEMENT_CERT=$(find /etc/pki/entitlement -type f -name "*.pem" ! -name "*-key.pem" | head -n 1)
-ENTITLEMENT_KEY=$(find /etc/pki/entitlement -type f -name "*-key.pem" | head -n 1)
-CONSUMER_CERT=$(find /etc/pki/consumer -type f -name "*cert.pem" | head -n 1)
-CONSUMER_KEY=$(find /etc/pki/consumer -type f -name "*key.pem" | head -n 1)
+# Create BaseOS repo file
+cat > /tmp/rhel.repos.d/BaseOS.repo <<EOF
+[rhel-baseos]
+name=Red Hat Enterprise Linux $RHEL_VERSION - BaseOS
+baseurl=https://cdn.redhat.com/content/dist/rhel/$RHEL_VERSION/x86_64/baseos/os/
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+sslverify=1
+sslclientcert=$ENT_CERT
+sslclientkey=$ENT_KEY
+EOF
 
-rm /tmp/rhel.repos.d/BaseOS.repo
-
-if [ ! -f /tmp/rhel.repos.d/BaseOS.repo ]; then
-	{
-	echo "[rhel-baseos]"
-	echo "name=Red Hat Enterprise Linux $VERSION - BaseOS"
-	#echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/baseos/os/" 
-	#echo "baseurl=https://cdn.redhat.com/content/dist/rhel/server/$VERSION/x86_64/baseos/os/"
-	#echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/baseos/os/"
-	echo "baseurl=https://access.redhat.com/content/origin/rhel/dist/rhel/server/$VERSION/x86_64/baseos/os/"
-	echo "enabled=1"
-	echo "gpgcheck=1"
-	echo "gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
-	echo "sslverify=0"
-	echo "sslclientcert=$ENTITLEMENT_CERT"
-	echo "sslclientkey=$ENTITLEMENT_KEY"
-	} > /tmp/rhel.repos.d/BaseOS.repo
-fi
-
-echo "releasever=$VERSION" >> /etc/dnf/dnf.conf
-echo "$VERSION" > /etc/dnf/vars/releasever
+# Set DNF variables for releasever and basearch
+echo "$RHEL_VERSION" > /etc/dnf/vars/releasever
 echo "x86_64" > /etc/dnf/vars/basearch
 echo "production" > /etc/dnf/vars/rltype
 
+# Remove any existing repo files and link new ones
 rm -f /etc/yum.repos.d/*.repo
-
 for f in /tmp/rhel.repos.d/*.repo; do
-	ln -s "$f" /etc/yum.repos.d/$(basename "$f")
+    ln -sf "$f" /etc/yum.repos.d/$(basename "$f")
 done
 
-
-#subscription-manager attach --auto
-sleep 5
-dnf --setopt=reposdir=/tmp/rhel.repos.d update -y
+# Clean and update DNF
+echo "Cleaning and updating DNF cache..."
 dnf --setopt=reposdir=/tmp/rhel.repos.d clean all
 dnf --setopt=reposdir=/tmp/rhel.repos.d makecache
 dnf --setopt=reposdir=/tmp/rhel.repos.d install -y rpm
+
+echo "=== RHEL registration and repo setup complete. You can now install packages. ==="
