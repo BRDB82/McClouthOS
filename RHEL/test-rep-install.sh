@@ -145,12 +145,14 @@ echo "production" > /etc/dnf/vars/rltype
 rm -f /etc/yum.repos.d/*.repo
 rm -f /etc/yum.repos.d/redhat.repo
 
+dnf repolist --setopt=reposdir=/tmp/rhel.repos.d
+
 # Clean and update DNF
 echo "Cleaning and updating DNF cache..."
-dnf --setopt=reposdir=/tmp/rhel.repos.d clean all
-dnf --setopt=reposdir=/tmp/rhel.repos.d makecache
-dnf --setopt=reposdir=/tmp/rhel.repos.d install -y ca-certificates || true
-dnf --setopt=reposdir=/tmp/rhel.repos.d install -y rpm
+dnf --setopt=reposdir=/tmp/rhel.repos.d/ clean all
+dnf --setopt=reposdir=/tmp/rhel.repos.d/ makecache
+dnf --setopt=reposdir=/tmp/rhel.repos.d/ install -y ca-certificates || true
+dnf --setopt=reposdir=/tmp/rhel.repos.d/ install -y rpm
 
 echo "=== RHEL registration and repo setup complete. You can now install packages. ==="
-#update1852-004
+#update1852-005
