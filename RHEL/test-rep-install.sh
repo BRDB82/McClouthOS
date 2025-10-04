@@ -90,7 +90,7 @@ fi
 # --- SSL FIX FOR CURL ERROR 60 ---
 # Update CA trust and import Red Hat's CA if needed
 echo "Updating CA trust and importing Red Hat CA if needed..."
-update-ca-trust force-enable || true
+# Remove force-enable, just use extract (force-enable is not a valid option)
 update-ca-trust extract || true
 
 # Download Red Hat's CA certificate and add to system trust if not present
