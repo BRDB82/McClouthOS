@@ -48,13 +48,15 @@ ENTITLEMENT_KEY=$(find /etc/pki/entitlement -type f -name "*-key.pem" | head -n 
 CONSUMER_CERT=$(find /etc/pki/consumer -type f -name "*cert.pem" | head -n 1)
 CONSUMER_KEY=$(find /etc/pki/consumer -type f -name "*key.pem" | head -n 1)
 
+rm /tmp/rhel.repos.d/BaseOS.repo
+
 if [ ! -f /tmp/rhel.repos.d/BaseOS.repo ]; then
 	{
 	echo "[rhel-baseos]"
 	echo "name=Red Hat Enterprise Linux $VERSION - BaseOS"
-	echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/baseos/os/" 
+	#echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/baseos/os/" 
 	#echo "baseurl=https://cdn.redhat.com/content/dist/rhel/server/$VERSION/x86_64/baseos/os/"
-	#echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/baseos/os/"
+	echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/baseos/os/"
 	#echo "baseurl=https://access.redhat.com/content/origin/rhel/dist/rhel/server/$VERSION/x86_64/baseos/os/"
 	echo "enabled=1"
 	echo "gpgcheck=1"
