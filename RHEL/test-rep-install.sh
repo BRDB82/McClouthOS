@@ -28,77 +28,68 @@ echo "Detected RHEL version: $RHEL_VERSION"
 # Ensure repo directories exist
 mkdir -p /etc/yum.repos.d
 
-# Check if system is already registered BEFORE prompting for credentials
+if [[ -z "$RHEL_VERSION" ]]; then
+  echo "❌ Kon RHEL versie niet detecteren."
+  exit 1
+fi
+
+echo "✅ Gedetecteerde RHEL versie: $RHEL_VERSION"
+
+# Check of systeem al geregistreerd is
 if subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"; then
-    REGISTERED=1
-elif [ -f /etc/pki/consumer/cert.pem ]; then
-    REGISTERED=1
+  echo "✅ Systeem is al geregistreerd."
 else
-    REGISTERED=0
+  echo "🔐 Voer Red Hat accountgegevens in om te registreren..."
+  read -p "Gebruikersnaam: " RHEL_USER
+  read -s -p "Wachtwoord: " RHEL_PASS
+  echo
+
+  echo "📡 Registreren bij Red Hat..."
+  output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
+  echo "$output"
+
+  if [[ $rc -ne 0 ]]; then
+    echo "❌ Registratie mislukt. Controleer je account of netwerk."
+    exit $rc
+  fi
+
+  echo "✅ Registratie geslaagd."
+  unset RHEL_USER
+  unset RHEL_PASS
 fi
 
-if [[ $REGISTERED -eq 0 ]]; then
-    # Prompt for Red Hat credentials and register
-    while true; do
-        read -p "Red Hat account (username): " RHEL_USER
-        read -s -p "Red Hat password: " RHEL_PASS
-        echo
-        if [[ -z "$RHEL_USER" || -z "$RHEL_PASS" ]]; then
-            echo "Username and password required."
-            continue
-        fi
-        echo "Registering system with Red Hat..."
-        output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
-        echo "$output"
-        if [[ $rc -eq 0 ]]; then
-            echo "Registration successful."
-            break
-        elif echo "$output" | grep -qi "This system is already registered"; then
-            echo "System is already registered (according to subscription-manager)."
-            break
-        elif echo "$output" | grep -qi "Invalid username or password"; then
-            echo "Invalid credentials, please try again."
-        else
-            echo "Registration failed, please check your account or network."
-        fi
-    done
-    unset RHEL_USER
-    unset RHEL_PASS
-fi
+echo "📦 Repo activeren: rhel-$RHEL_VERSION-for-x86_64-baseos-rpms"
+subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms"
 
-subscription-manager repos --enable=rhel-10-for-x86_64-baseos-rpms
-
-echo "=== Verifiëren van toegang tot Red Hat CDN met entitlement-certificaten ==="
+# Entitlement-certificaten ophalen
 ENT_CERT=$(find /etc/pki/entitlement -type f -name "*.pem" ! -name "*-key.pem" | head -n 1)
 ENT_KEY=$(find /etc/pki/entitlement -type f -name "*-key.pem" | head -n 1)
 
 if [[ ! -f "$ENT_CERT" || ! -f "$ENT_KEY" ]]; then
-    echo "❌ Entitlement-certificaten niet gevonden. Systeem is mogelijk niet correct geregistreerd."
-    exit 2
+  echo "❌ Entitlement-certificaten niet gevonden. Registratie is mogelijk mislukt."
+  exit 2
 fi
 
+# CDN-connectie testen
+echo "🌐 Test toegang tot Red Hat CDN voor BaseOS..."
 CDN_URL="https://cdn.redhat.com/content/dist/rhel/$RHEL_VERSION/x86_64/baseos/os/"
 curl -s -o /dev/null --cert "$ENT_CERT" --key "$ENT_KEY" --head "$CDN_URL"
 CURL_RC=$?
 
 if [[ $CURL_RC -eq 0 ]]; then
-    echo "✅ CDN-verbinding succesvol: toegang tot BaseOS bevestigd."
+  echo "✅ CDN-verbinding succesvol: toegang tot BaseOS bevestigd."
 elif [[ $CURL_RC -eq 60 ]]; then
-    echo "❌ SSL-fout: certificaat niet vertrouwd. Controleer CA-trust en entitlement-certificaten."
-    exit 60
+  echo "❌ SSL-fout: certificaat niet vertrouwd. Controleer CA-trust en entitlement-certificaten."
+  exit 60
 elif [[ $CURL_RC -eq 22 ]]; then
-    echo "❌ HTTP-fout: CDN weigert toegang (403 of 404). Controleer of je subscription toegang geeft tot RHEL $RHEL_VERSION BaseOS."
-    exit 22
+  echo "❌ HTTP-fout: CDN weigert toegang (403 of 404). Subscription biedt mogelijk geen toegang tot RHEL $RHEL_VERSION BaseOS."
+  exit 22
 else
-    echo "❌ Onbekende fout bij CDN-connectie (curl exit code $CURL_RC)."
-    exit $CURL_RC
+  echo "❌ Onbekende fout bij CDN-connectie (curl exit code $CURL_RC)."
+  exit $CURL_RC
 fi
 
-
-# Set DNF variables for releasever and basearch
-echo "$RHEL_VERSION" > /etc/dnf/vars/releasever
-echo "x86_64" > /etc/dnf/vars/basearch
-echo "production" > /etc/dnf/vars/rltype
+echo "🎯 RHEL registratie en repo-activatie voltooid. Je systeem is klaar voor installatie."
 
 # Clean and update DNF
 echo "Cleaning and updating DNF cache..."
@@ -108,4 +99,4 @@ dnf install -y ca-certificates || true
 dnf install -y rpm
 
 echo "=== RHEL registration and repo setup complete. You can now install packages. ==="
-#update1852-010
+#update1852-011
