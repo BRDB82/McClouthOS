@@ -377,48 +377,30 @@ setup_mirrors() {
     is=$(curl -4 -s ifconfig.io/country_code)
     timedatectl set-ntp true
 
-    if [[ "$distro_id" == "rhel" ]]; then  
-
-        # Detect latest version --- #sed 's/href="//; s/"//; s/\/$//' | \
-        VERSION=$(curl -s https://developers.redhat.com/products/rhel/download | \
-            grep -oE 'Red Hat Enterprise Linux [0-9]+\.[0-9]+' | \
-            grep -oE '[0-9]+\.[0-9]+' | \
-            sort -V | tail -1 | sed 's:/$::')
-
-        [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
-        [ -d /tmp/rhel.repos.d ] || mkdir /tmp/rhel.repos.d
-
-        if [ ! -f /tmp/rhel.repos.d/BaseOS.repo ]; then
-            {
-            echo "[rhel-baseos]"
-            echo "name=Red Hat Enterprise Linux $VERSION - BaseOS"
-            echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/BaseOS/production/os/"
-            echo "enabled=1"
-            echo "gpgcheck=0"
-            } > /tmp/rhel.repos.d/BaseOS.repo
-        fi
-
-        if [ ! -f /tmp/rhel.repos.d/AppStream.repo ]; then
-            {
-            echo "[rhel-appstream]"
-            echo "name=Red Hat Enterprise Linux $VERSION - AppStream"
-            echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/AppStream/production/os/"
-            echo "enabled=1"
-            echo "gpgcheck=0"
-            } > /tmp/rhel.repos.d/AppStream.repo
-        fi
-
-        echo "releasever=$VERSION" >> /etc/dnf/dnf.conf
-        echo "$VERSION" > /etc/dnf/vars/releasever
-        echo "x86_64" > /etc/dnf/vars/basearch
-        echo "production" > /etc/dnf/vars/rltype
-
-        rm -f /etc/yum.repos.d/*.repo
-
-        for f in /tmp/rhel.repos.d/*.repo; do
-            ln -s "$f" /etc/yum.repos.d/$(basename "$f")
-        done
+    mkdir -p /etc/yum.repos.d
+    
+     Check if we have registered system
+    if ! subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"; then
+      read -p "CDN Username: " RHEL_USER
+      read -s -p "CDN Password: " RHEL_PASS
+      echo
+    
+      echo "📡 Registring with Red Hat..."
+      output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
+      echo "$output"
+    
+      if [[ $rc -ne 0 ]]; then
+        echo "❌ Registration failed."
+        exit $rc
+      fi
+    
+      unset RHEL_USER
+      unset RHEL_PASS
     fi
+    
+    subscription-manager refresh
+    
+    subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms"
 }
 
 system_choice() {
