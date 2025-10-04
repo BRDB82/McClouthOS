@@ -1,5 +1,5 @@
  #!/bin/bash
-exec > >(tee -i mcclouthos.log)
+exec > >(tee -i repo-test.log)
 exec 2>&1
 
 if [ "$1" == "--update" 0]; then
