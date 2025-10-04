@@ -13,7 +13,7 @@ if [ "$1" == "--update" ]; then
 	exit 0
 fi
  
- cho "=== RHEL Registration and Repo Setup Script ==="
+echo "=== RHEL Registration and Repo Setup Script ==="
 
 # Get latest RHEL version from Red Hat's download page (future-proof)
 echo "Detecting latest RHEL version..."
