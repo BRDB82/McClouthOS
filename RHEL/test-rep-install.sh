@@ -21,25 +21,27 @@ fi
 [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
 [ -d /tmp/rhel.repos.d ] || mkdir /tmp/rhel.repos.d
 
-while true; do
-	read -p "Red Hat account: " RHELuser
-	read -s -p "Red Hat password: " RHELpasswd
-	echo
-
-	output=$(subscription-manager register --username="$RHELuser" --password="$RHELpasswd")
-	echo "$output"
-
-    if echo "$output" | grep -q "Invalid username or password. To create a login"; then
-        echo "Please try again."
-        unset RHELuser
-        unset RHELpasswd
-        sleep 2
-    else
-        unset RHELuser
-        unset RHELpasswd
-        break
-    fi
-done
+if ! subscription-manager status | grep -q "Registered"; then
+	while true; do
+		read -p "Red Hat account: " RHELuser
+		read -s -p "Red Hat password: " RHELpasswd
+		echo
+	
+		output=$(subscription-manager register --username="$RHELuser" --password="$RHELpasswd")
+		echo "$output"
+	
+	    if echo "$output" | grep -q "Invalid username or password. To create a login"; then
+	        echo "Please try again."
+	        unset RHELuser
+	        unset RHELpasswd
+	        sleep 2
+	    else
+	        unset RHELuser
+	        unset RHELpasswd
+	        break
+	    fi
+	done
+fi
 
 ENTITLEMENT_CERT=$(find /etc/pki/entitlement -type f -name "*.pem" ! -name "*-key.pem" | head -n 1)
 ENTITLEMENT_KEY=$(find /etc/pki/entitlement -type f -name "*-key.pem" | head -n 1)
