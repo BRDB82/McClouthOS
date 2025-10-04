@@ -1,4 +1,18 @@
  #!/bin/bash
+exec > >(tee -i mcclouthos.log)
+exec 2>&1
+
+if [ "$1" == "--update" 0]; then
+	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/test-rep-install.sh" -o "test-rep-install.sh.new" || {
+		echo "update failed"
+	    rm "test-rep-install.sh.new"
+	    exit 1
+	}
+	chmod +x "test-rep-install.sh.new"
+	mv -f "test-rep-install.sh.new" "test-rep-install.sh"
+	exit 0
+}
+ 
  VERSION=$(curl -s https://developers.redhat.com/products/rhel/download | \
             grep -oE 'Red Hat Enterprise Linux [0-9]+\.[0-9]+' | \
             grep -oE '[0-9]+\.[0-9]+' | \
