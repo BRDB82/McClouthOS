@@ -16,7 +16,7 @@ fi
  VERSION=$(curl -s https://developers.redhat.com/products/rhel/download | \
             grep -oE 'Red Hat Enterprise Linux [0-9]+\.[0-9]+' | \
             grep -oE '[0-9]+\.[0-9]+' | \
-            sort -V | tail -1 | sed 's:/$::')
+            sort -V | tail -1 | sed 's/$//')
   
 [ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
 [ -d /tmp/rhel.repos.d ] || mkdir /tmp/rhel.repos.d
@@ -50,10 +50,14 @@ if [ ! -f /tmp/rhel.repos.d/BaseOS.repo ]; then
 	{
 	echo "[rhel-baseos]"
 	echo "name=Red Hat Enterprise Linux $VERSION - BaseOS"
-	echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/BaseOS/production/os/"
+	echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/baseos/os/" 
+	#echo "baseurl=https://cdn.redhat.com/content/dist/rhel/server/$VERSION/x86_64/baseos/os/"
+	#echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/baseos/os/"
+	#echo "baseurl=https://access.redhat.com/content/origin/rhel/dist/rhel/server/$VERSION/x86_64/baseos/os/"
 	echo "enabled=1"
-	echo "gpgcheck=0"
-	echo "sslverify=0"
+	echo "gpgcheck=1"
+	echo "gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
+	echo "sslverify=1"
 	echo "sslclientcert=$ENTITLEMENT_CERT"
 	echo "sslclientkey=$ENTITLEMENT_KEY"
 	} > /tmp/rhel.repos.d/BaseOS.repo
