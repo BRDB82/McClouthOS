@@ -2,7 +2,7 @@
 exec > >(tee -i repo-test.log)
 exec 2>&1
 
-if [ "$1" == "--update" 0]; then
+if [ "$1" == "--update" ]; then
 	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/test-rep-install.sh" -o "test-rep-install.sh.new" || {
 		echo "update failed"
 	    rm "test-rep-install.sh.new"
