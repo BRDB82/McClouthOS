@@ -4,8 +4,8 @@
             grep -oE '[0-9]+\.[0-9]+' | \
             sort -V | tail -1 | sed 's:/$::')
   
-[-d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
-[-d /tmp/rhel.repos.d ] || mkdir /tmp/rhel.repos.d
+[ -d /etc/yum.repos.d ] || mkdir /etc/yum.repos.d
+[ -d /tmp/rhel.repos.d ] || mkdir /tmp/rhel.repos.d
 
 if [ ! -f /tmp/rhel.repos.d/BaseOS.repo ]; then
 	{
