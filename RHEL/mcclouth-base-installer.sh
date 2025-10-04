@@ -352,7 +352,7 @@ setup_installer_environment() {
     fi
 }
 
-setup_installer_environment() {
+setup_installer_environment2() {
     #sed -i '/^\[repl\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
     #sed -i '/^\[crb\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
     
@@ -381,7 +381,7 @@ setup_mirrors() {
 
         # Detect latest version --- #sed 's/href="//; s/"//; s/\/$//' | \
         VERSION=$(curl -s https://developers.redhat.com/products/rhel/download | \
-            grep -oE 'Red HAt Enterprise Linux [0-9]+\.[0-9]+' | \
+            grep -oE 'Red Hat Enterprise Linux [0-9]+\.[0-9]+' | \
             grep -oE '[0-9]+\.[0-9]+' | \
             sort -V | tail -1 | sed 's:/$::')
 
