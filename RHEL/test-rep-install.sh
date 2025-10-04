@@ -153,4 +153,4 @@ dnf --setopt=reposdir=/tmp/rhel.repos.d install -y ca-certificates || true
 dnf --setopt=reposdir=/tmp/rhel.repos.d install -y rpm
 
 echo "=== RHEL registration and repo setup complete. You can now install packages. ==="
-#update1852-003
+#update1852-004
