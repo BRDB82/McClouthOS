@@ -80,6 +80,22 @@ if [[ ! -f "$ENT_CERT" || ! -f "$ENT_KEY" ]]; then
     exit 2
 fi
 
+echo "=== Verifiëren van toegang tot Red Hat CDN met entitlement-certificaten ==="
+
+CDN_URL="https://cdn.redhat.com/content/dist/rhel/$RHEL_VERSION/x86_64/baseos/os/"
+curl -s -o /dev/null --cert "$ENT_CERT" --key "$ENT_KEY" --head "$CDN_URL"
+CURL_RC=$?
+
+if [[ $CURL_RC -ne 0 ]]; then
+    echo "❌ Fout: Geen toegang tot Red Hat CDN BaseOS repo."
+    echo "Controleer of je subscription geldig is en toegang geeft tot RHEL $RHEL_VERSION BaseOS."
+    echo "Je kunt dit controleren met: subscription-manager list --consumed"
+    exit 3
+else
+    echo "✅ Toegang tot Red Hat CDN bevestigd."
+fi
+
+
 # Use Red Hat's GPG key, not a self-signed one
 GPG_KEY_PATH="/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
 if [[ ! -f "$GPG_KEY_PATH" ]]; then
@@ -139,4 +155,4 @@ dnf --setopt=reposdir=/tmp/rhel.repos.d install -y ca-certificates || true
 dnf --setopt=reposdir=/tmp/rhel.repos.d install -y rpm
 
 echo "=== RHEL registration and repo setup complete. You can now install packages. ==="
-#update1852-001
+#update1852-002
