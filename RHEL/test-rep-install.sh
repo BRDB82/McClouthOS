@@ -11,7 +11,7 @@ if [ "$1" == "--update" 0]; then
 	chmod +x "test-rep-install.sh.new"
 	mv -f "test-rep-install.sh.new" "test-rep-install.sh"
 	exit 0
-}
+fi
  
  VERSION=$(curl -s https://developers.redhat.com/products/rhel/download | \
             grep -oE 'Red Hat Enterprise Linux [0-9]+\.[0-9]+' | \
