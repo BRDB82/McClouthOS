@@ -38,7 +38,7 @@ if [ ! -f /tmp/rhel.repos.d/BaseOS.repo ]; then
 	echo "name=Red Hat Enterprise Linux $VERSION - BaseOS"
 	echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/BaseOS/production/os/"
 	echo "enabled=1"
-	echo "gpgcheck=0"
+	echo "gpgcheck=1"
 	echo "sslverify=1"
 	echo "sslclientcert=$ENTITLEMENT_CERT"
 	echo "sslclientkey=$ENTITLEMENT_KEY"
