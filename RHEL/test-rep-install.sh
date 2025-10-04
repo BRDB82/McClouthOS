@@ -24,7 +24,7 @@ if ! subscription-manager status 2>/dev/null | grep -q "Overall Status: Register
   read -s -p "CDN Password: " RHEL_PASS
   echo
 
-  echo "📡 Registreren bij Red Hat..."
+  echo "📡 Registring with Red Hat..."
   output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
   echo "$output"
 
@@ -44,9 +44,9 @@ subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms"
 # Clean and update DNF
 echo "Cleaning and updating DNF cache..."
 dnf --releasever=10 clean all
-dnf -releasever=10 makecache
-dnf -releasever=10 install -y ca-certificates || true
-dnf -releasever=10 install -y rpm
+dnf --releasever=10 makecache
+dnf --releasever=10 install -y ca-certificates || true
+dnf --releasever=10 install -y rpm
 
 echo "=== RHEL registration and repo setup complete. You can now install packages. ==="
-#update1852-013
+#update1852-014
