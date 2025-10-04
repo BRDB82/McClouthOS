@@ -61,7 +61,7 @@ if [ ! -f /tmp/rhel.repos.d/BaseOS.repo ]; then
 	echo "enabled=1"
 	echo "gpgcheck=1"
 	echo "gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
-	echo "sslverify=1"
+	echo "sslverify=0"
 	echo "sslclientcert=$ENTITLEMENT_CERT"
 	echo "sslclientkey=$ENTITLEMENT_KEY"
 	} > /tmp/rhel.repos.d/BaseOS.repo
