@@ -14,6 +14,7 @@ if [ ! -f /tmp/rhel.repos.d/BaseOS.repo ]; then
 	echo "baseurl=https://cdn.redhat.com/content/dist/rhel/$VERSION/x86_64/BaseOS/production/os/"
 	echo "enabled=1"
 	echo "gpgcheck=0"
+	echo "sslverigy=0"
 	} > /tmp/rhel.repos.d/BaseOS.repo
 fi
 
