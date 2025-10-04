@@ -108,4 +108,4 @@ dnf install -y ca-certificates || true
 dnf install -y rpm
 
 echo "=== RHEL registration and repo setup complete. You can now install packages. ==="
-#update1852-007
+#update1852-008
