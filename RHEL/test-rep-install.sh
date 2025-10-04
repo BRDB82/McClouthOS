@@ -69,18 +69,29 @@ fi
 subscription-manager repos --enable=rhel-10-for-x86_64-baseos-rpms
 
 echo "=== Verifiëren van toegang tot Red Hat CDN met entitlement-certificaten ==="
+ENT_CERT=$(find /etc/pki/entitlement -type f -name "*.pem" ! -name "*-key.pem" | head -n 1)
+ENT_KEY=$(find /etc/pki/entitlement -type f -name "*-key.pem" | head -n 1)
+
+if [[ ! -f "$ENT_CERT" || ! -f "$ENT_KEY" ]]; then
+    echo "❌ Entitlement-certificaten niet gevonden. Systeem is mogelijk niet correct geregistreerd."
+    exit 2
+fi
 
 CDN_URL="https://cdn.redhat.com/content/dist/rhel/$RHEL_VERSION/x86_64/baseos/os/"
 curl -s -o /dev/null --cert "$ENT_CERT" --key "$ENT_KEY" --head "$CDN_URL"
 CURL_RC=$?
 
-if [[ $CURL_RC -ne 0 ]]; then
-    echo "❌ Fout: Geen toegang tot Red Hat CDN BaseOS repo."
-    echo "Controleer of je subscription geldig is en toegang geeft tot RHEL $RHEL_VERSION BaseOS."
-    echo "Je kunt dit controleren met: subscription-manager list --consumed"
-    exit 3
+if [[ $CURL_RC -eq 0 ]]; then
+    echo "✅ CDN-verbinding succesvol: toegang tot BaseOS bevestigd."
+elif [[ $CURL_RC -eq 60 ]]; then
+    echo "❌ SSL-fout: certificaat niet vertrouwd. Controleer CA-trust en entitlement-certificaten."
+    exit 60
+elif [[ $CURL_RC -eq 22 ]]; then
+    echo "❌ HTTP-fout: CDN weigert toegang (403 of 404). Controleer of je subscription toegang geeft tot RHEL $RHEL_VERSION BaseOS."
+    exit 22
 else
-    echo "✅ Toegang tot Red Hat CDN bevestigd."
+    echo "❌ Onbekende fout bij CDN-connectie (curl exit code $CURL_RC)."
+    exit $CURL_RC
 fi
 
 
