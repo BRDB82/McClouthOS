@@ -120,8 +120,6 @@ if ! grep -q "Red Hat" "$RH_CA_PATH" 2>/dev/null; then
     update-ca-trust extract
 fi
 
-# Also ensure ca-certificates package is installed and up to date
-dnf install -y ca-certificates || yum install -y ca-certificates
 
 # Create BaseOS repo file with correct SSL and GPG settings
 cat > /tmp/rhel.repos.d/BaseOS.repo <<EOF
@@ -155,4 +153,4 @@ dnf --setopt=reposdir=/tmp/rhel.repos.d/ install -y ca-certificates || true
 dnf --setopt=reposdir=/tmp/rhel.repos.d/ install -y rpm
 
 echo "=== RHEL registration and repo setup complete. You can now install packages. ==="
-#update1852-005
+#update1852-006
