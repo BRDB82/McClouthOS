@@ -28,13 +28,25 @@ for f in /tmp/rhel.repos.d/*.repo; do
 	ln -s "$f" /etc/yum.repos.d/$(basename "$f")
 done
 
-read -p "Red Hat account: " RHELuser
-read -s -p "Red Hat password: " RHELpasswd
-echo
-subscription-manager register --username="RHELuser" --password="RHELpasswd"
-sleep 5
-unset RHELuser
-unset RHELpasswd
+while true; do
+	read -p "Red Hat account: " RHELuser
+	read -s -p "Red Hat password: " RHELpasswd
+	echo
+
+	output=$(subscription-manager register --username="$RHELuser" --password="$RHELpasswd")
+	echo "$output"
+
+    if echo "$output" | grep -q "Invalid username or password. To create a login"; then
+        echo "Please try again."
+        unset RHELuser
+        unset RHELpasswd
+        sleep 2
+    else
+        unset RHELuser
+        unset RHELpasswd
+        break
+    fi
+done
 subscription-manager attach --auto
 sleep 5
 dnf --setopt=reposdir=/tmp/rhel.repos.d update -y
