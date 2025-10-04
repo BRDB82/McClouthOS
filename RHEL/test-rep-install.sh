@@ -15,10 +15,10 @@ fi
  
 # Get latest RHEL version from Red Hat's CDN or developer site
 echo "Detecting latest RHEL version..."
-RHEL_VERSION=$(curl -s https://cdn.redhat.com/content/dist/rhel/ | grep -oE 'href="[0-9]+\.[0-9]+/' | grep -oE '[0-9]+\.[0-9]+' | sort -V | tail -1)
-if [[ -z "$RHEL_VERSION" ]]; then
-    RHEL_VERSION=$(curl -s https://developers.redhat.com/products/rhel/download | grep -oE 'Red Hat Enterprise Linux [0-9]+\.[0-9]+' | grep -oE '[0-9]+\.[0-9]+' | sort -V | tail -1)
-fi
+RHEL_VERSION=$(curl -s https://developers.redhat.com/products/rhel/download \
+| grep -oE 'Red Hat Enterprise Linux [0-9]+' \
+| grep -oE '[0-9]+' \
+| sort -n | uniq | tail -1)
 if [[ -z "$RHEL_VERSION" ]]; then
     echo "Could not detect RHEL version automatically."
     exit 1
