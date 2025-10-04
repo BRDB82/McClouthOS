@@ -31,31 +31,37 @@ echo "Detected RHEL version: $RHEL_VERSION"
 mkdir -p /etc/yum.repos.d
 mkdir -p /tmp/rhel.repos.d
 
-# Prompt for Red Hat credentials and register
-while true; do
-    read -p "Red Hat account (username): " RHEL_USER
-    read -s -p "Red Hat password: " RHEL_PASS
-    echo
-    if [[ -z "$RHEL_USER" || -z "$RHEL_PASS" ]]; then
-        echo "Username and password required."
-        continue
-    fi
-    echo "Registering system with Red Hat..."
-    if output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1); then
+# Check if system is already registered
+if subscription-manager status 2>&1 | grep -q "Overall Status: Current"; then
+    echo "System is already registered with Red Hat."
+else
+    # Prompt for Red Hat credentials and register
+    while true; do
+        read -p "Red Hat account (username): " RHEL_USER
+        read -s -p "Red Hat password: " RHEL_PASS
+        echo
+        if [[ -z "$RHEL_USER" || -z "$RHEL_PASS" ]]; then
+            echo "Username and password required."
+            continue
+        fi
+        echo "Registering system with Red Hat..."
+        output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
         echo "$output"
-        break
-    else
-        echo "$output"
-        if echo "$output" | grep -qi "Invalid username or password"; then
+        if [[ $rc -eq 0 ]]; then
+            echo "Registration successful."
+            break
+        elif echo "$output" | grep -qi "This system is already registered"; then
+            echo "System is already registered (according to subscription-manager)."
+            break
+        elif echo "$output" | grep -qi "Invalid username or password"; then
             echo "Invalid credentials, please try again."
         else
             echo "Registration failed, please check your account or network."
         fi
-    fi
-done
-
-unset RHEL_USER
-unset RHEL_PASS
+    done
+    unset RHEL_USER
+    unset RHEL_PASS
+fi
 
 # No attach step for RHEL 10.0, skip it
 
