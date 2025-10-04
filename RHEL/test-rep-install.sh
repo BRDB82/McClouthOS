@@ -94,11 +94,13 @@ echo "Updating CA trust and importing Red Hat CA if needed..."
 update-ca-trust extract || true
 
 # Download Red Hat's CA certificate and add to system trust if not present
-RH_CA_URL="https://www.redhat.com/security/data/ca-certificates.pem"
-RH_CA_PATH="/etc/pki/ca-trust/source/anchors/redhat-ca.pem"
-if ! grep -q "Red Hat" /etc/pki/ca-trust/source/anchors/* 2>/dev/null; then
-    echo "Adding Red Hat CA to system trust store..."
-    curl -fsSL "$RH_CA_URL" -o "$RH_CA_PATH"
+# Extract Red Hat CDN certificate chain and trust it
+RH_CA_PATH="/etc/pki/ca-trust/source/anchors/redhat-cdn.pem"
+if ! grep -q "Red Hat" "$RH_CA_PATH" 2>/dev/null; then
+    echo "Extracting Red Hat CDN certificate chain..."
+    echo -n | openssl s_client -showcerts -connect cdn.redhat.com:443 \
+      | awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/ { print }' \
+      > "$RH_CA_PATH"
     update-ca-trust extract
 fi
 
