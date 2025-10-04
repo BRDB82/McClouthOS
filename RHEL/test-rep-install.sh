@@ -141,11 +141,9 @@ echo "$RHEL_VERSION" > /etc/dnf/vars/releasever
 echo "x86_64" > /etc/dnf/vars/basearch
 echo "production" > /etc/dnf/vars/rltype
 
-# Remove any existing repo files and link new ones
+# Remove any existing repo files in yum.repos.d
 rm -f /etc/yum.repos.d/*.repo
-for f in /tmp/rhel.repos.d/*.repo; do
-    ln -sf "$f" /etc/yum.repos.d/$(basename "$f")
-done
+rm -f /etc/yum.repos.d/redhat.repo
 
 # Clean and update DNF
 echo "Cleaning and updating DNF cache..."
@@ -155,4 +153,4 @@ dnf --setopt=reposdir=/tmp/rhel.repos.d install -y ca-certificates || true
 dnf --setopt=reposdir=/tmp/rhel.repos.d install -y rpm
 
 echo "=== RHEL registration and repo setup complete. You can now install packages. ==="
-#update1852-002
+#update1852-003
