@@ -387,6 +387,8 @@ setup_mirrors() {
       unset RHEL_USER
       unset RHEL_PASS
     fi
+
+    RHEL_VERSION="10" #Currently hardcoded, lost my initial code
     
     subscription-manager refresh
     
