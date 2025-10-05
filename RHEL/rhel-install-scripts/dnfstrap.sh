@@ -84,6 +84,10 @@ dnfstrap() {
     #sed -i 's|BaseOS-$releasever$rltype|$rltype-BaseOS-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
     #sed -i 's|AppStream-$releasever$rltype|$rltype-AppStream-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
     #sed -i 's|extras-$releasever$rltype|$rltype-extras-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
+    mkdir -p /mnt/etc/dnf/vars
+    echo "10" > /mnt/etc/dnf/vars/releasever
+    echo "production" > /mnt/etc/dnf/vars/rltype
+    echo "x86_64" > /mnt/etc/dnf/vars/basearch
   fi
 
   if (( copyconf )); then
