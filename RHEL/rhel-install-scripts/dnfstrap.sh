@@ -77,7 +77,7 @@ dnfstrap() {
     cp -a /etc/pki/consumer "$newroot/etc/pki/"
     cp -a /etc/pki/entitlement "$newroot/etc/pki/"
     cp -a /etc/yum.repos.d/redhat.repo "$newroot/etc/yum.repos.d/"
-    sed -i 's/^enabled=0/enabled=1/' "$newroot/etc/yum.repos.d/redhat.repo"
+    #sed -i 's/^enabled=0/enabled=1/' "$newroot/etc/yum.repos.d/redhat.repo"
     cp -a /etc/rhsm "$newroot/etc/"
     cp -a /etc/machine-id "$newroot/etc/"
     #sed -i 's|BaseOS-$releasever$rltype|$rltype-BaseOS-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
