@@ -360,6 +360,7 @@ setup_installer_environment2() {
       mv genfstab.sh /usr/bin/genfstab
     wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/fstab-helpers
       mv fstab-helpers /usr/bin/fstab-helpers
+
 }
 
 setup_mirrors() {
