@@ -323,22 +323,12 @@ select_option() {
 
 setup_installer_environment() {
 
-    read -p "Red Hat account: " RHELuser
-    read -s -p "Red Hat password: " RHELpasswd
-    echo
-    subscription-manager register --username="RHELuser" --password="RHELpasswd"
-    sleep 5
-    unset RHELuser
-    unset RHELpasswd
-    subscription-manager attach --auto
-    sleep 5
-    dnf --setopt=reposdir=/tmp/rhel.repos.d update -y
-    dnf --setopt=reposdir=/tmp/rhel.repos.d clean all
-    dnf --setopt=reposdir=/tmp/rhel.repos.d makecache
-    dnf --setopt=reposdir=/tmp/rhel.repos.d install -y rpm
-    dnf --setopt=reposdir=/tmp/rhel.repos.d install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
-    mv /etc/yum.repos.d/epel*.repo /tmp/rhel-repos.d/
-    dnf --setopt=reposdir=/tmp/rhel.repos.d install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
+    dnf --releasever=10 update -y
+    dnf --releasever=10 clean all
+    dnf --releasever=10 makecache
+    dnf --releasever=10 -y rpm
+    dnf ---releasever=10 -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
+    dnf --releasever=10 install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
     dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
     setfont ter-118b
     
@@ -356,7 +346,7 @@ setup_installer_environment2() {
     #sed -i '/^\[repl\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
     #sed -i '/^\[crb\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
     
-    dnf --setopt=reposdir=/tmp/rhel.repos.d install -y gdisk
+    dnf ----releasever=10 install -y gdisk
     wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/dnfstrap.sh
       chmod +x dnfstrap.sh
       mv dnfstrap.sh /usr/bin/dnfstrap
@@ -379,7 +369,7 @@ setup_mirrors() {
 
     mkdir -p /etc/yum.repos.d
     
-     Check if we have registered system
+    #Check if we have registered system
     if ! subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"; then
       read -p "CDN Username: " RHEL_USER
       read -s -p "CDN Password: " RHEL_PASS
