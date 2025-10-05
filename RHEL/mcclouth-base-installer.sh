@@ -346,7 +346,7 @@ setup_installer_environment2() {
     #sed -i '/^\[repl\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
     #sed -i '/^\[crb\]/,/^\[/{s/^enabled=.*/enabled=1/}' /tmp/rhel.repos.d/epel.repo
     
-    dnf ----releasever=10 install -y gdisk
+    dnf --releasever=10 install -y gdisk
     wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/dnfstrap.sh
       chmod +x dnfstrap.sh
       mv dnfstrap.sh /usr/bin/dnfstrap
