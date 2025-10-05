@@ -73,6 +73,7 @@ dnfstrap() {
   
   if (( copyrepolist )); then
     # install the host's repo definitions onto the new root
+    cp -a /etc/pki/ca-trust "$newroot/etc/pki/"
     cp -a /etc/pki/consumer "$newroot/etc/pki/"
     cp -a /etc/pki/entitlement "$newroot/etc/pki/"
     cp -a /etc/yum.repos.d "$newroot/etc/yum.repos.d"
