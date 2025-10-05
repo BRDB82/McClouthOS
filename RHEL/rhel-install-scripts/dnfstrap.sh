@@ -73,11 +73,14 @@ dnfstrap() {
   
   if (( copyrepolist )); then
     # install the host's repo definitions onto the new root
-    #cp -a /etc/yum.repos.d "$newroot/etc/" #THIS GIVES ISSUES, DISABLED
-    cp -a /etc/yum.repos.d/*.repo "$newroot/etc/yum.repos.d"
-    sed -i 's|BaseOS-$releasever$rltype|$rltype-BaseOS-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
-    sed -i 's|AppStream-$releasever$rltype|$rltype-AppStream-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
-    sed -i 's|extras-$releasever$rltype|$rltype-extras-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
+    cp -a /etc/pki/consumer "$newroot/etc/pki/"
+    cp -a /etc/pki/entitlement "$newroot/etc/pki/"
+    cp -a /etc/yum.repos.d "$newroot/etc/yum.repos.d"
+    cp -a /etc/rhsm "$newroot/etc/"
+    cp -a /etc/machine-id "$newroot/etc/"
+    #sed -i 's|BaseOS-$releasever$rltype|$rltype-BaseOS-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
+    #sed -i 's|AppStream-$releasever$rltype|$rltype-AppStream-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
+    #sed -i 's|extras-$releasever$rltype|$rltype-extras-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
   fi
 
   if (( copyconf )); then
