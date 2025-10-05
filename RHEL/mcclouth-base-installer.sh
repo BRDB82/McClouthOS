@@ -326,8 +326,8 @@ setup_installer_environment() {
     dnf --releasever=10 update -y
     dnf --releasever=10 clean all
     dnf --releasever=10 makecache
-    dnf --releasever=10 -y rpm
-    dnf --releasever=10 -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
+    dnf --releasever=10 -y install rpm
+    dnf --releasever=10 -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
     dnf --releasever=10 install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
     dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
     setfont ter-118b
