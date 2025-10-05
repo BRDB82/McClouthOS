@@ -393,7 +393,7 @@ setup_mirrors() {
     
     subscription-manager refresh
     
-    subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms"
+    subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms" --enable="rhel-$RHEL_VERSION-for-x86_64--rpms"
 }
 
 system_choice() {
