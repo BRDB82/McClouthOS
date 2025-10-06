@@ -10,6 +10,8 @@ while NIC= read -r line; do
   iface=$(echo "$line" | awk '{print $2}')
   ipaddr=$(echo "$line" | awk '{print $4}')
 
+  [[ "$iface" == "lo" ]] && continue
+  
   mccos_ip_port+=("'$iface'")
   mccos_ip_address+=("'$ipaddr'")
 done < <(ip -o -4 addr show)
