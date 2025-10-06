@@ -17,5 +17,5 @@ mccos_ipdevices=${#mccos_ip_port[@]}
 
 echo "Total interfaces with IPv4: $mccos_ipdevices"
 for ((i=0; i<mccos_ipdevices; i++)); do
-    eval "echo \"Interface \$i: Port=\${mccos_ip($i)_port}, Address=\${mccos_ip($i)_address}\""
+    echo "Interface $i: Port=${mccos_ip_port[$i]}, Address=${mccos_ip_address[$i]}"
 done
