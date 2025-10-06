@@ -1,12 +1,4 @@
 #!/bin/bash
-
-#
-# Assumptions:
-#  1) User has partioned, formatted, and mounted partitions on /mnt
-#  2) Network is functional
-#  3) Arguments passed to the script are valid dnf targets
-#  4) A valid repo appears in /etc/yum.repos.d
-
 shopt -s extglob
 source "/usr/bin/dnfcommon"
 
@@ -72,22 +64,28 @@ dnfstrap() {
   printf 'dnf_args: [%s]\n' "${dnf_args[@]}"
   
   if (( copyrepolist )); then
-    # install the host's repo definitions onto the new root
-    mkdir -p "$newroot/etc/pki/ca-trust"
-    cp -a /etc/pki/ca-trust "$newroot/etc/pki/ca-trust/"
-    cp -a /etc/pki/consumer "$newroot/etc/pki/"
-    cp -a /etc/pki/entitlement "$newroot/etc/pki/"
-    cp -a /etc/yum.repos.d/redhat.repo "$newroot/etc/yum.repos.d/"
-    #sed -i 's/^enabled=0/enabled=1/' "$newroot/etc/yum.repos.d/redhat.repo"
-    cp -a /etc/rhsm "$newroot/etc/"
-    cp -a /etc/machine-id "$newroot/etc/"
-    #sed -i 's|BaseOS-$releasever$rltype|$rltype-BaseOS-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
-    #sed -i 's|AppStream-$releasever$rltype|$rltype-AppStream-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
-    #sed -i 's|extras-$releasever$rltype|$rltype-extras-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
-    mkdir -p /mnt/etc/dnf/vars
-    echo "10" > /mnt/etc/dnf/vars/releasever
-    echo "production" > /mnt/etc/dnf/vars/rltype
-    echo "x86_64" > /mnt/etc/dnf/vars/basearch
+    # if we are on RHEL (true-RHEL) this can never work, so it that case we should make sure that we 
+    # have subscription-manager installed at least.
+    if [ -f /etc/redhat-release ] && grep -q '^Red Hat Enterprise Linux' /etc/redhat-release && [ -d /etc/pki/entitlement ]; then
+      echo ""
+    else
+      # install the host's repo definitions onto the new root
+      mkdir -p "$newroot/etc/pki/ca-trust"
+      cp -a /etc/pki/ca-trust "$newroot/etc/pki/ca-trust/"
+      cp -a /etc/pki/consumer "$newroot/etc/pki/"
+      cp -a /etc/pki/entitlement "$newroot/etc/pki/"
+      cp -a /etc/yum.repos.d/redhat.repo "$newroot/etc/yum.repos.d/"
+      #sed -i 's/^enabled=0/enabled=1/' "$newroot/etc/yum.repos.d/redhat.repo"
+      cp -a /etc/rhsm "$newroot/etc/"
+      cp -a /etc/machine-id "$newroot/etc/"
+      #sed -i 's|BaseOS-$releasever$rltype|$rltype-BaseOS-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
+      #sed -i 's|AppStream-$releasever$rltype|$rltype-AppStream-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
+      #sed -i 's|extras-$releasever$rltype|$rltype-extras-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
+      mkdir -p /mnt/etc/dnf/vars
+      echo "10" > /mnt/etc/dnf/vars/releasever
+      echo "production" > /mnt/etc/dnf/vars/rltype
+      echo "x86_64" > /mnt/etc/dnf/vars/basearch
+    fi
   fi
 
   if (( copyconf )); then
