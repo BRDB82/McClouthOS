@@ -5,7 +5,7 @@ mccos_ipdevices=0
 
 #loop through all interfaces iwth IPv4
 while NIC= read -r line; do
-  iface=$(echo "$line" | ask '{print $2}')
+  iface=$(echo "$line" | awk '{print $2}')
   ipaddr=$(echo "$line" | awk '{print $4}')
 
   eval "mccos_ip($mccos_ipdevices)_port='$iface'"
