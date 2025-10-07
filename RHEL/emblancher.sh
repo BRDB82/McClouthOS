@@ -19,6 +19,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#sticky
+#======
+pidfile="/var/run/emblancher.pid"
+
 if [ "$1" == "--update" ]; then
 	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/emblancher.sh" -o "/usr/bin/emblancher.new" || {
 		echo "update failed"
@@ -38,6 +42,21 @@ if [[ $UID -ne 0 ]]; then
   exit 1
 fi
 
-echo "Starting installer, one moment..."
+echo "emblancher for McClouth OS"
+echo "=========================="
+echo ""
 
-#001
+exec > >(tee -i emblancher.log)
+exec 2>&1
+
+echo "* log file is in /root/emblancher.log"
+echo ""
+
+if [ -e "$pdfile" ]; then
+	echo "$pidfile already exists, exiting"
+	exit 1
+fi
+
+if [ ! -d "/sys/firmware/efi" ]; then
+	echo "Legacy boot is not supported"
+fi
