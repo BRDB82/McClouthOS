@@ -49,8 +49,8 @@ echo ""
 
 sleep 0.1
 
-exec > >(tee -i "logfile")
-exec 2>&1
+exec 3> >(tee -a "logfile")
+exec 1>&3 2>&3
 
 echo "* log file is in /root/emblancher.log"
 echo ""
