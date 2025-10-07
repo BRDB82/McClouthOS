@@ -26,7 +26,7 @@ if [ "$1" == "--update" ]; then
 	    exit 1
 	}
 	chmod +x "emblancher.new"
-	mv -f "emblancher.new" "emblancher"
+	mv -f "emblancher.new" "/usr/bin/emblancher"
 	exit 0
 fi
 
