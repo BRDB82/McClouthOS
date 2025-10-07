@@ -20,13 +20,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 if [ "$1" == "--update" ]; then
-	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/emblancher.sh" -o "emblancher.new" || {
+	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/emblancher.sh" -o "/usr/bin/emblancher.new" || {
 		echo "update failed"
-	    rm "emblancer.new"
+	    rm "/usr/bin/emblancer.new"
 	    exit 1
 	}
-	chmod +x "emblancher.new"
-	mv -f "emblancher.new" "/usr/bin/emblancher"
+	chmod +x "/usr/bin/emblancher.new"
+	mv -f "/usr/bin/emblancher.new" "/usr/bin/emblancher"
 	exit 0
 fi
 
