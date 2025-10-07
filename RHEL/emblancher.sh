@@ -21,6 +21,7 @@
 
 #sticky
 #======
+logfile="/root/emblancher.log"
 pidfile="/var/run/emblancher.pid"
 
 if [ "$1" == "--update" ]; then
@@ -46,8 +47,7 @@ echo "emblancher for McClouth OS"
 echo "=========================="
 echo ""
 
-exec > >(tee -i emblancher.log)
-exec 2>&1
+exec > >(cat | tee -a "logfile") 2>&1
 
 echo "* log file is in /root/emblancher.log"
 echo ""
