@@ -34,7 +34,7 @@ fi
 #----
 
 if [[ $UID -ne 0 ]]; then
-  echo "emblancher must be run as root
+  echo "emblancher must be run as root"
   exit 1
 fi
 
