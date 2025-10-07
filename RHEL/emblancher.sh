@@ -47,7 +47,10 @@ echo "emblancher for McClouth OS"
 echo "=========================="
 echo ""
 
-exec > >(cat | tee -a "logfile") 2>&1
+sleep 0.1
+
+exec > >(tee -i "logfile")
+exec 2>&1
 
 echo "* log file is in /root/emblancher.log"
 echo ""
