@@ -64,4 +64,4 @@ if [ ! -d "/sys/firmware/efi" ]; then
 	echo "Legacy boot is not supported"
 fi
 
-#001-0001
+#001-0002
