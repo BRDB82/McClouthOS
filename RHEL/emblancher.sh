@@ -39,3 +39,5 @@ if [[ $UID -ne 0 ]]; then
 fi
 
 echo "Starting installer, one moment..."
+
+#001
