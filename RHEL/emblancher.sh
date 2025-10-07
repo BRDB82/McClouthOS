@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #*****************************************************************************
-#* Emblacher v0.01                                                           *
+#* emblancher: McClouth OS Installation program                              *
 #* Copyright (C) 2025 McClouth Incorporated                                  *
 #* BRDB82                                                                    *
 #*****************************************************************************
@@ -18,3 +18,24 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+if [ "$1" == "--update" ]; then
+	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/emblancher.sh" -o "emblancer.new" || {
+		echo "update failed"
+	    rm "emblancer.new"
+	    exit 1
+	}
+	chmod +x "emblancher.new"
+	mv -f "emblancher.new" "emblancher"
+	exit 0
+fi
+
+#main
+#----
+
+if [[ $UID -ne 0 ]]; then
+  echo "emblancher must be run as root
+  exit 1
+fi
+
+echo "Starting installer, one moment..."
