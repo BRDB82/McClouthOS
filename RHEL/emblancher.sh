@@ -135,64 +135,134 @@ Please select keyboard layout from this list
 
 # hopefull the network is just "up", else we've got a problem.
 
+PS3='
+Select the disk to install on: '
+options=($(lsblk -n --output TYPE,KNAME,SIZE | awk '$1=="disk"{print "/dev/"$2"|"$3}'))
 
+select_option "${options[@]}"
+disk=${options[$?]%|*}
 
-# Attempt to detect timezone using external service
-    time_zone="$(curl --fail -s https://ipapi.co/timezone)"
-    echo -ne "
-System detected your timezone to be '$time_zone' \n"
-    echo -ne "Is this correct?
-    "
-    options=("Yes" "No")
-    select_option "${options[@]}"
+echo -e "\n${disk%|*} selected \n"
+export DISK=${disk%|*}
 
-    case $? in
-        0)
-            echo "${time_zone} set as timezone"
-            export TIMEZONE=$time_zone
-            timedatectl set-timezone "$time_zone"
-            ;;
-        1)
-            echo "Please enter your desired timezone e.g. Europe/Brussels :"
-            read -r new_timezone
-            echo "${new_timezone} set as timezone"
-            export TIMEZONE=$new_timezone
-            timedatectl set-timezone "$new_timezone"
-            ;;
-        *)
-            echo "Wrong option. Try again"
-            timezone
-            ;;
-    esac
-
-	PS3='
-    Select the disk to install on: '
-    options=($(lsblk -n --output TYPE,KNAME,SIZE | awk '$1=="disk"{print "/dev/"$2"|"$3}'))
-
-    select_option "${options[@]}"
-    disk=${options[$?]%|*}
-
-    echo -e "\n${disk%|*} selected \n"
-    export DISK=${disk%|*}
-
-    echo -ne "
+echo -ne "
 Is this an SSD? yes/no:
 "
-    options=("Yes" "No")
-    select_option "${options[@]}"
+options=("Yes" "No")
+select_option "${options[@]}"
 
-    case $? in
-        0)
-            export MOUNT_OPTIONS="noatime,commit=120"
-            ;;
-        1)
-            export MOUNT_OPTIONS="noatime,commit=120"
-            ;;
-        *)
-            echo "Wrong option. Try again"
-            disk_type
-            ;;
-    esac
+case $? in
+	0)
+    	export MOUNT_OPTIONS="noatime,commit=120"
+    	;;
+    1)
+        export MOUNT_OPTIONS="noatime,commit=120"
+        ;;
+    *)
+        echo "Wrong option. Try again"
+        disk_type
+        ;;
+esac
+
+time_zone="$(curl --fail -s https://ipapi.co/timezone)"
+echo -ne "
+System detected your timezone to be '$time_zone' \n"
+echo -ne "Is this correct?
+"
+options=("Yes" "No")
+select_option "${options[@]}"
+
+case $? in
+	0)
+		echo "${time_zone} set as timezone"
+		export TIMEZONE=$time_zone
+		timedatectl set-timezone "$time_zone"
+		;;
+	1)
+		echo "Please enter your desired timezone e.g. Europe/Brussels :"
+		read -r new_timezone
+		echo "${new_timezone} set as timezone"
+		export TIMEZONE=$new_timezone
+		timedatectl set-timezone "$new_timezone"
+		;;
+	*)
+		echo "Wrong option. Try again"
+		timezone
+		;;
+esac
+
+while true
+do
+		read -r -p "Please enter username: " username
+		if [[ "${username,,}" =~ ^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$ ]]
+		then
+				break
+		fi
+		echo "Incorrect username."
+done
+export USERNAME=$username
+
+while true
+do
+	read -rs -p "Please enter password: " PASSWORD1
+	echo -ne "\n"
+	read -rs -p "Please re-enter password: " PASSWORD2
+	echo -ne "\n"
+	if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
+		break
+	else
+		echo -ne "ERROR! Passwords do not match. \n"
+	fi
+done
+export PASSWORD=$PASSWORD1
+
+while true
+do
+		read -r -p "Please name your machine: " name_of_machine
+		# hostname regex (!!couldn't find spec for computer name!!)
+		if [[ "${name_of_machine,,}" =~ ^[a-z][a-z0-9_.-]{0,62}[a-z0-9]$ ]]
+		then
+				break
+		fi
+		# if validation fails allow the user to force saving of the hostname
+		read -r -p "Hostname doesn't seem correct. Do you still want to save it? (y/n)" force
+		if [[ "${force,,}" = "y" ]]
+		then
+				break
+		fi
+done
+export NAME_OF_MACHINE=$name_of_machine
+
+echo -ne "
+------------------------------------------------------------------------
+THIS WILL FORMAT AND DELETE ALL DATA ON THE DISK
+Please make sure you know what you are doing because
+after formatting your disk there is no way to get data back
+*****BACKUP YOUR DATA BEFORE CONTINUING*****
+***I AM NOT RESPONSIBLE FOR ANY DATA LOSS***
+------------------------------------------------------------------------
+
+"
+umount -A --recursive /mnt
+wipefs -a "${DISK}"
+parted -s "${DISK}" mklabel gprt
+parted -s "${DISK}" mkpart BOOT 1MiB 1025MiB
+parted -s "${DISK}" set 1 bios_grub on
+parted -s "${DISK}" mkpart EFIBOOT 1025MiB 2049MiB
+parted -s "${DISK}" set 2 esp on
+parted -s "${DISK}" mkpart root 2049MiB 100%
+if [[ ! -d "/sys/firmware/efi" ]]; then
+	parted -s "${DISK}" set 1 boot on
+fi
+partprobe "${DISK}"
+
+	
+#disk_create_filesystems
+#setup_mirrors
+#setup_install_environment
+#setup_install_environment
+#disk_installation
+#disk_installbootloader
 
 #--setopt=reposdir=/mnt/sysimage/etc/yum.repos.d \
 #--setopt=sslclientcert=/mnt/sysimage/etc/pki/entitlement/entitlement.pem \
