@@ -329,11 +329,34 @@ subscription-manager refresh
 
 subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms" --enable="rhel-$RHEL_VERSION-for-x86_64--rpms"
 
-#setup_install_environment
-#setup_install_environment
+dnf --releasever=10 update -y
+dnf --releasever=10 clean all
+dnf --releasever=10 makecache
+dnf --releasever=10 -y install rpm
+dnf --releasever=10 -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
+dnf --releasever=10 install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
+dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
+setfont ter-118b
+
+systemctl enable systemd-resolved
+systemctl start systemd-resolved
+#ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+cp /etc/resolv.conf /mnt/etc/resolv.conf
+
+if [ ! -d "/mnt" ]; then
+	mkdir /mnt
+fi
+	
+#setup_install_environment2
 #disk_installation
 #disk_installbootloader
 
+#dnfstrap, rhel-chroot, fstab
+
+
+#===============
+# for reference
+#===============
 #mkdir -p "${CHROOT}/etc/pki/entitlement"
 #mkdir -p "${CHROOT}/etc/pki/consumer"
 #mkdir -p "${CHROOT}/etc/yum.repos.d"
@@ -342,13 +365,13 @@ subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms" 
 #mkdir -p "${CHROOT}/etc/pki/ca-trust"
 #mkdir -p "${CHROOT}/etc/ssl
 
-cp -v /etc/pki/entitlement/*.pem "${CHROOT}/etc/pki/entitlement/"
-cp -v /etc/pki/consumer/*.pem "${CHROOT}/etc/pki/consumer/"
-cp -v /etc/yum.repos.d/*.repo "${CHROOT}/etc/yum.repos.d/"
-cp -vr /etc/rhsm/* "${CHROOT}/etc/rhsm/"
-cp -v /etc/pki/rpm-gpg/* "${CHROOT}/etc/pki/rpm-gpg/"
-cp -vr /etc/pki/ca-trust/* "${CHROOT}/etc/pki/ca-trust/"
-cp -vr /etc/ssl/* "${CHROOT}/etc/ssl/"
+#cp -v /etc/pki/entitlement/*.pem "${CHROOT}/etc/pki/entitlement/"
+#cp -v /etc/pki/consumer/*.pem "${CHROOT}/etc/pki/consumer/"
+#cp -v /etc/yum.repos.d/*.repo "${CHROOT}/etc/yum.repos.d/"
+#cp -vr /etc/rhsm/* "${CHROOT}/etc/rhsm/"
+#cp -v /etc/pki/rpm-gpg/* "${CHROOT}/etc/pki/rpm-gpg/"
+#cp -vr /etc/pki/ca-trust/* "${CHROOT}/etc/pki/ca-trust/"
+#cp -vr /etc/ssl/* "${CHROOT}/etc/ssl/"
 
 #--setopt=reposdir=/mnt/sysimage/etc/yum.repos.d \
 #--setopt=sslclientcert=/mnt/sysimage/etc/pki/entitlement/entitlement.pem \
