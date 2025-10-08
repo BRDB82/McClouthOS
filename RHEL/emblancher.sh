@@ -361,7 +361,8 @@ wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-
 wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/fstab-helpers
   mv fstab-helpers /usr/bin/fstab-helpers
 	  
-#disk_installation
+dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules subscription-manager redhat-release nano --assumeyes
+
 #disk_installbootloader
 
 #dnfstrap, rhel-chroot, fstab
@@ -370,6 +371,9 @@ wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-
 #===============
 # for reference
 #===============
+
+#dnf --installroot=/mnt/sysimage install redhat-release subscription-manager ...
+
 #mkdir -p "${CHROOT}/etc/pki/entitlement"
 #mkdir -p "${CHROOT}/etc/pki/consumer"
 #mkdir -p "${CHROOT}/etc/yum.repos.d"
