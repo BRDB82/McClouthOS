@@ -256,7 +256,48 @@ if [[ ! -d "/sys/firmware/efi" ]]; then
 fi
 partprobe "${DISK}"
 
-	
+if [[ "${DISK}" =~ "nvme" ]]; then
+	partition1=${DISK}p1
+	partition2=${DISK}p2
+	partition3=${DISK}p3
+else
+	partition1=${DISK}1
+	partition2=${DISK}2
+	partition3=${DISK}3
+fi
+
+mkfs.ext4 -L BOOT "${partition1}"
+mkfs.fat -F32 -n "EFIBOOT" "${partition2}"
+
+if [[ "${FS}" == "xfs" ]]; then 
+	mkfs.xfs -f -L ROOT "${partition3}"
+	mount -t xfs "${partition3}" /mnt
+elif [[ "${FS}" == "ext4" ]]; then
+	mkfs.ext4 "${partition3}"
+	mount -t ext4 "${partition3}" /mnt
+fi
+
+BOOT_UUID=$(blkid -s UUID -o value "${partition1}")
+EFI_UUID=$(blkid -s UUID -o value "${partition2}")
+
+sync
+if ! mountpoint -q /mnt; then
+	echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
+	exit 1
+fi
+
+mkdir -p /mnt/boot
+mount -U "${BOOT_UUID}" /mnt/boot/
+mkdir -p /mnt/boot/efi
+mount -U "${EFI_UUID}" /mnt/boot/efi
+
+if ! grep -qs '/mnt' /proc/mounts; then
+	echo "Drive is not mounted, cannot continue"
+	echo "Rebooting in 3 Seconds ..." && sleep 1
+	echo "Rebooting in 2 Seconds ..." && sleep 1
+	echo "Rebooting in 1 Second ..." && sleep 1
+	reboot now
+fi
 #disk_create_filesystems
 #setup_mirrors
 #setup_install_environment
