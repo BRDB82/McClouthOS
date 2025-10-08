@@ -133,4 +133,71 @@ Please select keyboard layout from this list
     # Apply the selected keymap using localectl
     localectl set-keymap "$keymap"
 
+# hopefull the network is just "up", else we've got a problem.
+
+
+
+# Attempt to detect timezone using external service
+    time_zone="$(curl --fail -s https://ipapi.co/timezone)"
+    echo -ne "
+System detected your timezone to be '$time_zone' \n"
+    echo -ne "Is this correct?
+    "
+    options=("Yes" "No")
+    select_option "${options[@]}"
+
+    case $? in
+        0)
+            echo "${time_zone} set as timezone"
+            export TIMEZONE=$time_zone
+            timedatectl set-timezone "$time_zone"
+            ;;
+        1)
+            echo "Please enter your desired timezone e.g. Europe/Brussels :"
+            read -r new_timezone
+            echo "${new_timezone} set as timezone"
+            export TIMEZONE=$new_timezone
+            timedatectl set-timezone "$new_timezone"
+            ;;
+        *)
+            echo "Wrong option. Try again"
+            timezone
+            ;;
+    esac
+
+	PS3='
+    Select the disk to install on: '
+    options=($(lsblk -n --output TYPE,KNAME,SIZE | awk '$1=="disk"{print "/dev/"$2"|"$3}'))
+
+    select_option "${options[@]}"
+    disk=${options[$?]%|*}
+
+    echo -e "\n${disk%|*} selected \n"
+    export DISK=${disk%|*}
+
+    echo -ne "
+Is this an SSD? yes/no:
+"
+    options=("Yes" "No")
+    select_option "${options[@]}"
+
+    case $? in
+        0)
+            export MOUNT_OPTIONS="noatime,commit=120"
+            ;;
+        1)
+            export MOUNT_OPTIONS="noatime,commit=120"
+            ;;
+        *)
+            echo "Wrong option. Try again"
+            disk_type
+            ;;
+    esac
+
+#--setopt=reposdir=/mnt/sysimage/etc/yum.repos.d \
+#--setopt=sslclientcert=/mnt/sysimage/etc/pki/entitlement/entitlement.pem \
+#--setopt=sslclientkey=/mnt/sysimage/etc/pki/entitlement/entitlement-key.pem
+#--disablerepo='*'
+
+
 #001-0002
