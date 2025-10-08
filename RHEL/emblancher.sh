@@ -298,12 +298,57 @@ if ! grep -qs '/mnt' /proc/mounts; then
 	echo "Rebooting in 1 Second ..." && sleep 1
 	reboot now
 fi
-#disk_create_filesystems
-#setup_mirrors
+
+is=$(curl -4 -s ifconfig.io/country_code)
+timedatectl set-ntp true
+
+mkdir -p /etc/yum.repos.d
+
+#Check if we have registered system
+if ! subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"; then
+  read -p "CDN Username: " RHEL_USER
+  read -s -p "CDN Password: " RHEL_PASS
+  echo
+
+  echo "📡 Registring with Red Hat..."
+  output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
+  echo "$output"
+
+  if [[ $rc -ne 0 ]]; then
+	echo "❌ Registration failed."
+	exit $rc
+  fi
+
+  unset RHEL_USER
+  unset RHEL_PASS
+fi
+
+RHEL_VERSION="10" #Currently hardcoded, lost my initial code
+
+subscription-manager refresh
+
+subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms" --enable="rhel-$RHEL_VERSION-for-x86_64--rpms"
+
 #setup_install_environment
 #setup_install_environment
 #disk_installation
 #disk_installbootloader
+
+#mkdir -p "${CHROOT}/etc/pki/entitlement"
+#mkdir -p "${CHROOT}/etc/pki/consumer"
+#mkdir -p "${CHROOT}/etc/yum.repos.d"
+#mkdir -p "${CHROOT}/etc/rhsm"
+#mkdir -p "${CHROOT}/etc/pki/rpm-gpg"
+#mkdir -p "${CHROOT}/etc/pki/ca-trust"
+#mkdir -p "${CHROOT}/etc/ssl
+
+cp -v /etc/pki/entitlement/*.pem "${CHROOT}/etc/pki/entitlement/"
+cp -v /etc/pki/consumer/*.pem "${CHROOT}/etc/pki/consumer/"
+cp -v /etc/yum.repos.d/*.repo "${CHROOT}/etc/yum.repos.d/"
+cp -vr /etc/rhsm/* "${CHROOT}/etc/rhsm/"
+cp -v /etc/pki/rpm-gpg/* "${CHROOT}/etc/pki/rpm-gpg/"
+cp -vr /etc/pki/ca-trust/* "${CHROOT}/etc/pki/ca-trust/"
+cp -vr /etc/ssl/* "${CHROOT}/etc/ssl/"
 
 #--setopt=reposdir=/mnt/sysimage/etc/yum.repos.d \
 #--setopt=sslclientcert=/mnt/sysimage/etc/pki/entitlement/entitlement.pem \
