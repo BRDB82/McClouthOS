@@ -347,7 +347,20 @@ if [ ! -d "/mnt" ]; then
 	mkdir /mnt
 fi
 	
-#setup_install_environment2
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/dnfstrap.sh
+  chmod +x dnfstrap.sh
+  mv dnfstrap.sh /usr/bin/dnfstrap
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/common
+  mv common /usr/bin/dnfcommon
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/rhel-chroot.sh
+  chmod +x rhel-chroot.sh
+  mv rhel-chroot.sh /usr/bin/rhel-chroot
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/genfstab.sh
+  chmod +x genfstab.sh
+  mv genfstab.sh /usr/bin/genfstab
+wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/fstab-helpers
+  mv fstab-helpers /usr/bin/fstab-helpers
+	  
 #disk_installation
 #disk_installbootloader
 
