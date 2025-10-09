@@ -250,14 +250,16 @@ dd if=/dev/zero of="${DISK}" bs=1M count=10
 parted --script "${DISK}" mklabel gpt
 
 # create partitions using sfdisk
-cat <<EOF | sfdisk --unit MiB "${DISK}"
-label: gpt
-unit: MiB
-
-1 : start=1, size=1024, type=8300, name=BOOT
-2 : start=1025, size=1024, type=ef00, name=EFIBOOT
-3 : start=2049, type=8300, name=ROOT
+sfdisk --label=gpt "${DISK}" <<EOF
+start=2048MiB, size=1024MiB, type=8300
+start=3072MiB, size=1024MiB, type=ef00
+start=4096MiB, type=8300
 EOF
+
+sfdisk --part-name "${DISK}" 1 BOOT
+sfdisk --part-name "${DISK}" 2 EFIBOOT
+sfdisk --part-name "${DISK}" 3 ROOT
+
 
 # set BIOS bootable flag if not UEFI
 if [[ ! -d "/sys/firmware/efi" ]]; then
