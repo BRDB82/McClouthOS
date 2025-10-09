@@ -250,7 +250,7 @@ parted -s "${DISK}" mkpart BOOT 1MiB 1025MiB
 parted -s "${DISK}" set 1 bios_grub on
 parted -s "${DISK}" mkpart EFIBOOT 1025MiB 2049MiB
 parted -s "${DISK}" set 2 esp on
-parted -s "${DISK}" mkpart root 2049MiB 100%
+parted -s "${DISK}" mkpart root 2049MiB -10MiB
 if [[ ! -d "/sys/firmware/efi" ]]; then
 	parted -s "${DISK}" set 1 boot on
 fi
