@@ -266,6 +266,13 @@ else
 	partition3=${DISK}3
 fi
 
+for dev in "${partition1}" "${partition2}" "${partition3}"; do
+    for i in {1..10}; do
+        [[ -b "$dev" ]] && break
+        sleep 0.5
+    done
+done
+
 mkfs.ext4 -L BOOT "${partition1}"
 mkfs.fat -F32 -n "EFIBOOT" "${partition2}"
 
