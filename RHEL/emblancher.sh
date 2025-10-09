@@ -244,17 +244,27 @@ after formatting your disk there is no way to get data back
 
 "
 umount -A --recursive /mnt
-wipefs -a "${DISK}"
-parted -s "${DISK}" mklabel gpt
-parted -s "${DISK}" mkpart BOOT 1MiB 1025MiB
-parted -s "${DISK}" set 1 bios_grub on
-parted -s "${DISK}" mkpart EFIBOOT 1025MiB 2049MiB
-parted -s "${DISK}" set 2 esp on
-END=$(parted -s "${DISK}" unit MiB print | awk '/Disk/ {gsub("MiB","",$3); print int($3 - 1)}')
-parted -s "${DISK}" mkpart root xfs 2049MiB "${END}MiB"
+dd if=/dev/zero of="${DISK}" bs=1M count=10
+
+# create GPT label with 2048-sector alignment
+parted --script "${DISK}" mklabel gpt
+
+# create partitions using sfdisk
+cat <<EOF | sfdisk --unit MiB "${DISK}"
+label: gpt
+unit: MiB
+
+1 : start=1, size=1024, type=8300, name=BOOT
+2 : start=1025, size=1024, type=ef00, name=EFIBOOT
+3 : start=2049, type=8300, name=ROOT
+EOF
+
+# set BIOS bootable flag if not UEFI
 if [[ ! -d "/sys/firmware/efi" ]]; then
-	parted -s "${DISK}" set 1 boot on
+    sfdisk --part-attrs "${DISK}" 1 bootable
 fi
+
+# reread partition table
 partprobe "${DISK}"
 
 if [[ "${DISK}" =~ "nvme" ]]; then
