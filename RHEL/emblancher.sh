@@ -280,6 +280,7 @@ mkfs.fat -F32 -n "EFIBOOT" "${partition2}"
 if [[ "${FS}" == "xfs" ]]; then 
 	mkfs.xfs -f -L ROOT "${partition3}"
 	sync
+	uvdevadm settle
 	sleep 1
 	mount -t xfs "${partition3}" /mnt
 elif [[ "${FS}" == "ext4" ]]; then
