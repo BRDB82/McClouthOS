@@ -245,7 +245,7 @@ after formatting your disk there is no way to get data back
 "
 umount -A --recursive /mnt
 wipefs -a "${DISK}"
-parted -s "${DISK}" mklabel gprt
+parted -s "${DISK}" mklabel gpt
 parted -s "${DISK}" mkpart BOOT 1MiB 1025MiB
 parted -s "${DISK}" set 1 bios_grub on
 parted -s "${DISK}" mkpart EFIBOOT 1025MiB 2049MiB
