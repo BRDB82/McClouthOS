@@ -233,6 +233,57 @@ do
 done
 export NAME_OF_MACHINE=$name_of_machine
 
+#so gdisk is the best option... but we can't install it
+is=$(curl -4 -s ifconfig.io/country_code)
+timedatectl set-ntp true
+
+mkdir -p /etc/yum.repos.d
+
+#Check if we have registered system
+if ! subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"; then
+  read -p "CDN Username: " RHEL_USER
+  read -s -p "CDN Password: " RHEL_PASS
+  echo
+
+  echo "📡 Registring with Red Hat..."
+  output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
+  echo "$output"
+
+  if [[ $rc -ne 0 ]]; then
+	echo "!! Registration failed !!"
+	exit $rc
+  fi
+
+  unset RHEL_USER
+  unset RHEL_PASS
+fi
+
+RHEL_VERSION="10" #Currently hardcoded, lost my initial code
+
+subscription-manager refresh
+
+subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms" --enable="rhel-$RHEL_VERSION-for-x86_64--rpms"
+
+dnf --releasever=10 update -y
+dnf --releasever=10 clean all
+dnf --releasever=10 makecache
+dnf --releasever=10 -y install rpm
+dnf --releasever=10 -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
+dnf --releasever=10 install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
+dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
+setfont ter-118b
+
+systemctl enable systemd-resolved
+systemctl start systemd-resolved
+#ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+cp /etc/resolv.conf /mnt/etc/resolv.conf
+
+if [ ! -d "/mnt" ]; then
+	mkdir /mnt
+fi
+
+dnf --releasever=10 install -y gdisk
+
 echo -ne "
 ------------------------------------------------------------------------
 THIS WILL FORMAT AND DELETE ALL DATA ON THE DISK
@@ -243,31 +294,19 @@ after formatting your disk there is no way to get data back
 ------------------------------------------------------------------------
 
 "
-umount -A --recursive /mnt
-dd if=/dev/zero of="${DISK}" bs=1M count=10
+ummount -A --recursive /mnt # make sure everything is unmounted before we start
+# disk prep
+sgdisk -Z "${DISK}" # zap all on disk
+sgdisk -a 2048 -o "${DISK}" # new gpt disk 2048 alignment
 
-# create GPT label with 2048-sector alignment
-parted --script "${DISK}" mklabel gpt
-
-# create partitions using sfdisk
-sfdisk --label=gpt "${DISK}" <<EOF
-start=2048MiB, size=1024MiB, type=8300
-start=3072MiB, size=1024MiB, type=ef00
-start=4096MiB, type=8300
-EOF
-
-sfdisk --part-name "${DISK}" 1 BOOT
-sfdisk --part-name "${DISK}" 2 EFIBOOT
-sfdisk --part-name "${DISK}" 3 ROOT
-
-
-# set BIOS bootable flag if not UEFI
-if [[ ! -d "/sys/firmware/efi" ]]; then
-    sfdisk --part-attrs "${DISK}" 1 bootable
+# create partitions
+sgdisk -n 1::+1G --typecode=1:8300 --change-name=1:'BOOT' "${DISK}" # partition 1 (BIOS Boot Partition)
+sgdisk -n 2::+1G --typecode=2:ef00 --change-name=2:'EFIBOOT' "${DISK}" # partition 2 (UEFI Boot Partition)
+sgdisk -n 3::-0 --typecode=3:8300 --change-name=3:'ROOT' "${DISK}" # partition 3 (Root), default start, remaining
+if [[ ! -d "/sys/firmware/efi" ]]; then # Checking for bios system
+	sgdisk -A 1:set:2 "${DISK}"
 fi
-
-# reread partition table
-partprobe "${DISK}"
+partprobe "${DISK}" # reread partition table to ensure it is correct
 
 if [[ "${DISK}" =~ "nvme" ]]; then
 	partition1=${DISK}p1
@@ -322,54 +361,6 @@ if ! grep -qs '/mnt' /proc/mounts; then
 	reboot now
 fi
 
-is=$(curl -4 -s ifconfig.io/country_code)
-timedatectl set-ntp true
-
-mkdir -p /etc/yum.repos.d
-
-#Check if we have registered system
-if ! subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"; then
-  read -p "CDN Username: " RHEL_USER
-  read -s -p "CDN Password: " RHEL_PASS
-  echo
-
-  echo "📡 Registring with Red Hat..."
-  output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
-  echo "$output"
-
-  if [[ $rc -ne 0 ]]; then
-	echo "❌ Registration failed."
-	exit $rc
-  fi
-
-  unset RHEL_USER
-  unset RHEL_PASS
-fi
-
-RHEL_VERSION="10" #Currently hardcoded, lost my initial code
-
-subscription-manager refresh
-
-subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms" --enable="rhel-$RHEL_VERSION-for-x86_64--rpms"
-
-dnf --releasever=10 update -y
-dnf --releasever=10 clean all
-dnf --releasever=10 makecache
-dnf --releasever=10 -y install rpm
-dnf --releasever=10 -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
-dnf --releasever=10 install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
-dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
-setfont ter-118b
-
-systemctl enable systemd-resolved
-systemctl start systemd-resolved
-#ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
-cp /etc/resolv.conf /mnt/etc/resolv.conf
-
-if [ ! -d "/mnt" ]; then
-	mkdir /mnt
-fi
-	
 wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/dnfstrap.sh
   chmod +x dnfstrap.sh
   mv dnfstrap.sh /usr/bin/dnfstrap
