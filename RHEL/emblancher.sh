@@ -363,9 +363,202 @@ wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-
 	  
 dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules subscription-manager redhat-release nano dnf dnf-plugins-core --assumeyes
 
-#disk_installbootloader
+fibootmgr -v | grep Boot
+    
+echo ""
+read -p "Give all entries to remove, or enter stop to continue: " input
 
-#dnfstrap, rhel-chroot, fstab
+if [[ "$input" == "stop" ]]; then
+  echo ""
+else
+ for bootnum in $input; do
+	  if [[ "$bootnum" =~ ^[0-9]+$ ]]; then
+		  echo "Removing entry $bootnum..."
+		  efibootmgr -B -b "$bootnum"
+	  else
+		  echo "Invalid entry: '$bootnum'"
+	  fi
+  done
+fi
+
+grub2-install \
+  --target=x86_64-efi \
+  --efi-directory=/mnt/boot/efi \
+  --bootloader-id=McClouthOS \
+  --boot-directory=/mnt/boot \
+  --recheck \
+  --force
+
+gpu_type=$(lspci | grep -E "VGA|3D|Display")
+
+rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
+
+	echo 'nameserver 1.1.1.1' > /etc/resolv.conf
+	dnf install -y NetworkManager --nogpgcheck
+	systemctl enable NetworkManager
+	systemctl start NetworkManager
+
+	dnf install -y curl git wget chrony
+	dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
+	dnf install -y rsync grub2
+	wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/dnfstrap.sh
+	  chmod +x dnfstrap.sh
+	  mv dnfstrap.sh /usr/bin/dnfstrap
+	wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/common
+	  mv common /usr/bin/dnfcommon
+	wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/rhel-chroot.sh
+	  chmod +x rhel-chroot.sh
+	  mv rhel-chroot.sh /usr/bin/rhel-chroot
+	wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/genfstab.sh
+	  chmod +x genfstab.sh
+	  mv genfstab.sh /usr/bin/genfstab
+	wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/fstab-helpers
+	  mv fstab-helpers /usr/bin/fstab-helpers
+	wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh
+	  chmod +x mcclouth-setup.sh
+	  mv mcclouth-setup.sh /usr/bin/mcclouth-setup
+	dnf install -y ntp
+
+	nc=$(grep -c ^"cpu cores" /proc/cpuinfo)
+
+	TOTAL_MEM=$(cat /proc/meminfo | grep -i 'memtotal' | grep -o '[[:digit:]]*')
+	if [[  $TOTAL_MEM -gt 8000000 ]]; then
+		sed -i "s/#MAKEFLAGS=\"-j2\"/MAKEFLAGS=\"-j$nc\"/g" /etc/makepkg.conf
+		sed -i "s/COMPRESSXZ=(xz -c -z -)/COMPRESSXZ=(xz -c -T $nc -z -)/g" /etc/makepkg.conf
+	fi
+
+	locale -a | grep -q en_US.UTF-8 || localedef -i en_US -f UTF-8 en_US.UTF-8
+	timedatectl --no-ask-password set-timezone "${TIMEZONE}"
+	timedatectl --no-ask-password set-ntp 1
+	localectl --no-ask-password set-locale LANG="en_US.UTF-8" LC_TIME="en_US.UTF-8"
+	ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+
+	localectl --no-ask-password set-keymap "${KEYMAP}"
+	echo "KEYMAP=${KEYMAP}" > /etc/vconsole.conf
+	echo "XKBLAYOUT=${KEYMAP}" >> /etc/vconsole.conf
+	echo "Keymap set to: ${KEYMAP}"
+
+	sed -i 's/^# %wheel ALL=(ALL) NOPASSWD: ALL/%wheel ALL=(ALL) NOPASSWD: ALL/' /etc/sudoers
+	sed -i 's/^# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers
+
+	echo "max_parallel_downloads=5" >> /etc/dnf/dnf.conf
+	echo "color=always" >> /etc/dnf/dnf.conf
+
+	dnf makecache
+
+	if grep -q "GenuineIntel" /proc/cpuinfo; then
+	    echo "Installing Intel microcode"
+	    dnf install -y microcode_ctl
+	elif grep -q "AuthenticAMD" /proc/cpuinfo; then
+	    echo "Installing AMD microcode"
+	    dnf install -y linux-firmware
+	else
+	    echo "Unable to determine CPU vendor. Skipping microcode installation."
+	fi
+
+echo -ne "
+-------------------------------------------------------------------------
+                    Installing Graphics Drivers
+-------------------------------------------------------------------------
+"
+
+# Graphics Drivers find and install
+if echo "${gpu_type}" | grep -E "NVIDIA|GeForce"; then
+    echo "Installing NVIDIA drivers via dnf module"
+    dnf clean all
+    dnf module install -y nvidia-driver:latest-dkms
+    dnf install -y nvidia-gds cuda
+elif echo "${gpu_type}" | grep 'VGA' | grep -E "Radeon|AMD"; then
+    echo "Installing AMD drivers (bundled in linux-firmware)"
+    dnf install -y linux-firmware mesa-dri-drivers mesa-vulkan-drivers
+elif echo "${gpu_type}" | grep -E "Integrated Graphics Controller|Intel Corporation UHD"; then
+    echo "Installing Intel drivers"
+    dnf config-manager --add-repo https://repositories.intel.com/graphics/rhel/8.6/flex/intel-graphics.repo
+    dnf clean all
+    dnf makecache
+    dnf install -y intel-opencl intel-media intel-mediasdk libvpl2 level-zero intel-level-zero-gpu \
+                   mesa-dri-drivers mesa-vulkan-drivers mesa-vdpau-drivers libva libva-utils
+else
+    echo "Unknown GPU type. Skipping graphics driver installation."
+fi
+
+echo -ne "
+-------------------------------------------------------------------------
+                    Adding User
+-------------------------------------------------------------------------
+"
+getent group libvirt >/dev/null || groupadd libvirt
+useradd -m -G wheel,libvirt -s /bin/bash "$USERNAME"
+echo "$USERNAME created, home directory created, added to wheel and libvirt group, default shell set to /bin/bash"
+echo "$USERNAME:$PASSWORD" | chpasswd
+echo "$USERNAME password set"
+echo "$NAME_OF_MACHINE" > /etc/hostname
+hostnamectl set-hostname "$NAME_OF_MACHINE"
+
+echo -ne "
+███╗   ███╗ ██████╗ ██████╗██╗      ██████╗ ██╗   ██╗████████╗██╗  ██╗     ██████╗ ███████╗
+████╗ ████║██╔════╝██╔════╝██║     ██╔═══██╗██║   ██║╚══██╔══╝██║  ██║    ██╔═══██╗██╔════╝
+██╔████╔██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ███████║    ██║   ██║███████╗
+██║╚██╔╝██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ██╔══██║    ██║   ██║╚════██║
+██║ ╚═╝ ██║╚██████╗╚██████╗███████╗╚██████╔╝╚██████╔╝   ██║   ██║  ██║    ╚██████╔╝███████║
+╚═╝     ╚═╝ ╚═════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝     ╚═════╝ ╚══════╝
+
+--------------------------------------------------------------------------------------------
+                Automated McClouth OS Base Installer (powered by Rocky)
+--------------------------------------------------------------------------------------------
+
+Final Setup and Configurations
+GRUB EFI Bootloader Install & Check
+"
+#if [[ -d "/sys/firmware/efi" ]]; then
+    grub2-install --efi-directory=/boot "${DISK}"
+#fi
+
+echo -ne "
+-------------------------------------------------------------------------
+               Creating Grub Boot Menu
+-------------------------------------------------------------------------
+"
+
+# Add splash screen
+sed -i 's/GRUB_CMDLINE_LINUX="[^"]*/& splash /' /etc/default/grub
+
+echo -e "Updating grub..."
+grub2-mkconfig -o /boot/grub2/grub.cfg
+echo -e "All set!"
+
+echo -ne "
+-------------------------------------------------------------------------
+                    Enabling Essential Services
+-------------------------------------------------------------------------
+"
+chronyd -q
+systemctl enable chronyd.service
+echo "  Chrony (NTP) enabled"
+systemctl disable network.service 2>/dev/null || true
+systemctl enable NetworkManager.service
+echo "  NetworkManager enabled"
+
+echo -ne "
+-------------------------------------------------------------------------
+                    Install $SYSTEM_OF_CHOICE
+-------------------------------------------------------------------------
+"
+#mcclouth-setup "$SYSTEM_OF_CHOICE"
+
+echo -ne "
+-------------------------------------------------------------------------
+                    Cleaning
+-------------------------------------------------------------------------
+"
+# Remove no password sudo rights
+visudo -c >/dev/null && sed -i 's/^%wheel ALL=(ALL) NOPASSWD: ALL/# &/' /etc/sudoers
+visudo -c >/dev/null && sed -i 's/^%wheel ALL=(ALL:ALL) NOPASSWD: ALL/# &/' /etc/sudoers
+# Add sudo rights
+visudo -c >/dev/null && sed -i 's/^# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
+visudo -c >/dev/null && sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
+EOF
+
 
 
 #===============
