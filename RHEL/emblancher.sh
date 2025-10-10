@@ -346,7 +346,18 @@ EFI_UUID=$(blkid -s UUID -o value "${partition2}")
 sync
 if ! mountpoint -q /mnt; then
 	echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
-	exit 1
+
+	if [[ "${FS}" == "xfs" ]]; then 
+		mount -t xfs "${partition3}" /mnt
+	elif [[ "${FS}" == "ext4" ]]; then
+		mount -t ext4 "${partition3}" /mnt
+	fi
+	
+	sync
+	if ! mountpoint -q /mnt; then
+		echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
+		exit 1
+	fi
 fi
 
 mkdir -p /mnt/boot
