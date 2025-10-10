@@ -294,7 +294,7 @@ after formatting your disk there is no way to get data back
 ------------------------------------------------------------------------
 
 "
-ummount -A --recursive /mnt # make sure everything is unmounted before we start
+umount -A --recursive /mnt # make sure everything is unmounted before we start
 # disk prep
 sgdisk -Z "${DISK}" # zap all on disk
 sgdisk -a 2048 -o "${DISK}" # new gpt disk 2048 alignment
@@ -331,7 +331,7 @@ mkfs.fat -F32 -n "EFIBOOT" "${partition2}"
 if [[ "${FS}" == "xfs" ]]; then 
 	mkfs.xfs -f -L ROOT "${partition3}"
 	sync
-	uvdevadm settle
+	udevadm settle
 	sleep 1
 	mount -t xfs "${partition3}" /mnt
 elif [[ "${FS}" == "ext4" ]]; then
