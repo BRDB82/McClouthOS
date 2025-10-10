@@ -233,7 +233,6 @@ do
 done
 export NAME_OF_MACHINE=$name_of_machine
 
-#so gdisk is the best option... but we can't install it
 is=$(curl -4 -s ifconfig.io/country_code)
 timedatectl set-ntp true
 
@@ -408,6 +407,40 @@ grub2-install \
 gpu_type=$(lspci | grep -E "VGA|3D|Display")
 
 rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
+
+	mkdir -p /etc/yum.repos.d
+	
+	#Check if we have registered system
+	if ! subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"; then
+	  read -p "CDN Username: " RHEL_USER
+	  read -s -p "CDN Password: " RHEL_PASS
+	  echo
+	
+	  echo "📡 Registring with Red Hat..."
+	  output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
+	  echo "$output"
+	
+	  if [[ $rc -ne 0 ]]; then
+		echo "!! Registration failed !!"
+		exit $rc
+	  fi
+	
+	  unset RHEL_USER
+	  unset RHEL_PASS
+	fi
+	
+	RHEL_VERSION="10" #Currently hardcoded, lost my initial code
+	
+	subscription-manager refresh
+	
+	subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms" --enable="rhel-$RHEL_VERSION-for-x86_64-appstream-rpms"
+	
+	rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+	
+	dnf --releasever=10 update -y
+	dnf --releasever=10 clean all
+	dnf --releasever=10 makecache
+	dnf --releasever=10 -y install rpm
 
 	echo 'nameserver 1.1.1.1' > /etc/resolv.conf
 	dnf install -y NetworkManager --nogpgcheck
