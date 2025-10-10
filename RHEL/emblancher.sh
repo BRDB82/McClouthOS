@@ -262,7 +262,7 @@ RHEL_VERSION="10" #Currently hardcoded, lost my initial code
 
 subscription-manager refresh
 
-subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms" --enable="rhel-$RHEL_VERSION-for-x86_64-rpms"
+subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms" --enable="rhel-$RHEL_VERSION-for-x86_64-appstream-rpms"
 
 dnf --releasever=10 update -y
 dnf --releasever=10 clean all
