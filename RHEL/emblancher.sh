@@ -344,6 +344,8 @@ BOOT_UUID=$(blkid -s UUID -o value "${partition1}")
 EFI_UUID=$(blkid -s UUID -o value "${partition2}")
 
 sync
+udevadm settle
+sleep 1
 if ! mountpoint -q /mnt; then
 	echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
 
@@ -354,6 +356,8 @@ if ! mountpoint -q /mnt; then
 	fi
 	
 	sync
+	udevadm settle
+	sleep 1
 	if ! mountpoint -q /mnt; then
 		echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
 		ls -l "${partition3}"
