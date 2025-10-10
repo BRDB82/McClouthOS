@@ -264,6 +264,8 @@ subscription-manager refresh
 
 subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms" --enable="rhel-$RHEL_VERSION-for-x86_64-appstream-rpms"
 
+rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+
 dnf --releasever=10 update -y
 dnf --releasever=10 clean all
 dnf --releasever=10 makecache
