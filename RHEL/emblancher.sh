@@ -364,7 +364,19 @@ if ! mountpoint -q /mnt; then
 		lsblk -f "${partition3}"
 		file -s "${partition3}"
 		blkid "${partition3}"
-		exit 1
+		if [[ "${FS}" == "xfs" ]]; then 
+			mount -t xfs "${partition3}" /mnt
+		elif [[ "${FS}" == "ext4" ]]; then
+			mount -t ext4 "${partition3}" /mnt
+		fi
+		if ! mountpoint -q /mnt; then
+			echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
+			if [[ "${FS}" == "xfs" ]]; then 
+				mount -t xfs "${partition3}" /mnt
+			elif [[ "${FS}" == "ext4" ]]; then
+				mount -t ext4 "${partition3}" /mnt
+			fi
+		fi
 	fi
 fi
 
