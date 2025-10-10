@@ -101,7 +101,7 @@ dnfstrap() {
     if ! dnf --installroot="$newroot" \
       --setopt=install_weak_deps=False \
       --setopt=group_package_types=mandatory \
-      group install "$group" -y; then
+      group install "$group" -y --releasever=10; then
       die 'Failed to install group "%s"' "$group"
     fi
   done
@@ -109,7 +109,7 @@ dnfstrap() {
   # Then install regular packages into installroot
   if (( ${#dnf_args[@]} )); then
     msg 'Installing "%s" inside installroot' "${dnf_args[@]}"
-    if ! dnf --installroot="$newroot" install -y "${dnf_args[@]}"; then
+    if ! dnf --installroot="$newroot" install -y "${dnf_args[@]}" --releasever=10; then
       die 'Failed to install packages to new root'
     fi
   fi
