@@ -409,7 +409,7 @@ wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-
 	  
 dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules subscription-manager redhat-release nano dnf dnf-plugins-core --assumeyes
 
-fibootmgr -v | grep Boot
+efibootmgr -v | grep Boot
     
 echo ""
 read -p "Give all entries to remove, or enter stop to continue: " input
