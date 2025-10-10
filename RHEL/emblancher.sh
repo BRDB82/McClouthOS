@@ -356,6 +356,10 @@ if ! mountpoint -q /mnt; then
 	sync
 	if ! mountpoint -q /mnt; then
 		echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
+		ls -l "${partition3}"
+		lsblk -f "${partition3}"
+		file -s "${partition3}"
+		blkid "${partition3}"
 		exit 1
 	fi
 fi
