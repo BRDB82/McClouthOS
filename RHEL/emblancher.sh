@@ -276,7 +276,7 @@ setfont ter-118b
 
 systemctl enable systemd-resolved
 systemctl start systemd-resolved
-'ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+#ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 
 if [ ! -d "/mnt" ]; then
 	mkdir /mnt
