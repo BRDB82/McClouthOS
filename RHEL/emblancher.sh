@@ -240,11 +240,11 @@ mkdir -p /etc/yum.repos.d
 
 #Check if we have registered system
 if ! subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"; then
-  read -p "CDN Username: " RHEL_USER
-  read -s -p "CDN Password: " RHEL_PASS
-  echo
+  #read -p "CDN Username: " RHEL_USER
+  #read -s -p "CDN Password: " RHEL_PASS
+  #echo
 
-  echo "📡 Registring with Red Hat..."
+  echo "Registring with Red Hat..."
   output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
   echo "$output"
 
