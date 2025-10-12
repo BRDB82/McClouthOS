@@ -330,10 +330,30 @@ mkfs.fat -F32 -n "EFIBOOT" "${partition2}"
 
 if [[ "${FS}" == "xfs" ]]; then 
 	mkfs.xfs -f -L ROOT "${partition3}"
-	sync
 	udevadm settle
-	sleep 1
-	mount -t xfs "${partition3}" /mnt
+	sync
+	sleep 2
+	blockdev --rereadpt "${disk}"
+	partprobe "${disk}"
+	mount -t xfs "${partition3}" /mnt || {
+		echo "Initial mount failed, retrying..." 
+		sleep 2
+		mount -t xfs "${partition3}" /mnt || {
+			echo "2: Mount failed..."
+			mount -t xfs "${partition3}" /mnt || {
+				echo "3: Mount failed..." 
+				sleep 2
+				mount -t xfs "${partition3}" /mnt || {
+					echo "4: Mount failed"
+					lsblk -f
+					blkid
+					file -s "${partition3}"
+					dmesg | tail -n 50
+				}
+			}
+		}
+	}
+			
 elif [[ "${FS}" == "ext4" ]]; then
 	mkfs.ext4 "${partition3}"
 	mount -t ext4 "${partition3}" /mnt
@@ -342,41 +362,9 @@ fi
 BOOT_UUID=$(blkid -s UUID -o value "${partition1}")
 EFI_UUID=$(blkid -s UUID -o value "${partition2}")
 
-sync
-udevadm settle
-sleep 1
 if ! mountpoint -q /mnt; then
 	echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
-
-	if [[ "${FS}" == "xfs" ]]; then 
-		mount -t xfs "${partition3}" /mnt
-	elif [[ "${FS}" == "ext4" ]]; then
-		mount -t ext4 "${partition3}" /mnt
-	fi
-	
-	sync
-	udevadm settle
-	sleep 1
-	if ! mountpoint -q /mnt; then
-		echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
-		ls -l "${partition3}"
-		lsblk -f "${partition3}"
-		file -s "${partition3}"
-		blkid "${partition3}"
-		if [[ "${FS}" == "xfs" ]]; then 
-			mount -t xfs "${partition3}" /mnt
-		elif [[ "${FS}" == "ext4" ]]; then
-			mount -t ext4 "${partition3}" /mnt
-		fi
-		if ! mountpoint -q /mnt; then
-			echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
-			if [[ "${FS}" == "xfs" ]]; then 
-				mount -t xfs "${partition3}" /mnt
-			elif [[ "${FS}" == "ext4" ]]; then
-				mount -t ext4 "${partition3}" /mnt
-			fi
-		fi
-	fi
+	exit 1
 fi
 
 mkdir -p /mnt/boot
