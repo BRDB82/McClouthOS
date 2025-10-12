@@ -276,8 +276,7 @@ setfont ter-118b
 
 systemctl enable systemd-resolved
 systemctl start systemd-resolved
-#ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
-cp /etc/resolv.conf /mnt/etc/resolv.conf
+'ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 
 if [ ! -d "/mnt" ]; then
 	mkdir /mnt
@@ -439,6 +438,8 @@ gpu_type=$(lspci | grep -E "VGA|3D|Display")
 
 rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
 
+	echo 'nameserver 1.1.1.1' > /etc/resolv.conf
+
 	mkdir -p /etc/yum.repos.d
 	
 	#Check if we have registered system
@@ -473,7 +474,6 @@ rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
 	dnf --releasever=10 makecache
 	dnf --releasever=10 -y install rpm
 
-	echo 'nameserver 1.1.1.1' > /etc/resolv.conf
 	dnf install -y NetworkManager --nogpgcheck
 	systemctl enable NetworkManager
 	systemctl start NetworkManager
