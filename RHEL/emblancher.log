@@ -1,0 +1,11 @@
+Cannot find rpmkeys executable to verify signatures
+Problem opening package *.rpm; in 2nd run it works
+Error: GPG check FAILED
+
+cp: cannot create regular file '/mtn/etc/resolv.conf': No such file or directory
+
+failed to mount /dev/sda3 to /mnt after multiple attempts
+
+Unable to detect release version (use '--releasever' to specify release version)
+Unable to read consumer identity
+ERROR: Failed to install group "core"
