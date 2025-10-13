@@ -1,11 +1,21 @@
 Cannot find rpmkeys executable to verify signatures
 Problem opening package *.rpm; in 2nd run it works
-Error: GPG check FAILED => resolved?
+Error: GPG check FAILED => resolved
 
 cp: cannot create regular file '/mtn/etc/resolv.conf': No such file or directory - to early => resolved
 
-failed to mount /dev/sda3 to /mnt after multiple attempts
+failed to mount /dev/sda3 to /mnt after multiple attempts -> resolved due missing FS type
 
 Unable to detect release version (use '--releasever' to specify release version)
 Unable to read consumer identity
-ERROR: Failed to install group "core" => resolved?
+ERROR: Failed to install group "core" => resolved
+
+in the chroot, we have an issue with reading out the cores and the memory, so we skip that part, and get back to that in the config script later on.
+resolved
+
+currently mcclouth-setup is missing
+
+EFI: grub2-install: error: This utility should not be used for EFI platforms beause it does not support UEFI Secure Boot.
+add --force
+
+look into Looking Glass for KVM use
