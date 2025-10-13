@@ -458,30 +458,19 @@ rhel-chroot /mnt /bin/bash -c "RHEL_USER='${RHEL_USER}' RHEL_PASS='${RHEL_PASS}'
 
 	mkdir -p /etc/yum.repos.d
 	
-	#Check if we have registered system
-	subscription_status_output=$(/usr/sbin/subscription-manager status 2>&1)
-	echo "$subscription_status_output" | grep -q "Overall Status: Registered"
-	status_check_rc=$?
-	if [[ "$status_check_rc" -eq 1 ]]; then
-		if [ -z "$RHEL_USER" ]; then
-		    read -p "CDN Username: " RHEL_USER
-		    read -s -p "CDN Password: " RHEL_PASS
-		    echo
-		fi
-	
-	  echo "Registring with Red Hat with $RHEL_USER..."
-	  output=$(/usr/sbin/subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1)
-	  rc=$?
-	  echo "$output"
-	
-	  if [[ "$rc" -ne 0 ]]; then
-		echo "!! Registration failed !!"
-		exit "$rc"
-	  fi
-	
-	  unset RHEL_USER
-	  unset RHEL_PASS
+	if [ -z "$RHEL_USER" ]; then
+		read -p "CDN Username: " RHEL_USER
+		read -s -p "CDN Password: " RHEL_PASS
+		echo
 	fi
+	
+	echo "Registring with Red Hat with $RHEL_USER..."
+	/usr/sbin/subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1
+	
+	/usr/sbin/subscription-manager status
+	
+	unset RHEL_USER
+	unset RHEL_PASS
 	
 	RHEL_VERSION="10" #Currently hardcoded, lost my initial code
 	
