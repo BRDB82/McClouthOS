@@ -467,12 +467,13 @@ rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
 		fi
 	
 	  echo "Registring with Red Hat with $RHEL_USER..."
-	  output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
+	  output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1)
+	  rc=$?
 	  echo "$output"
 	
-	  if [[ $rc -ne 0 ]]; then
+	  if [[ "$rc" -ne 0 ]]; then
 		echo "!! Registration failed !!"
-		exit $rc
+		exit "$rc"
 	  fi
 	
 	  unset RHEL_USER
