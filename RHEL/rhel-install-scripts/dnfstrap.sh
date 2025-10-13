@@ -92,8 +92,8 @@ dnfstrap() {
     cp -a "$dnf_config" "$newroot/etc/dnf/dnf.conf"
   fi
 
-  dnf --installroot="$newroot" --releasever=10 clean all
-  dnf --installroot="$newroot" --releasever=10 makecache
+  dnf --installroot="$newroot" --releasever=10 --setopt=reposdir=/etc/yum.repos.d clean all
+  dnf --installroot="$newroot" --releasever=10 --setopt=reposdir=/etc/yum.repos.d makecache
 
   # First install groups inside chroot
   for group in "${dnf_group_args[@]}"; do
@@ -101,6 +101,7 @@ dnfstrap() {
     if ! dnf --installroot="$newroot" \
       --setopt=install_weak_deps=False \
       --setopt=group_package_types=mandatory \
+      --setopt=reposdir=/etc/yum.repos.d \
       group install "$group" -y --releasever=10; then
       die 'Failed to install group "%s"' "$group"
     fi
@@ -109,7 +110,7 @@ dnfstrap() {
   # Then install regular packages into installroot
   if (( ${#dnf_args[@]} )); then
     msg 'Installing "%s" inside installroot' "${dnf_args[@]}"
-    if ! dnf --installroot="$newroot" install -y "${dnf_args[@]}" --releasever=10; then
+    if ! dnf --installroot="$newroot" install -y "${dnf_args[@]}" --setopt=reposdir=/etc/yum.repos.d --releasever=10; then
       die 'Failed to install packages to new root'
     fi
   fi
