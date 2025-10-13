@@ -510,13 +510,13 @@ rhel-chroot /mnt /bin/bash -c "RHEL_USER='${RHEL_USER}' RHEL_PASS='${RHEL_PASS}'
 	  mv mcclouth-setup.sh /usr/bin/mcclouth-setup
 	dnf install -y ntp
 
-	nc=$(grep -c ^processor /proc/cpuinfo)
+	#nc=$(grep -c ^processor /proc/cpuinfo)
 
-	TOTAL_MEM=$(grep -i 'memtotal' /proc/meminfo | grep -o '[[:digit:]]*')
-	if [[  $TOTAL_MEM -gt 8000000 ]]; then
-		sed -i "s%#MAKEFLAGS=\"-j2\"%MAKEFLAGS=\"-j$nc\"%g" /etc/makepkg.conf
-		sed -i "s%COMPRESSXZ=(xz -c -z -)%COMPRESSXZ=(xz -c -T $nc -z -)%g" /etc/makepkg.conf
-	fi
+	#TOTAL_MEM=$(grep -i 'memtotal' /proc/meminfo | grep -o '[[:digit:]]*')
+	#if [[  $TOTAL_MEM -gt 8000000 ]]; then
+	#	sed -i "s%#MAKEFLAGS=\"-j2\"%MAKEFLAGS=\"-j$nc\"%g" /etc/makepkg.conf
+	#	sed -i "s%COMPRESSXZ=(xz -c -z -)%COMPRESSXZ=(xz -c -T $nc -z -)%g" /etc/makepkg.conf
+	#fi
 
 	locale -a | grep -q en_US.UTF-8 || localedef -i en_US -f UTF-8 en_US.UTF-8
 	timedatectl --no-ask-password set-timezone "${TIMEZONE}"
