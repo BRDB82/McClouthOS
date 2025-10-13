@@ -146,6 +146,19 @@ echo -e "\n${disk%|*} selected \n"
 export DISK=${disk%|*}
 
 echo -ne "
+Please Select your file system for both boot and root
+"
+options=("xfs" "ext4" "exit")
+select_option "${options[@]}"
+
+case $? in
+0) export FS=xfs;;
+1) export FS=ext4;;
+2) exit ;;
+*) echo "Wrong option please select again"; filesystem;;
+esac
+
+echo -ne "
 Is this an SSD? yes/no:
 "
 options=("Yes" "No")
