@@ -452,17 +452,17 @@ echo "DEBUG: $RHEL_USER"
 
 gpu_type=$(lspci | grep -E "VGA|3D|Display")
 
+if [ -z "$RHEL_USER" ]; then
+	read -p "CDN Username: " RHEL_USER
+	read -s -p "CDN Password: " RHEL_PASS
+	echo
+fi
+
 rhel-chroot /mnt /bin/bash -c "RHEL_USER='${RHEL_USER}' RHEL_PASS='${RHEL_PASS}' KEYMAP='${KEYMAP}' /bin/bash" <<EOF
 
 	echo 'nameserver 1.1.1.1' > /etc/resolv.conf
 
 	mkdir -p /etc/yum.repos.d
-	
-	if [ -z "$RHEL_USER" ]; then
-		read -p "CDN Username: " RHEL_USER
-		read -s -p "CDN Password: " RHEL_PASS
-		echo
-	fi
 	
 	echo "Registring with Red Hat with $RHEL_USER..."
 	/usr/sbin/subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1
