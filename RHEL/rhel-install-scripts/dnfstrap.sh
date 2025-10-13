@@ -63,7 +63,7 @@ dnfstrap() {
   printf 'dnf_group_args: [%s]\n' "${dnf_group_args[@]}"
   printf 'dnf_args: [%s]\n' "${dnf_args[@]}"
   
-  #if (( copyrepolist )); then
+  if (( copyrepolist )); then
     # if we are on RHEL (true-RHEL) this can never work, so it that case we should make sure that we 
     # have subscription-manager installed at least.
     #if [ -f /etc/redhat-release ] && grep -q '^Red Hat Enterprise Linux' /etc/redhat-release && [ -d /etc/pki/entitlement ]; then
@@ -81,12 +81,12 @@ dnfstrap() {
     #  #sed -i 's|BaseOS-$releasever$rltype|$rltype-BaseOS-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
     #  #sed -i 's|AppStream-$releasever$rltype|$rltype-AppStream-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
     #  #sed -i 's|extras-$releasever$rltype|$rltype-extras-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
-    #  mkdir -p /mnt/etc/dnf/vars
-    #  echo "10" > /mnt/etc/dnf/vars/releasever
-    #  echo "production" > /mnt/etc/dnf/vars/rltype
-    #  echo "x86_64" > /mnt/etc/dnf/vars/basearch
+    mkdir -p /mnt/etc/dnf/vars
+    echo "10" > /mnt/etc/dnf/vars/releasever
+    echo "production" > /mnt/etc/dnf/vars/rltype
+    echo "x86_64" > /mnt/etc/dnf/vars/basearch
     #fi
-  #fi
+  fi
 
   if (( copyconf )); then
     cp -a "$dnf_config" "$newroot/etc/dnf/dnf.conf"
