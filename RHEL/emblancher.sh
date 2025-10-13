@@ -253,8 +253,8 @@ if ! subscription-manager status 2>/dev/null | grep -q "Overall Status: Register
 	exit $rc
   fi
 
-  unset RHEL_USER
-  unset RHEL_PASS
+  #unset RHEL_USER - keep this, so we can install in chroot
+  #unset RHEL_PASS
 fi
 
 RHEL_VERSION="10" #Currently hardcoded, lost my initial code
@@ -340,15 +340,28 @@ if [[ "${FS}" == "xfs" ]]; then
 		sleep 2
 		mount -t xfs "${partition3}" /mnt || {
 			echo "2: Mount failed..."
+			sleep 2
 			mount -t xfs "${partition3}" /mnt || {
 				echo "3: Mount failed..." 
 				sleep 2
 				mount -t xfs "${partition3}" /mnt || {
-					echo "4: Mount failed"
-					lsblk -f
-					blkid
-					file -s "${partition3}"
-					dmesg | tail -n 50
+					echo "4: Mount failed" 
+					sleep 2
+					mount -t xfs "${partition3}" /mnt || {
+						echo "5: Mount failed..."
+						sleep 2
+						mount -t xfs "${partition3}" /mnt || {
+							echo "6: Mount failed..." 
+							sleep 2
+							mount -t xfs "${partition3}" /mnt || {
+								echo "7: Mount failed"
+								lsblk -f
+								blkid
+								file -s "${partition3}"
+								dmesg | tail -n 50
+							}
+						}
+					}
 				}
 			}
 		}
