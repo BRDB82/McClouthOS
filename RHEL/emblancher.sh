@@ -420,7 +420,7 @@ wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-
 wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/fstab-helpers
   mv fstab-helpers /usr/bin/fstab-helpers
 	  
-dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules subscription-manager redhat-release nano dnf dnf-plugins-core --assumeyes
+dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules subscription-manager redhat-release nano dnf dnf-plugins-core --assumeyes --releasever=10
 
 efibootmgr -v | grep Boot
     
