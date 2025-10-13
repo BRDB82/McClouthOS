@@ -459,7 +459,10 @@ rhel-chroot /mnt /bin/bash -c "RHEL_USER='${RHEL_USER}' RHEL_PASS='${RHEL_PASS}'
 	mkdir -p /etc/yum.repos.d
 	
 	#Check if we have registered system
-	if ! (subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"); then
+	subscription_status_output=$(subscription-manager status 2>&1)
+	echo "$subscription_status_output" | grep -q "Overall Status: Registered"
+	status_check_rc=$?
+	if [[ "$status_check_rc" -eq 1 ]]; then
 		if [ -z "$RHEL_USER" ]; then
 		    read -p "CDN Username: " RHEL_USER
 		    read -s -p "CDN Password: " RHEL_PASS
