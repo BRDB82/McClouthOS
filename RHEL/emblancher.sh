@@ -459,7 +459,7 @@ rhel-chroot /mnt /bin/bash -c "RHEL_USER='${RHEL_USER}' RHEL_PASS='${RHEL_PASS}'
 	mkdir -p /etc/yum.repos.d
 	
 	#Check if we have registered system
-	subscription_status_output=$(subscription-manager status 2>&1)
+	subscription_status_output=$(/usr/sbin/subscription-manager status 2>&1)
 	echo "$subscription_status_output" | grep -q "Overall Status: Registered"
 	status_check_rc=$?
 	if [[ "$status_check_rc" -eq 1 ]]; then
@@ -470,7 +470,7 @@ rhel-chroot /mnt /bin/bash -c "RHEL_USER='${RHEL_USER}' RHEL_PASS='${RHEL_PASS}'
 		fi
 	
 	  echo "Registring with Red Hat with $RHEL_USER..."
-	  output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1)
+	  output=$(/usr/sbin/subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1)
 	  rc=$?
 	  echo "$output"
 	
