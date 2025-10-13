@@ -92,8 +92,8 @@ dnfstrap() {
     cp -a "$dnf_config" "$newroot/etc/dnf/dnf.conf"
   fi
 
-  dnf --installroot="$newroot" clean all
-  dnf --installroot="$newroot" makecache
+  dnf --installroot="$newroot" --releasever=10 clean all
+  dnf --installroot="$newroot" --releasever=10 makecache
 
   # First install groups inside chroot
   for group in "${dnf_group_args[@]}"; do
