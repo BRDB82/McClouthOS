@@ -452,7 +452,7 @@ echo "DEBUG: $RHEL_USER"
 
 gpu_type=$(lspci | grep -E "VGA|3D|Display")
 
-if [ -z "$RHEL_USER" ]; then
+if [[ "$RHEL_USER" == "" ]]; then
 	read -p "CDN Username: " RHEL_USER
 	read -s -p "CDN Password: " RHEL_PASS
 	echo
