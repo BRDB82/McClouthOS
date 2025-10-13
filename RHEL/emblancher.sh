@@ -448,6 +448,8 @@ grub2-install \
   --recheck \
   --force
 
+echo "DEBUG: $RHEL_USER"
+
 gpu_type=$(lspci | grep -E "VGA|3D|Display")
 
 rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
@@ -462,7 +464,7 @@ rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
 	  #read -s -p "CDN Password: " RHEL_PASS
 	  #echo
 	
-	  echo "Registring with Red Hat..."
+	  echo "Registring with Red Hat with $RHEL_USER..."
 	  output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
 	  echo "$output"
 	
