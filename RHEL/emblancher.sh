@@ -460,9 +460,11 @@ rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
 	
 	#Check if we have registered system
 	if ! subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"; then
-	  #read -p "CDN Username: " RHEL_USER
-	  #read -s -p "CDN Password: " RHEL_PASS
-	  #echo
+	  if ! $RHEL_USER; then
+		  read -p "CDN Username: " RHEL_USER
+		  read -s -p "CDN Password: " RHEL_PASS
+		  echo
+	  fi
 	
 	  echo "Registring with Red Hat with $RHEL_USER..."
 	  output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
