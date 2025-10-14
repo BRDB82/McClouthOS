@@ -605,7 +605,7 @@ GRUB EFI Bootloader Install & Check
     grub2-install --efi-directory=/boot "${DISK}" --force
 #fi
 
-echo -ne "
+#echo -ne "
 -------------------------------------------------------------------------
                Creating Grub Boot Menu
 -------------------------------------------------------------------------
@@ -613,11 +613,11 @@ echo -ne "
 
 # Add splash screen
 #sed -i "s/ˆGRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\" /" /etc/default/grub
-grubby --update-kernel=ALL --args="quiet splash"
+#grubby --update-kernel=ALL --args="quiet splash"
 
-echo -e "Updating grub..."
-grub2-mkconfig -o /boot/grub2/grub.cfg
-echo -e "All set!"
+#echo -e "Updating grub..."
+#grub2-mkconfig -o /boot/grub2/grub.cfg
+#echo -e "All set!"
 
 echo -ne "
 -------------------------------------------------------------------------
