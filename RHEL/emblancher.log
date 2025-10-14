@@ -20,6 +20,15 @@ add --force => dropped this entirely, with the grub2-makeconfig because it block
 
 fstab is not created?
 
+---
+rewrite of the code.
+
+Script no longer asks for the initial user, the initial user is a local admin account called loa001mi.
+
+We might need to also set the password for the root account in the installed sytem
+
+---
+
 dmesg lines at login and while running system? it's selinux
 
 look into Looking Glass for KVM use
