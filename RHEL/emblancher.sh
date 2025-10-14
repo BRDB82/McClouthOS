@@ -612,7 +612,7 @@ echo -ne "
 "
 
 # Add splash screen
-sed -i 's/GRUB_CMDLINE_LINUX="[^"]*/& splash /' /etc/default/grub
+sed -i "s/ˆGRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\" /" /etc/default/grub
 
 echo -e "Updating grub..."
 grub2-mkconfig -o /boot/grub2/grub.cfg
