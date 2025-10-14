@@ -18,4 +18,8 @@ currently mcclouth-setup is missing
 EFI: grub2-install: error: This utility should not be used for EFI platforms beause it does not support UEFI Secure Boot.
 add --force => dropped this entirely, with the grub2-makeconfig because it blocked the entire installed system -> solved
 
+fstab is not created?
+
+dmesg lines at login and while running system? it's selinux
+
 look into Looking Glass for KVM use
