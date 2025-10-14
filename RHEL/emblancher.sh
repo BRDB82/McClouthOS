@@ -602,7 +602,7 @@ Final Setup and Configurations
 GRUB EFI Bootloader Install & Check
 "
 #if [[ -d "/sys/firmware/efi" ]]; then
-    grub2-install --efi-directory=/boot "${DISK}" --force
+#    grub2-install --efi-directory=/boot "${DISK}" --force
 #fi
 
 #echo -ne "
