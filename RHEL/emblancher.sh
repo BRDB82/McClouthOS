@@ -21,8 +21,10 @@
 
 #sticky
 #======
-logfile="/root/emblancher.log"
 pidfile="/var/run/emblancher.pid"
+local_user="loa001mi"
+logfile="/root/emblancher.log"
+RHEL_VERSION="10"
 
 select_option() {
     local options=("$@")
@@ -125,17 +127,187 @@ if [ -e "$pdfile" ]; then
 	exit 1
 fi
 
-#Check memory
+#check memory
+mem_total=$(grep MemTotal /proc/meminfo | awk '{print int($2 /1024)}')
+if [[ 8192 -gt "$total_ram" ]]; then
+	echo "The installation cannot continue and the system will be rebooted."
+	echo "Press Enter to continue..."
+	read -r
+	reboot
+fi
+
+#init locale
+echo -ne "
+Please select key board layout from this list"
+# These are default key maps as presented in official arch repo archinstall
+# shellcheck disable=SC1010
+options=(us by ca cf cz de dk es et fa fi fr gr hu il it lt lv mk nl no pl ro ru se sg ua uk)
+
+select_option "${options[@]}"
+keymap=${options[$?]}
+
+echo -ne "Your key boards layout: ${keymap} \n"
+export KEYMAP=$keymap
+
+sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+locale-gen
+timedatectl --no-ask-password set-timezone ${TIMEZONE}
+timedatectl --no-ask-password set-ntp 1
+localectl --no-ask-password set-locale LANG="en_US.UTF-8" LC_TIME="en_US.UTF-8"
+ln -s /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+
+# Set keymaps
+echo "KEYMAP=${KEYMAP}" > /etc/vconsole.conf
+echo "XKBLAYOUT=${KEYMAP}" >> /etc/vconsole.conf
+echo "Keymap set to: ${KEYMAP}"
 	
-	#check memory
+#set disk
+PS3='
+Select the disk to install on: '
+options=($(lsblk -n --output TYPE,KNAME,SIZE | awk '$1=="disk"{print "/dev/"$2"|"$3}'))
+
+select_option "${options[@]}"
+disk=${options[$?]%|*}
+
+echo -e "\n${disk%|*} selected \n"
+export DISK=${disk%|*}
+
+echo -ne "
+Please Select your file system for both boot and root
+"
+options=("xfs" "ext4" "exit")
+select_option "${options[@]}"
+
+case $? in
+0) export FS=xfs;;
+1) export FS=ext4;;
+2) exit ;;
+*) echo "Wrong option please select again"; filesystem;;
+esac
+
+echo -ne "
+Is this an SSD? yes/no:
+"
+options=("Yes" "No")
+select_option "${options[@]}"
+
+case $? in
+	0)
+    	export MOUNT_OPTIONS="noatime,commit=120"
+    	;;
+    1)
+        export MOUNT_OPTIONS="noatime,commit=120"
+        ;;
+    *)
+        echo "Wrong option. Try again"
+        disk_type
+        ;;
+esac
+
+#init system clock
+time_zone="$(curl --fail -s https://ipapi.co/timezone)"
+echo -ne "
+System detected your timezone to be '$time_zone' \n"
+echo -ne "Is this correct?
+"
+options=("Yes" "No")
+select_option "${options[@]}"
+
+case $? in
+	0)
+		echo "${time_zone} set as timezone"
+		export TIMEZONE=$time_zone
+		timedatectl set-timezone "$time_zone"
+		;;
+	1)
+		echo "Please enter your desired timezone e.g. Europe/Brussels :"
+		read -r new_timezone
+		echo "${new_timezone} set as timezone"
+		export TIMEZONE=$new_timezone
+		timedatectl set-timezone "$new_timezone"
+		;;
+	*)
+		echo "Wrong option. Try again"
+		timezone
+		;;
+esac
+
+#start subscription handling
+mkdir -p /etc/yum.repos.d
+
+#Check if we have registered system
+if ! subscription-manager status 2>/dev/null | grep -q "Overall Status: Registered"; then
+  read -p "CDN Username: " RHEL_USER
+  read -s -p "CDN Password: " RHEL_PASS
+  echo
+
+  echo "Registring with Red Hat..."
+  output=$(subscription-manager register --username="$RHEL_USER" --password="$RHEL_PASS" 2>&1) && rc=$? || rc=$?
+  echo "$output"
+
+  if [[ $rc -ne 0 ]]; then
+	echo "!! Registration failed !!"
+	exit $rc
+  fi
+
+fi
+
+subscription-manager refresh
+
+subscription-manager repos --enable="rhel-$RHEL_VERSION-for-x86_64-baseos-rpms" --enable="rhel-$RHEL_VERSION-for-x86_64-appstream-rpms"
+
+rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+
+dnf --releasever=10 update -y
+dnf --releasever=10 clean all
+dnf --releasever=10 makecache
+dnf --releasever=10 -y install rpm
+dnf --releasever=10 -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
+dnf --releasever=10 install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
+dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
+setfont ter-118b
+
+systemctl enable systemd-resolved
+systemctl start systemd-resolved
+
+if [ ! -d "/mnt" ]; then
+	mkdir /mnt
+fi
 	
-	#init locale
-	
-	#init network
-	
-	#set disk images
-	
-	#init system clock
-	
-	#start subscription handling (1st time)
-	
+dnf --releasever=10 install -y gdisk
+
+while true
+do
+		read -r -p "Please name your machine: " name_of_machine
+		# hostname regex (!!couldn't find spec for computer name!!)
+		if [[ "${name_of_machine,,}" =~ ^[a-z][a-z0-9_.-]{0,62}[a-z0-9]$ ]]
+		then
+				break
+		fi
+		# if validation fails allow the user to force saving of the hostname
+		read -r -p "Hostname doesn't seem correct. Do you still want to save it? (y/n)" force
+		if [[ "${force,,}" = "y" ]]
+		then
+				break
+		fi
+done
+export NAME_OF_MACHINE=$name_of_machine
+
+#user for install, this will be loa001mi (LOcal Admin)
+export USERNAME=$local_user
+while true
+do
+	echo -ne "\n"
+	read -rs -p "Please enter password for $USERNAME: " PASSWORD1
+	echo -ne "\n"
+	read -rs -p "Please re-enter password: " PASSWORD2
+	echo -ne "\n"
+	if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
+		break
+	else
+		echo -ne "ERROR! Passwords do not match. \n"
+	fi
+done
+export PASSWORD=$PASSWORD1
+
+
