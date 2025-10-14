@@ -16,6 +16,6 @@ resolved
 currently mcclouth-setup is missing
 
 EFI: grub2-install: error: This utility should not be used for EFI platforms beause it does not support UEFI Secure Boot.
-add --force
+add --force => dropped this entirely, with the grub2-makeconfig because it blocked the entire installed system -> solved
 
 look into Looking Glass for KVM use
