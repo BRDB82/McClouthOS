@@ -131,7 +131,7 @@ fi
 
 #check memory
 mem_total=$(grep MemTotal /proc/meminfo | awk '{print int($2 /1024)}')
-if [[ 8192 -gt "$total_ram" ]]; then
+if [[ 8192 -gt "$mem_total" ]]; then
 	echo "The installation cannot continue and the system will be rebooted."
 	echo "Press Enter to continue..."
 	read -r
