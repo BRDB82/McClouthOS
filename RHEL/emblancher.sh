@@ -313,6 +313,9 @@ fi
 	  fi
 	
 	fi
+
+	export RHEL_USER=$RHEL_USER
+	export RHEL_PASS=$RHEL_PASS
 	
 	subscription-manager refresh
 	
@@ -338,7 +341,7 @@ fi
 			echo -ne "ERROR! Passwords do not match. \n"
 		fi
 	done
-	export rootPASSWORD=$PASSWORD1
+	export rPASSWORD=$PASSWORD1
 	
 	#user for install, this will be loa001mi (LOcal Admin)
 	export USERNAME=$local_user
@@ -503,9 +506,12 @@ after formatting your disk there is no way to get data back
 		read -p "CDN Username: " RHEL_USER
 		read -s -p "CDN Password: " RHEL_PASS
 		echo
+
+		export RHEL_USER=$RHEL_USER
+		export RHEL_PASS=$RHEL_PASS
 	fi
 
-	rhel-chroot /mnt /bin/bash -c "RHEL_USER='${RHEL_USER}' RHEL_PASS='${RHEL_PASS}' rootPASSWORD='${rootPASSWORD}' IP_ADDRESS='${IP_ADDRESS}' KEYMAP='${KEYMAP}' /bin/bash" <<EOF
+	rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
 	
 		echo 'nameserver 1.1.1.1' > /etc/resolv.conf
 	
