@@ -227,7 +227,6 @@ fi
 	case $? in
 	0) export FS=xfs;;
 	1) export FS=ext4;;
-	2) exit ;;
 	*) echo "Wrong option please select again"; filesystem;;
 	esac
 
