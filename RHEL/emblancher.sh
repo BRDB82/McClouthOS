@@ -511,7 +511,8 @@ after formatting your disk there is no way to get data back
 		export RHEL_PASS=$RHEL_PASS
 	fi
 
-	rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
+	#rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
+	rhel-chroot /mnt /bin/bash <<EOF
 	
 		echo 'nameserver 1.1.1.1' > /etc/resolv.conf
 	
