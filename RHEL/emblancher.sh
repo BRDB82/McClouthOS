@@ -629,7 +629,7 @@ after formatting your disk there is no way to get data back
 	                    Adding User
 	-------------------------------------------------------------------------
 	"
-	echo "root:$rootPASSWORD"| chpasswd
+	echo "root:$rPASSWORD"| chpasswd
 	getent group libvirt >/dev/null || groupadd libvirt
 	useradd -m -G wheel,libvirt -s /bin/bash "$USERNAME"
 	echo "$USERNAME created, home directory created, added to wheel and libvirt group, default shell set to /bin/bash"
