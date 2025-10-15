@@ -135,6 +135,7 @@ if [[ 8192 -gt "$mem_total" ]]; then
 	echo "The installation cannot continue and the system will be rebooted."
 	echo "Press Enter to continue..."
 	read -r
+	exit 1 #for debug
 	#reboot
 fi
 
