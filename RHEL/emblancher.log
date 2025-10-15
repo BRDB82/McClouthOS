@@ -23,10 +23,35 @@ fstab is not created?
 ---
 rewrite of the code.
 
-Script no longer asks for the initial user, the initial user is a local admin account called loa001mi.
+[spokes]
 
-We might need to also set the password for the root account in the installed sytem
+Local & Language
+  * Language: system will be in English for the time being
+  * Date & Time: timezone
+  * Keyboard
 
+Software:
+  * Software Selection: currenly only Server (without GUI but with Cockpit) or Desktop (only XFCE for the time being)
+
+System:
+  * Installation target + FS + SSD?
+  * Network Settings & Hostname [only the first NIC (must be internally, not via expansion port) will get fixed ip]
+  * Red Hat Registration
+
+User:
+  * Root-password
+  * Create inital user loa001mi
+
+[installation]
+  * inital registration for the installer, so we can download
+  * update the installer
+  * install needed applications
+  * format disk
+  * create FS
+  * install system on drive
+    * use dnfstrap, genfstab
+  * install bootloader
+  * run chroot with rhel-chroot in EOF
 ---
 
 dmesg lines at login and while running system? it's selinux
