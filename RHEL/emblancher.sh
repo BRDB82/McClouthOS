@@ -97,6 +97,8 @@ if [ "$1" == "--update" ]; then
 	}
 	chmod +x "/usr/bin/emblancher.new"
 	mv -f "/usr/bin/emblancher.new" "/usr/bin/emblancher"
+	echo ""
+	echo "Update installed. Please restart emblancher."
 	exit 0
 fi
 	
@@ -160,6 +162,24 @@ ln -s /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
 echo "KEYMAP=${KEYMAP}" > /etc/vconsole.conf
 echo "XKBLAYOUT=${KEYMAP}" >> /etc/vconsole.conf
 echo "Keymap set to: ${KEYMAP}"
+
+#select Software
+echo -ne "
+Please select install type
+"
+# Define the options for the user to choose from
+options=("Server" "Workstation" "Exit")
+
+# Call your select_option function with the new options
+select_option "${options[@]}"
+
+# Handle the user's selection based on the exit code
+case $? in
+0) export INSTAL_TYPE=server;;
+1) export INSTALL_TYPE=workstation;;
+2) exit ;;
+*) echo "Wrong option, please select again"; machine_type_selection;;
+esac
 	
 #set disk
 PS3='
@@ -276,6 +296,30 @@ fi
 	
 dnf --releasever=10 install -y gdisk
 
+#network settings here, for now we'll assume that the system has two NICs
+while true
+do
+    read -r -p "Please enter the IP address for the first NIC (format 0.0.0.0): " ip_address
+    # First, check if the format matches the regular expression
+    if [[ $ip_address =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        # If the format is correct, split the IP address into octets
+        OIFS=$IFS
+        IFS='.'
+        read -ra octets <<< "$ip_address"
+        IFS=$OIFS
+
+        # Check if all four octets are numbers between 0 and 255
+        if (( octets[0] <= 255 && octets[1] <= 255 && octets[2] <= 255 && octets[3] <= 255 )); then
+            break # Exit the loop if the IP address is valid
+        else
+            echo "Error: Each number in the IP address must be between 0 and 255."
+        fi
+    else
+        echo "Error: The IP address format is invalid. Please use the format 0.0.0.0."
+    fi
+done
+export IP_ADDRESS=$ip_address
+
 while true
 do
 		read -r -p "Please name your machine: " name_of_machine
@@ -292,6 +336,22 @@ do
 		fi
 done
 export NAME_OF_MACHINE=$name_of_machine
+
+#password for root
+while true
+do
+	echo -ne "\n"
+	read -rs -p "Please enter password for root: " PASSWORD1
+	echo -ne "\n"
+	read -rs -p "Please re-enter password: " PASSWORD2
+	echo -ne "\n"
+	if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
+		break
+	else
+		echo -ne "ERROR! Passwords do not match. \n"
+	fi
+done
+export rootPASSWORD=$PASSWORD1
 
 #user for install, this will be loa001mi (LOcal Admin)
 export USERNAME=$local_user
