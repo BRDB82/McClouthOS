@@ -652,7 +652,7 @@ after formatting your disk there is no way to get data back
 	SUBNET_MASK="24"
 	DNS_SERVERS="1.1.1.1 8.8.8.8"
 	GATEWAY=$(echo "$IP_ADDRESS" | sed 's/\.[0-9]\+$/.1/')
-	CONNECTION_NAME=$(nmcli -t -f active,name,type connection show --active | grep '^yes:.*:ethernet' | head -n 1 | cut -d':' -f2)
+	CONNECTION_NAME=$(nmcli -t -f active,name,type connection show --active | grep 'yes:.*:802-3-ethernet' | head -n 1 | cut -d':' -f2)
 	#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
 	nmcli connection modify "$CONNECTION_NAME" ipv4.method manual
 	nmcli connection modify "$INTERFACE_NAME" ipv4.method manual
