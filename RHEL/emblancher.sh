@@ -143,8 +143,7 @@ fi
 	#local - will be set after timezone & keyboard
 	#date & time
 	time_zone="$(curl --fail -s https://ipapi.co/timezone)"
-	echo -ne "
-	System detected your timezone to be '$time_zone' \n"
+	echo -ne "System detected your timezone to be '$time_zone' \n"
 	echo -ne "Is this correct?
 	"
 	options=("Yes" "No")
@@ -170,8 +169,7 @@ fi
 	esac
 
 	#keyboard
-	echo -ne "
-	Please select key board layout from this list"
+	echo -ne "Please select key board layout from this list"
 	# These are default key maps as presented in official arch repo archinstall
 	# shellcheck disable=SC1010
 	options=(us by ca cf cz de dk es et fa fi fr gr hu il it lt lv mk nl no pl ro ru se sg ua uk)
@@ -376,8 +374,7 @@ fi
 	dnf --releasever=10 install -y gdisk
 
 	#format target disk
-	echo -ne "
-------------------------------------------------------------------------
+	echo -ne "------------------------------------------------------------------------
 THIS WILL FORMAT AND DELETE ALL DATA ON THE DISK
 Please make sure you know what you are doing because
 after formatting your disk there is no way to get data back
@@ -597,8 +594,7 @@ after formatting your disk there is no way to get data back
 		    echo "Unable to determine CPU vendor. Skipping microcode installation."
 		fi
 	
-	echo -ne "
-	-------------------------------------------------------------------------
+	echo -ne "-------------------------------------------------------------------------
 	                    Installing Graphics Drivers
 	-------------------------------------------------------------------------
 	"
@@ -623,8 +619,7 @@ after formatting your disk there is no way to get data back
 	    echo "Unknown GPU type. Skipping graphics driver installation."
 	fi
 	
-	echo -ne "
-	-------------------------------------------------------------------------
+	echo -ne "-------------------------------------------------------------------------
 	                    Adding User
 	-------------------------------------------------------------------------
 	"
@@ -637,8 +632,7 @@ after formatting your disk there is no way to get data back
 	echo "$NAME_OF_MACHINE" > /etc/hostname
 	hostnamectl set-hostname "$NAME_OF_MACHINE"
 
-	echo -ne "
--------------------------------------------------------------------------
+	echo -ne "-------------------------------------------------------------------------
                     Enabling Essential Services
 -------------------------------------------------------------------------
 "
@@ -661,8 +655,7 @@ after formatting your disk there is no way to get data back
 	nmcli connection modify "$INTERFACE_NAME" ipv4.dns "$DNS_SERVERS"
 	nmcli connection up "$INTERFACE_NAME"
 
-	echo -ne "
--------------------------------------------------------------------------
+	echo -ne "-------------------------------------------------------------------------
                     Cleaning
 -------------------------------------------------------------------------
 "
