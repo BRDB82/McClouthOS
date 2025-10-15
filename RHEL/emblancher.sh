@@ -135,7 +135,7 @@ if [[ 8192 -gt "$total_ram" ]]; then
 	echo "The installation cannot continue and the system will be rebooted."
 	echo "Press Enter to continue..."
 	read -r
-	reboot
+	#reboot
 fi
 
 #run spokes
