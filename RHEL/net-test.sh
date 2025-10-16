@@ -88,7 +88,7 @@ fi
 echo "Starting installer, one moment..."
 
 if [ "$1" == "--update" ]; then
-	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/emblancher.sh" -o "net-test.new" || {
+	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/net-test.sh" -o "net-test.new" || {
 		echo "update failed"
 	    rm "net-test.new"
 	    exit 1
