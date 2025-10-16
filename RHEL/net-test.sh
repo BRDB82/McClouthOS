@@ -153,7 +153,6 @@ fi
 	select_option "${options[@]}"
 	interface=${options[$?]}
 	
-	echo -e "\n${interface} selected\n"
 	export INTERFACE_NAME=${interface}
 	
 	while true
