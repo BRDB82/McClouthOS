@@ -200,6 +200,7 @@ fi
 	else
 		#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
   			echo "[DEBUG-L001]::$INTERFACE_NAME"
+			echo "[DEBUG-L002]::$IP_ADDRESS/$SUBNET_MASK"
 		nmcli connection modify "$INTERFACE_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
 		nmcli connection up "$INTERFACE_NAME"
 	fi
