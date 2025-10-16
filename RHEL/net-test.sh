@@ -189,9 +189,9 @@ fi
 	systemctl enable NetworkManager.service
 	echo "  NetworkManager enabled"
 
-	SUBNET_MASK="24"
-	DNS_SERVERS="1.1.1.1 8.8.8.8"
-	GATEWAY=$(echo "$IP_ADDRESS" | sed 's/\.[0-9]\+$/.1/')
+	export SUBNET_MASK="24"
+	export DNS_SERVERS="1.1.1.1 8.8.8.8"
+	export GATEWAY=$(echo "$IP_ADDRESS" | sed 's/\.[0-9]\+$/.1/')
 	
 	# Check if a interface was found
 	if [ -z "$INTERFACE_NAME" ]; then
