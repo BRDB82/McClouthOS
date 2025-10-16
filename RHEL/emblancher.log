@@ -56,7 +56,8 @@ User:
 new script works, except for the part where we can't set a fixed ip.
  CONNECTION_MANAGER is supposed to hold a connected NIC
  When the code is ran in an echo "[DEBUG-Lxxx]::$(), it works.
- Still debugging this.
+ Still debugging this. - fixed - so we have a working base installer
+---
 Also this should perhaps have an extra question if software is desktop, whether user wants fixed or not, server is always fixed on the first nic.
 ---
 
