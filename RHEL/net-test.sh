@@ -177,6 +177,9 @@ fi
 	    fi
 	done
 	export IP_ADDRESS=$ip_address
+	export SUBNET_MASK="24"
+	export DNS_SERVERS="1.1.1.1 8.8.8.8"
+	export GATEWAY=$(echo "$IP_ADDRESS" | sed 's/\.[0-9]\+$/.1/')
 
 	#rhel-chroot /mnt /bin/bash -c "KEYMAP='${KEYMAP}' /bin/bash" <<EOF
 	rhel-chroot /mnt /bin/bash <<EOF
@@ -189,10 +192,6 @@ fi
 	systemctl enable NetworkManager.service
 	echo "  NetworkManager enabled"
 
-	export SUBNET_MASK="24"
-	export DNS_SERVERS="1.1.1.1 8.8.8.8"
-	export GATEWAY=$(echo "$IP_ADDRESS" | sed 's/\.[0-9]\+$/.1/')
-	
 	# Check if a interface was found
 	if [ -z "$INTERFACE_NAME" ]; then
 	    echo "!! Failed to find an active ethernet connection after multiple attempts. Aborting network setup. !!"
