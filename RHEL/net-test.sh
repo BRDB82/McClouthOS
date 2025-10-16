@@ -177,6 +177,24 @@ fi
 	SUBNET_MASK="24"
 	DNS_SERVERS="1.1.1.1 8.8.8.8"
 	GATEWAY=$(echo "$IP_ADDRESS" | sed 's/\.[0-9]\+$/.1/')
+
+	# Wait for NetworkManager to detect an active ethernet connection
+	echo "Waiting for NetworkManager to detect an active connection..."
+	ACTIVE_ETHERNET_LINE=""
+	ATTEMPTS=0
+	MAX_ATTEMPTS=20 # Wait for up to 20 seconds
+	while [ -z "$ACTIVE_ETHERNET_LINE" ] && [ "$ATTEMPTS" -lt "$MAX_ATTEMPTS" ]; do
+	    # Capture the output
+	    NMCLI_OUTPUT=$(nmcli -t -f active,name,type connection show --active 2>&1)
+	    # Check for the correct line
+	    ACTIVE_ETHERNET_LINE=$(echo "$NMCLI_OUTPUT" | grep 'yes:.*:802-3-ethernet' | head -n 1)
+	    echo "Attempt $ATTEMPTS: nmcli output: '$NMCLI_OUTPUT'"
+	    if [ -z "$ACTIVE_ETHERNET_LINE" ]; then
+	        sleep 1
+	        ATTEMPTS=$((ATTEMPTS+1))
+	    fi
+	done
+	
 	ACTIVE_ETHERNET_LINE=$(nmcli -t -f active,name,type connection show --active | grep 'yes:.*:802-3-ethernet' | head -n 1)
 	
 		echo "[DEBUG-L001]::$ACTIVE_ETHERNET_LINE"
@@ -188,11 +206,11 @@ fi
 		#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
   			echo "[DEBUG-L002]::$CONNECTION_NAME"
 		nmcli connection modify "$CONNECTION_NAME" ipv4.method manual
-		nmcli connection modify "$INTERFACE_NAME" ipv4.method manual
-		nmcli connection modify "$INTERFACE_NAME" ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK"
-		nmcli connection modify "$INTERFACE_NAME" ipv4.gateway "$GATEWAY"
-		nmcli connection modify "$INTERFACE_NAME" ipv4.dns "$DNS_SERVERS"
-		nmcli connection up "$INTERFACE_NAME"
+		nmcli connection modify "$CONNECTION_NAME" ipv4.method manual
+		nmcli connection modify "$CONNECTION_NAME" ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK"
+		nmcli connection modify "$CONNECTION_NAME" ipv4.gateway "$GATEWAY"
+		nmcli connection modify "$CONNECTION_NAME" ipv4.dns "$DNS_SERVERS"
+		nmcli connection up "$CONNECTION_NAME"
 	fi
 
 EOF
