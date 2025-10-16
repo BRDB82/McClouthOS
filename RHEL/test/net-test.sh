@@ -154,6 +154,7 @@ fi
 	interface=${options[$?]}
 	
 	export INTERFACE_NAME=${interface}
+	export CONNECTION_NAME=$(nmcli connection show | grep $INTERFACE_NAME | awk '{print $1, $2, $3}')
 	
 	while true
 	do
@@ -198,11 +199,11 @@ fi
 	    exit 1
 	else
 		#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
-  			echo "[DEBUG-L001]::$INTERFACE_NAME"
+  			echo "[DEBUG-L001]::$INTERFACE_NAME --- $CONNECTION_NAME"
 			echo "[DEBUG-L002]::IP:$IP_ADDRESS/$SUBNET_MASK --- DNS:$DNS_SERVERS -- GW:$GATEWAY"
-		nmcli connection modify "$INTERFACE_NAME" connection.autoconnect yes
-		nmcli connection modify "$INTERFACE_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
-		nmcli connection up "$INTERFACE_NAME"
+		nmcli connection modify "$CONNECTION_NAME" connection.autoconnect yes
+		nmcli connection modify "$CONNECTION_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
+		nmcli connection up "$CONNECTION_NAME"
 	fi
 
 EOF
