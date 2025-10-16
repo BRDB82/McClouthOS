@@ -251,6 +251,21 @@ fi
 	esac
 
 	#network settings here, for now we'll assume that the system has two NICs
+	PS3='
+	Select the network device to configure: '
+	options=($(nmcli -t -f DEVICE,TYPE dev status | awk -F':' '$2=="ethernet" && $1!="lo" {print $1}'))
+	
+	# Check if any ethernet devices were found
+	if [ ${#options[@]} -eq 0 ]; then
+	    echo "!! No Ethernet devices were found. Aborting network configuration. !!"
+	    exit 1
+	fi
+	
+	select_option "${options[@]}"
+	interface=${options[$?]}
+	
+	export INTERFACE_NAME=${interface}
+	
 	while true
 	do
 	    read -r -p "Please enter the IP address for the first NIC (format 0.0.0.0): " ip_address
@@ -273,6 +288,9 @@ fi
 	    fi
 	done
 	export IP_ADDRESS=$ip_address
+	export SUBNET_MASK="24"
+	export DNS_SERVERS="1.1.1.1 8.8.8.8"
+	export GATEWAY=$(echo "$IP_ADDRESS" | sed 's/\.[0-9]\+$/.1/')
 
 	#get new hostname
 	while true
@@ -648,18 +666,17 @@ after formatting your disk there is no way to get data back
 	systemctl enable NetworkManager.service
 	echo "  NetworkManager enabled"
 
-	SUBNET_MASK="24"
-	DNS_SERVERS="1.1.1.1 8.8.8.8"
-	GATEWAY=$(echo "$IP_ADDRESS" | sed 's/\.[0-9]\+$/.1/')
-	nmcli -t -f active,name,type connection show --active
-	CONNECTION_NAME=$(nmcli -t -f active,name,type connection show --active | grep 'yes:.*:802-3-ethernet' | head -n 1 | cut -d':' -f2)
-	#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
-	nmcli connection modify "$CONNECTION_NAME" ipv4.method manual
-	nmcli connection modify "$INTERFACE_NAME" ipv4.method manual
-	nmcli connection modify "$INTERFACE_NAME" ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK"
-	nmcli connection modify "$INTERFACE_NAME" ipv4.gateway "$GATEWAY"
-	nmcli connection modify "$INTERFACE_NAME" ipv4.dns "$DNS_SERVERS"
-	nmcli connection up "$INTERFACE_NAME"
+	# Check if a interface was found
+	if [ -z "$INTERFACE_NAME" ]; then
+	    echo "!! Failed to find an active ethernet connection after multiple attempts. Aborting network setup. !!"
+	    exit 1
+	else
+		#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
+  			echo "[DEBUG-L001]::$INTERFACE_NAME"
+			echo "[DEBUG-L002]::IP:$IP_ADDRESS/$SUBNET_MASK --- DNS:$DNS_SERVERS -- GW:$GATEWAY"
+		nmcli connection modify "$INTERFACE_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
+		nmcli connection up "$INTERFACE_NAME"
+	fi
 
 	echo -ne "-------------------------------------------------------------------------
                     Cleaning
