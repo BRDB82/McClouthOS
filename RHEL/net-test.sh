@@ -140,6 +140,22 @@ fi
 #run spokes
 	
 	#network settings here, for now we'll assume that the system has two NICs
+	PS3='
+	Select the network device to configure: '
+	options=($(nmcli -t -f DEVICE,TYPE dev status | awk -F':' '$2=="ethernet" && $1!="lo" {print $1}'))
+	
+	# Check if any ethernet devices were found
+	if [ ${#options[@]} -eq 0 ]; then
+	    echo "!! No Ethernet devices were found. Aborting network configuration. !!"
+	    exit 1
+	fi
+	
+	select_option "${options[@]}"
+	interface=${options[$?]}
+	
+	echo -e "\n${interface} selected\n"
+	export INTERFACE_NAME=${interface}
+	
 	while true
 	do
 	    read -r -p "Please enter the IP address for the first NIC (format 0.0.0.0): " ip_address
