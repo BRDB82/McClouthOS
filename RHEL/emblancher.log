@@ -53,6 +53,12 @@ User:
   * install bootloader
   * run chroot with rhel-chroot in EOF
 ---
+new script works, except for the part where we can't set a fixed ip.
+ CONNECTION_MANAGER is supposed to hold a connected NIC
+ When the code is ran in an echo "[DEBUG-Lxxx]::$(), it works.
+ Still debugging this.
+Also this should perhaps have an extra question if software is desktop, whether user wants fixed or not, server is always fixed on the first nic.
+---
 
 dmesg lines at login and while running system? it's selinux
 
