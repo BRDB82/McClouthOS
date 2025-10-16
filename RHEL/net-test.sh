@@ -193,44 +193,20 @@ fi
 	SUBNET_MASK="24"
 	DNS_SERVERS="1.1.1.1 8.8.8.8"
 	GATEWAY=$(echo "$IP_ADDRESS" | sed 's/\.[0-9]\+$/.1/')
-
-	# Wait for NetworkManager to detect an active ethernet connection
-	echo "Waiting for NetworkManager to detect an active connection..."
-	CONNECTION_NAME=""
-	ATTEMPTS=0
-	MAX_ATTEMPTS=20 # Wait for up to 20 seconds
 	
-	while [ -z "$CONNECTION_NAME" ] && (( ATTEMPTS < MAX_ATTEMPTS )); do
-		nmcli -t -f active,name,type connection show --active
-	    NMCLI_OUTPUT=$(nmcli -t -f active,name,type connection show --active 2>&1)
-	    
-	    # Process the output using process substitution
-	    while read -r line; do
-	        if [[ "$line" =~ ^yes:.*:802-3-ethernet$ ]]; then
-	            CONNECTION_NAME=$(echo "$line" | cut -d':' -f2)
-	            break
-	        fi
-	    done < <(echo "$NMCLI_OUTPUT")
-	    
-	    if [ -z "$CONNECTION_NAME" ]; then
-	        sleep 1
-	        ATTEMPTS=$((ATTEMPTS+1))
-	    fi
-	done
-	
-	# Check if a connection was found after the loop
-	if [ -z "$CONNECTION_NAME" ]; then
+	# Check if a interface was found
+	if [ -z "$INTERFACE_NAME" ]; then
 	    echo "!! Failed to find an active ethernet connection after multiple attempts. Aborting network setup. !!"
 	    exit 1
 	else
 		#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
-  			echo "[DEBUG-L001]::$CONNECTION_NAME"
-		nmcli connection modify "$CONNECTION_NAME" ipv4.method manual
-		nmcli connection modify "$CONNECTION_NAME" ipv4.method manual
-		nmcli connection modify "$CONNECTION_NAME" ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK"
-		nmcli connection modify "$CONNECTION_NAME" ipv4.gateway "$GATEWAY"
-		nmcli connection modify "$CONNECTION_NAME" ipv4.dns "$DNS_SERVERS"
-		nmcli connection up "$CONNECTION_NAME"
+  			echo "[DEBUG-L001]::$INTERFACE_NAME"
+		nmcli connection modify "$INTERFACE_NAME" ipv4.method manual
+		nmcli connection modify "$INTERFACE_NAME" ipv4.method manual
+		nmcli connection modify "$INTERFACE_NAME" ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK"
+		nmcli connection modify "$INTERFACE_NAME" ipv4.gateway "$GATEWAY"
+		nmcli connection modify "$INTERFACE_NAME" ipv4.dns "$DNS_SERVERS"
+		nmcli connection up "$INTERFACE_NAME"
 	fi
 
 EOF
