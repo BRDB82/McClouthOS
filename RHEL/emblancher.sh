@@ -557,9 +557,9 @@ after formatting your disk there is no way to get data back
 		  mv genfstab.sh /usr/bin/genfstab
 		wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/fstab-helpers
 		  mv fstab-helpers /usr/bin/fstab-helpers
-		wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh
-		  chmod +x mcclouth-setup.sh
-		  mv mcclouth-setup.sh /usr/bin/mcclouth-setup
+		#wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/Rocky/mcclouth-setup.sh
+		#  chmod +x mcclouth-setup.sh
+		#  mv mcclouth-setup.sh /usr/bin/mcclouth-setup
 		dnf install -y ntp
 	
 		#nc=$(grep -c ^processor /proc/cpuinfo)
