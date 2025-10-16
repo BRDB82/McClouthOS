@@ -180,31 +180,32 @@ fi
 
 	# Wait for NetworkManager to detect an active ethernet connection
 	echo "Waiting for NetworkManager to detect an active connection..."
-	ACTIVE_ETHERNET_LINE=""
+	CONNECTION_NAME=""
 	ATTEMPTS=0
 	MAX_ATTEMPTS=20 # Wait for up to 20 seconds
-	while [ -z "$ACTIVE_ETHERNET_LINE" ] && (( ATTEMPTS < MAX_ATTEMPTS )); do
+	while [ -z "$CONNECTION_NAME" ] && (( ATTEMPTS < MAX_ATTEMPTS )); do
 	    # Capture the output
 	    NMCLI_OUTPUT=$(nmcli -t -f active,name,type connection show --active 2>&1)
-	    # Check for the correct line
-	    ACTIVE_ETHERNET_LINE=$(echo "$NMCLI_OUTPUT" | grep 'yes:.*:802-3-ethernet' | head -n 1)
-	    echo "Attempt $ATTEMPTS: nmcli output: '$NMCLI_OUTPUT'"
-	    if [ -z "$ACTIVE_ETHERNET_LINE" ]; then
+
+		echo "$NMCLI_OUTPUT"| while read -r line; do
+			if [[ "$line" =~ ^yes:.*:802-3-ethernet$ ]]; then
+				CONNECTION_NAME=$(echo "$line" | cut -d':' -f2)
+				break
+			fi
+		done
+		
+	    if [ -z "$CONNECTION_NAME" ]; then
 	        sleep 1
 	        ATTEMPTS=$((ATTEMPTS+1))
 	    fi
 	done
 	
-	ACTIVE_ETHERNET_LINE=$(nmcli -t -f active,name,type connection show --active | grep 'yes:.*:802-3-ethernet' | head -n 1)
-	
-		echo "[DEBUG-L001]::$ACTIVE_ETHERNET_LINE"
-
-	if [ -z "$ACTIVE_ETHERNET_LINE" ]; then
-		echo "!! No active ethernet connection found. Aborting network setup !!"
+	if [ -z "$CONNECTION_NAME" ]; then
+	    echo "!! Failed to find an active ethernet connection after multiple attempts. Aborting network setup. !!"
+	    exit 1
 	else
-		CONNECTION_NAME=$(echo "$ACTIVE_ETHERNET_LINE" | cut -d':' -f2)
 		#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
-  			echo "[DEBUG-L002]::$CONNECTION_NAME"
+  			echo "[DEBUG-L001]::$CONNECTION_NAME"
 		nmcli connection modify "$CONNECTION_NAME" ipv4.method manual
 		nmcli connection modify "$CONNECTION_NAME" ipv4.method manual
 		nmcli connection modify "$CONNECTION_NAME" ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK"
