@@ -183,23 +183,25 @@ fi
 	CONNECTION_NAME=""
 	ATTEMPTS=0
 	MAX_ATTEMPTS=20 # Wait for up to 20 seconds
+	
 	while [ -z "$CONNECTION_NAME" ] && (( ATTEMPTS < MAX_ATTEMPTS )); do
-	    # Capture the output
 	    NMCLI_OUTPUT=$(nmcli -t -f active,name,type connection show --active 2>&1)
-
-		echo "$NMCLI_OUTPUT"| while read -r line; do
-			if [[ "$line" =~ ^yes:.*:802-3-ethernet$ ]]; then
-				CONNECTION_NAME=$(echo "$line" | cut -d':' -f2)
-				break
-			fi
-		done
-		
+	    
+	    # Process the output using process substitution
+	    while read -r line; do
+	        if [[ "$line" =~ ^yes:.*:802-3-ethernet$ ]]; then
+	            CONNECTION_NAME=$(echo "$line" | cut -d':' -f2)
+	            break
+	        fi
+	    done < <(echo "$NMCLI_OUTPUT")
+	    
 	    if [ -z "$CONNECTION_NAME" ]; then
 	        sleep 1
 	        ATTEMPTS=$((ATTEMPTS+1))
 	    fi
 	done
 	
+	# Check if a connection was found after the loop
 	if [ -z "$CONNECTION_NAME" ]; then
 	    echo "!! Failed to find an active ethernet connection after multiple attempts. Aborting network setup. !!"
 	    exit 1
