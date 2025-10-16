@@ -185,6 +185,7 @@ fi
 	MAX_ATTEMPTS=20 # Wait for up to 20 seconds
 	
 	while [ -z "$CONNECTION_NAME" ] && (( ATTEMPTS < MAX_ATTEMPTS )); do
+		nmcli -t -f active,name,type connection show --active
 	    NMCLI_OUTPUT=$(nmcli -t -f active,name,type connection show --active 2>&1)
 	    
 	    # Process the output using process substitution
