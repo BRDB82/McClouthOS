@@ -177,18 +177,22 @@ fi
 	SUBNET_MASK="24"
 	DNS_SERVERS="1.1.1.1 8.8.8.8"
 	GATEWAY=$(echo "$IP_ADDRESS" | sed 's/\.[0-9]\+$/.1/')
-	echo "[DEBUG-L001]::$(nmcli -t -f active,name,type connection show --active)"
-	echo "[DEBUG-L002]::$(nmcli -t -f active,name,type connection show --active | grep 'yes:.*:802-3-ethernet')"
-	echo "[DEBUG-L003]::$(nmcli -t -f active,name,type connection show --active | grep 'yes:.*:802-3-ethernet' | head -n 1)"
-	echo "[DEBUG-L004]::$(nmcli -t -f active,name,type connection show --active | grep 'yes:.*:802-3-ethernet' | head -n 1 | cut -d':' -f2)"
-	CONNECTION_NAME=$(nmcli -t -f active,name,type connection show --active | grep 'yes:.*:802-3-ethernet' | head -n 1 | cut -d':' -f2)
-	#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
-  echo "[DEBUG]::$CONNECTION_NAME"
-	nmcli connection modify "$CONNECTION_NAME" ipv4.method manual
-	nmcli connection modify "$INTERFACE_NAME" ipv4.method manual
-	nmcli connection modify "$INTERFACE_NAME" ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK"
-	nmcli connection modify "$INTERFACE_NAME" ipv4.gateway "$GATEWAY"
-	nmcli connection modify "$INTERFACE_NAME" ipv4.dns "$DNS_SERVERS"
-	nmcli connection up "$INTERFACE_NAME"
+	ACTIVE_ETHERNET_LINE=$(nmcli -t -f active,name,type connection show --active | grep 'yes:.*:802-3-ethernet' | head -n 1)
+	
+		echo "[DEBUG-L001]::$ACTIVE_ETHERNET_LINE"
+
+	if [ -z "$ACTIVE_ETHERNET_LINE" ]; then
+		echo "!! No active ethernet connection found. Aborting network setup !!"
+	else
+		CONNECTION_NAME=$(echo "$ACTIVE_ETHERNET_LINE" | cut -d':' -f2)
+		#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
+  			echo "[DEBUG-L002]::$CONNECTION_NAME"
+		nmcli connection modify "$CONNECTION_NAME" ipv4.method manual
+		nmcli connection modify "$INTERFACE_NAME" ipv4.method manual
+		nmcli connection modify "$INTERFACE_NAME" ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK"
+		nmcli connection modify "$INTERFACE_NAME" ipv4.gateway "$GATEWAY"
+		nmcli connection modify "$INTERFACE_NAME" ipv4.dns "$DNS_SERVERS"
+		nmcli connection up "$INTERFACE_NAME"
+	fi
 
 EOF
