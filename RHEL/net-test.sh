@@ -183,7 +183,7 @@ fi
 	ACTIVE_ETHERNET_LINE=""
 	ATTEMPTS=0
 	MAX_ATTEMPTS=20 # Wait for up to 20 seconds
-	while [ -z "$ACTIVE_ETHERNET_LINE" ] && (( ATTEMPTS < $MAX_ATTEMPTS ]; do
+	while [ -z "$ACTIVE_ETHERNET_LINE" ] && (( ATTEMPTS < MAX_ATTEMPTS )); do
 	    # Capture the output
 	    NMCLI_OUTPUT=$(nmcli -t -f active,name,type connection show --active 2>&1)
 	    # Check for the correct line
