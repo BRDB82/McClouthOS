@@ -65,7 +65,18 @@ server install
 What do we need?
 Cockpit, NAS-setup, Hypervisor (should be configured outside chroot, so that we install it inside the chroot)
 NAS -> warehouse
+ We must first determine if we have enough drives: 4x HDD + 1 extra SSD (for cache) [ok]
+ clear the drives
+ do we need software to set up the raid + cache?
+ install software if needed
+ configure raid + cache
+ setup warehouse folders
  dnf install samba samba-common samba-clinet -y
+ configure samba
+  admin user = nas001mi (because we are server 001), this is a local user, not a directory user
+ add standard folders: backup, data
+-
+Hypervisor
 ---
 after chroot, copy the log file to installed system
 branding to McClouthOS ?
