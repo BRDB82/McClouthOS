@@ -21,9 +21,10 @@
 
 #sticky
 #======
-pidfile="/var/run/emblancher.pid"
+set_fixed_ip="N"
 local_user="loa001mi"
 logfile="/root/emblancher.log"
+pidfile="/var/run/emblancher.pid"
 RHEL_VERSION="10"
 
 select_option() {
@@ -265,6 +266,23 @@ fi
 	interface=${options[$?]}
 	
 	export INTERFACE_NAME=${interface}
+
+	# Check INSTAL_TYPE
+	if [ "$INSTALL_TYPE" = "server" ]; then
+	    set_fixed_ip="yes"
+	else
+	    # Ask user for input and store it in a variable named `user_choice`
+	    read -p "Do you want a fixed IP for your system? (yes/no): " user_choice
+	
+	    # Convert the user's choice to lowercase for easier comparison
+	    user_choice=$(echo "$user_choice" | tr '[:upper:]' '[:lower:]')
+	
+	    # Check the user's input and set the `set_fixed_ip` variable
+	    if [ "$user_choice" = "yes" ] || [ "$user_choice" = "y" ]; then
+	        set_fixed_ip="yes"
+	    fi
+	fi
+	export SET_FIXED_IP=$set_fixed_ip
 	
 	while true
 	do
@@ -672,8 +690,6 @@ after formatting your disk there is no way to get data back
 	    exit 1
 	else
 		#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
-  			echo "[DEBUG-L001]::$INTERFACE_NAME"
-			echo "[DEBUG-L002]::IP:$IP_ADDRESS/$SUBNET_MASK --- DNS:$DNS_SERVERS -- GW:$GATEWAY"
 		nmcli connection modify "$INTERFACE_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
 		nmcli connection up "$INTERFACE_NAME"
 	fi
