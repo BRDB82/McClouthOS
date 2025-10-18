@@ -67,6 +67,7 @@ Cockpit, NAS-setup, Hypervisor (should be configured outside chroot, so that we 
 NAS -> warehouse
  dnf install samba samba-common samba-clinet -y
 ---
+after chroot, copy the log file to installed system
 branding to McClouthOS ?
 
 dmesg lines at login and while running system? it's selinux(check later)
