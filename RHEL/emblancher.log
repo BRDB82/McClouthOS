@@ -59,8 +59,16 @@ new script works, except for the part where we can't set a fixed ip.
  Still debugging this. - fixed - so we have a working base installer
 ---
 Also this should perhaps have an extra question if software is desktop, whether user wants fixed or not, server is always fixed on the first nic.
+implemented
 ---
+server install
+What do we need?
+Cockpit, NAS-setup, Hypervisor (should be configured outside chroot, so that we install it inside the chroot)
+NAS -> warehouse
+ dnf install samba samba-common samba-clinet -y
+---
+branding to McClouthOS ?
 
-dmesg lines at login and while running system? it's selinux
+dmesg lines at login and while running system? it's selinux(check later)
 
-look into Looking Glass for KVM use
+look into Looking Glass for KVM use (use case is always for passthrough)
