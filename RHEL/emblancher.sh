@@ -202,7 +202,7 @@ fi
 	select_option "${options[@]}"
 	
 	case $? in
-	0) export INSTAL_TYPE="server";;
+	0) export INSTALL_TYPE="server";;
 	1) export INSTALL_TYPE="workstation";;
 	*) echo "Wrong option, please select again"; machine_type_selection;;
 	esac
