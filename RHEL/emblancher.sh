@@ -222,7 +222,7 @@ fi
 	echo -ne "
 	Please Select your file system for both boot and root
 	"
-	options=("xfs" "ext4" "exit")
+	options=("xfs" "ext4")
 	select_option "${options[@]}"
 	
 	case $? in
