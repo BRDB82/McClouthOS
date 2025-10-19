@@ -78,6 +78,10 @@ NAS -> warehouse
 -
 Hypervisor
 ---
+	sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen => sed: can't read /etc/local.gen: No such file or directory
+	
+ ln -s /usr/share/zoneinfo/${TIMEZONE} /etc/localtime =? ln: failed to create symbolic link '/etc/localtime/': File exists
+
 after chroot, copy the log file to installed system
 branding to McClouthOS ?
 
