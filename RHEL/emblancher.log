@@ -77,6 +77,10 @@ NAS -> warehouse
  add standard folders: backup, data
 -
 Hypervisor
+-
+Cocpit
+-
+also copy mcclouth-setup if needed install other services, but only if we are virutal hardware
 ---
 	sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen => sed: can't read /etc/local.gen: No such file or directory
 	
