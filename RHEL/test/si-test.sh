@@ -91,7 +91,7 @@ fi
 echo "Starting installer, one moment..."
 
 if [ "$1" == "--update" ]; then
-        curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/si-test.sh" -o "si-test.new" || {
+        curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/test/si-test.sh" -o "si-test.new" || {
                 echo "update failed"
             rm "si-test.new"
             exit 1
