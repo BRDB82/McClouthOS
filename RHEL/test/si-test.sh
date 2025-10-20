@@ -196,10 +196,55 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
         eval "$HDD_DEVICES_EXPORTED"
         eval "$CACHE_DEVICES_EXPORTED"
 
-        echo "HDD Devices:"
-        printf " - %s\n" "${HDD_DEVICES[@]}"
-        echo "Cache Devices:"
-        printf " - %s\n" "${CACHE_DEVICES[@]}"
+		dnf install mdam lvm2 xfsprogs
+
+		#Erase drives
+		for device in "${HDD_DEVICES[@]}"
+			mdadm --zero-superblock --force "$device"
+		done
+
+		#Create Software RAID 5
+		RAID_DEVICE="/dev/md0"
+		mdadm --create "$RAID_DEVICE" --level=5 --raid-devices="${#HDD_DEVICES[@]}" "${HDD_DEVICES[@]}"
+
+		# Wait for the RAID array to finish syncing
+		while [ "$(cat /proc/mdstat | grep resync | awk '{print $NF}')" != "finish" ]; do
+		    echo "RAID resync in progress..."
+		    sleep 30
+		done
+
+		#Create LVM Physical Volume
+		pvcreate "$RAID_DEVICE"
+
+		#Create LVM Volume Groups
+		VOLUME_GROUP="vg_warehouse"
+		vgcreate "$VOLUME_GROUP" "$RAID_DEVICE"
+
+		#Create LVM Logical Volumes
+		LOGICAL_VOLUME="lv_warehosue"
+		lvcreate -l 100%FREE -n "$LOGICAL_VOLUME" "$VOLUME_GROUP"
+		
+		#Create FileSystem
+		LOGICAL_VOLUME="lv_warehouse"
+		lvcreate -l 100%FREE -n "$LOGICAL_VOLUME" "$VOLUME_GROUP"
+
+		#Create small LVM logical volume on the HHD array
+		METADATA_LV_NAME="lv_warehouse_cache_metadata"
+		lvcreate -L 256M -n "$METADATA_LV_NAME" "$VOLUME_GROUP"
+
+		#Create a large LVM logical volume on your SSD cache drive
+		CACHE_LV_NAME="lv_warehouse_cache_data"
+		lvcreate -l 100%FREE -n "$CACHE_LV_NAME" "$CACHE_DEVICES[0]" # Uses the first SSD
+
+		#Create cache pool
+		lvconvert --type cache-pool --cachemode writeback --poolmetadata "$METADATA_LV_NAME" "$CACHE_LV_NAME"
+
+		#Attach cache pool to main logical volume
+		lvconvert --type cache --cachepool "vg_warehouse/lv_warehouse_cache_pool" "vg_warehouse/lv_warehouse"
+
+
+
+
 else
         echo "Arays were not passed or could not be recreated."
         exit 1
