@@ -23,6 +23,9 @@
 #======
 pidfile="/var/run/emblancher.pid"
 logfile="/root/emblancher.log"
+export WAREHOUSE_DEVICE="/dev/md0"
+export WAREHOUSE_VG="vg_warehouse"
+export WAREHOUSE_LV="vl_warehouse"
 
 select_option() {
     local options=("$@")
@@ -193,58 +196,77 @@ fi
 "
 echo "* FILE STORAGE SERVER"
 if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
-        eval "$HDD_DEVICES_EXPORTED"
-        eval "$CACHE_DEVICES_EXPORTED"
+	eval "$HDD_DEVICES_EXPORTED"
+	eval "$CACHE_DEVICES_EXPORTED"
 
-		dnf install mdam lvm2 xfsprogs
-
-		#Erase drives
-		for device in "${HDD_DEVICES[@]}"
-			mdadm --zero-superblock --force "$device"
+	# 1. Install necessary packages
+		echo "Installing storage management tools..."
+		sudo dnf install mdadm lvm2 xfsprogs -y
+	
+		# 2. Prepare HDD disks for RAID
+		echo "Preparing HDD disks for RAID array..."
+		for device in "${HDD_DEVICES[@]}"; do
+			echo "Clearing superblock on $device..."
+			sudo mdadm --zero-superblock --force "$device"
 		done
-
-		#Create Software RAID 5
-		RAID_DEVICE="/dev/md0"
-		mdadm --create "$RAID_DEVICE" --level=5 --raid-devices="${#HDD_DEVICES[@]}" "${HDD_DEVICES[@]}"
-
-		# Wait for the RAID array to finish syncing
-		while [ "$(cat /proc/mdstat | grep resync | awk '{print $NF}')" != "finish" ]; do
-		    echo "RAID resync in progress..."
-		    sleep 30
+	
+		# 3. Create mdadm RAID 5 array
+		WAREHOUSE_DEVICE="/dev/md0"
+		echo "Creating RAID 5 array on ${HDD_DEVICES[*]} as $WAREHOUSE_DEVICE..."
+		sudo mdadm --create "$WAREHOUSE_DEVICE" --level=5 --raid-devices="${#HDD_DEVICES[@]}" "${HDD_DEVICES[@]}" --auto=yes
+	
+		# 4. Wait for RAID array to finish syncing (optional, but recommended)
+		echo "Waiting for RAID to sync..."
+		while grep -q "resync" /proc/mdstat; do
+			sleep 10
 		done
-
-		#Create LVM Physical Volume
-		pvcreate "$RAID_DEVICE"
-
-		#Create LVM Volume Groups
-		VOLUME_GROUP="vg_warehouse"
-		vgcreate "$VOLUME_GROUP" "$RAID_DEVICE"
-
-		#Create LVM Logical Volumes
-		LOGICAL_VOLUME="lv_warehosue"
-		lvcreate -l 100%FREE -n "$LOGICAL_VOLUME" "$VOLUME_GROUP"
+		echo "RAID sync complete."
+	
+		# 5. Create LVM logical volume on the RAID array
+		echo "Setting up LVM on the RAID array..."
+		sudo pvcreate "$WAREHOUSE_DEVICE"
+		sudo vgcreate "$WAREHOUSE_VG" "$WAREHOUSE_DEVICE"
+		sudo lvcreate -l 100%FREE -n "$WAREHOUSE_LV" "$WAREHOUSE_VG"
+	
+		# 6. Configure SSD caching with dm-cache (optional, assumes 1 SSD for simplicity)
+	   
+			# 6.1. Add the cache SSD to the volume group
+			sudo pvcreate "$${CACHE_DEVICES[0]}
+			sudo vgextend "$WAREHOUSE_VG" "$${CACHE_DEVICES[0]}"
+	
+			# Get the total size of the SSD device for sizing
+			SSD_SIZE_GB=$(lsblk -b -n -o SIZE "${CACHE_DEVICES[0]}" | awk '{print $1/1024^3}')
+	
+			# A general guideline for metadata is 1% of the cache size, but minimum 8MB
+			# To be safe for production, it's better to give it a dedicated size like 1GB or more, as recommended by some sources.
+			CACHE_META_LV_SIZE="1G"
 		
-		#Create FileSystem
-		LOGICAL_VOLUME="lv_warehouse"
-		lvcreate -l 100%FREE -n "$LOGICAL_VOLUME" "$VOLUME_GROUP"
-
-		#Create small LVM logical volume on the HHD array
-		METADATA_LV_NAME="lv_warehouse_cache_metadata"
-		lvcreate -L 256M -n "$METADATA_LV_NAME" "$VOLUME_GROUP"
-
-		#Create a large LVM logical volume on your SSD cache drive
-		CACHE_LV_NAME="lv_warehouse_cache_data"
-		lvcreate -l 100%FREE -n "$CACHE_LV_NAME" "$CACHE_DEVICES[0]" # Uses the first SSD
-
-		#Create cache pool
-		lvconvert --type cache-pool --cachemode writeback --poolmetadata "$METADATA_LV_NAME" "$CACHE_LV_NAME"
-
-		#Attach cache pool to main logical volume
-		lvconvert --type cache --cachepool "vg_warehouse/lv_warehouse_cache_pool" "vg_warehouse/lv_warehouse"
-
-
-
-
+			# Calculate the size of the cache data volume by subtracting the metadata size
+			CACHE_DATA_LV_SIZE_GB=$(echo "scale=2; $SSD_SIZE_GB - 1" | bc)
+		
+			# 6.2. Create the cache data and metadata logical volumes
+			echo "Creating cache data logical volume (${CACHE_DATA_LV_SIZE_GB}G)..."
+			sudo lvcreate -L ${CACHE_DATA_LV_SIZE_GB}G -n lv_cache_data "$WAREHOUSE_VG" "$CACHE_SSD_DEVICE"
+		
+			echo "Creating cache metadata logical volume (${CACHE_META_LV_SIZE})..."
+			sudo lvcreate -L "$CACHE_META_LV_SIZE" -n lv_cache_meta "$WAREHOUSE_VG" "$CACHE_SSD_DEVICE"
+	
+			# 6.3. Create the cache pool by combining data and metadata
+			echo "Creating cache pool from data and metadata volumes..."
+			sudo lvconvert --type cache-pool --poolmetadata "vg_nas/lv_cache_meta" "vg_nas/lv_cache_data"
+	
+			# 6.4. Attach the cache pool to the main logical volume
+			echo "Attaching cache pool to main volume..."
+			sudo lvconvert --type cache --cachemode writeback --cachepool "vg_nas/lv_cache_data" "vg_nas/lv_nas"
+	
+			# 6.5. Install tools needed for a clean cache shutdown
+			echo "Installing thin-provisioning tools..."
+			sudo dnf install thin-provisioning-tools -y
+		fi
+	
+		# 7. Create an XFS filesystem on the logical volume
+		echo "Creating XFS filesystem..."
+		sudo mkfs.xfs "/dev/$WAREHOUSE_VG/$WAREHOUSE_LV"
 else
         echo "Arays were not passed or could not be recreated."
         exit 1
