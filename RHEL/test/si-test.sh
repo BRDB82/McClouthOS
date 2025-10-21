@@ -231,8 +231,8 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
 		# 6. Configure SSD caching with dm-cache (optional, assumes 1 SSD for simplicity)
 	   
 			# 6.1. Add the cache SSD to the volume group
-			sudo pvcreate "$${CACHE_DEVICES[0]}
-			sudo vgextend "$WAREHOUSE_VG" "$${CACHE_DEVICES[0]}"
+			sudo pvcreate "${CACHE_DEVICES[0]}
+			sudo vgextend "$WAREHOUSE_VG" "${CACHE_DEVICES[0]}"
 	
 			# Get the total size of the SSD device for sizing
 			SSD_SIZE_GB=$(lsblk -b -n -o SIZE "${CACHE_DEVICES[0]}" | awk '{print $1/1024^3}')
