@@ -149,7 +149,7 @@ elif [ "$(systemd-detect-virt)" = "none" ]; then
         MIN_HDDS=4
 		MIN_CACHE_SSD=1
 
-		$OOT_PARTITION=$(df -P / | awk 'END{print $1}')
+		ROOT_PARTITION=$(df -P / | awk 'END{print $1}')
         ROOT_DISK_NAME=$(lsblk -no pkname "$ROOT_PARTITION" | head -n 1)
 
        	if [ -z "$ROOT_DISK_NAME" ]; then
