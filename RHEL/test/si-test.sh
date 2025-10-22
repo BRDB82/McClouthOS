@@ -251,24 +251,24 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
 	
 	# 5. Create LVM logical volume on the RAID array
     echo "Setting up LVM on the RAID array..."
-    pvcreate "$WAREHOUSE_DEVICE"
-    vgcreate "$WAREHOUSE_VG" "$WAREHOUSE_DEVICE"
-    lvcreate -l 100%FREE -n "$WAREHOUSE_LV" "$WAREHOUSE_VG"
+    pvcreate --yes "$WAREHOUSE_DEVICE"
+    vgcreate --yes "$WAREHOUSE_VG" "$WAREHOUSE_DEVICE"
+    lvcreate --yes -l 100%FREE -n "$WAREHOUSE_LV" "$WAREHOUSE_VG"
 	
 	# 6. Configure SSD caching with dm-cache (assuming 1 SSD)
     if [ "${#CACHE_DEVICES[@]}" -gt 0 ]; then
         CACHE_SSD_DEVICE="${CACHE_DEVICES}"
         echo "Preparing SSD for LVM cache: $CACHE_SSD_DEVICE"
-        pvcreate "$CACHE_SSD_DEVICE"
+        pvcreate --yes "$CACHE_SSD_DEVICE"
         vgextend "$WAREHOUSE_VG" "$CACHE_SSD_DEVICE"
 
         CACHE_POOL_LV="lv_cache_pool"
 	
         echo "Creating cache pool logical volume: $WAREHOUSE_VG/$CACHE_POOL_LV..."
-        lvcreate --type cache-pool -n "$CACHE_POOL_LV" -l 100%FREE "$WAREHOUSE_VG" "$CACHE_SSD_DEVICE"
+        lvcreate --yes --type cache-pool -n "$CACHE_POOL_LV" -l 100%FREE "$WAREHOUSE_VG" "$CACHE_SSD_DEVICE"
 	
         echo "Attaching cache pool to main volume..."
-        lvconvert --type cache --cachemode writeback --cachepool "$WAREHOUSE_VG/$CACHE_POOL_LV" "$WAREHOUSE_VG/$WAREHOUSE_LV"
+        lvconvert --yes --type cache --cachemode writeback --cachepool "$WAREHOUSE_VG/$CACHE_POOL_LV" "$WAREHOUSE_VG/$WAREHOUSE_LV"
     fi
 	
 	# 7. Create an XFS filesystem on the logical volume
