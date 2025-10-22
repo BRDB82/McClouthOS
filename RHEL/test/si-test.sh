@@ -177,57 +177,8 @@ elif [ "$(systemd-detect-virt)" = "none" ]; then
                 export HDD_DEVICES_EXPORTED="$(declare -p HDD_DEVICES)"
                 export CACHE_DEVICES_EXPORTED="$(declare -p CACHE_DEVICES)"
 
-				Check selected drives
-				existing_lvm_found=0
-				lvm_vgs_to_remove=""
+				#Check selected drives
 				
-				for device in "${HDD_DEVICES[@]}"; do
-				    if sudo pvs --noheadings -o pv_name "$device" | grep -q '.*'; then
-				        pvs_on_device=$(sudo pvs --noheadings -o pv_name,vg_name "$device")
-				        echo "Found existing LVM physical volume on $device:"
-				        echo "$pvs_on_device"
-				        existing_lvm_found=1
-				        vg_on_device=$(echo "$pvs_on_device" | awk '{print $2}' | sort -u)
-				        if [ -n "$vg_on_device" ]; then
-				            lvm_vgs_to_remove+=" $vg_on_device"
-				        fi
-				    fi
-				done
-			
-				if [ "$existing_lvm_found" -eq 1 ]; then
-				    echo ""
-				    echo "WARNING: An existing LVM configuration was found on one or more of the designated drives."
-				    echo "Continuing with the installation will erase all data on these drives."
-				
-				    while true; do
-				        read -r -p "Do you wish to remove the existing LVM configuration? (yes/no): " user_response
-				        case "$user_response" in
-				            [Yy][Ee][Ss])
-				                echo "Removing existing LVM configuration..."
-				                for vg_name in $lvm_vgs_to_remove; do
-				                    echo "Deactivating and removing volume group: $vg_name..."
-				                    sudo vgchange -an "$vg_name"
-				                    sudo vgremove -f "$vg_name"
-				                done
-				
-				                # Remove the physical volume label from all HDD devices
-				                for device in "${HDD_DEVICES[@]}"; do
-				                    sudo pvremove -ff "$device"
-				                done
-				
-				                echo "Existing LVM configurations have been removed."
-				                break
-				                ;;
-				            [Nn][Oo])
-				                echo "Installation aborted by user. Exiting."
-				                exit 1
-				                ;;
-				            *)
-				                echo "Invalid input. Please type 'yes' or 'no'."
-				                ;;
-				        esac
-				    done
-				fi
         else
             	echo "Insufficient drives found. Require at least $MIN_HDDS HDDs and $MIN_SSDS SSDs."
                 exit 1
