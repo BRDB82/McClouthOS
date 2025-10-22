@@ -202,9 +202,31 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
 	eval "$HDD_DEVICES_EXPORTED"
 	eval "$CACHE_DEVICES_EXPORTED"
 
+	# 0. Suppress LVM file descriptor warnings and enable --yes for commands
+	export LVM_SUPPRESS_FD_WARNINGS=1
+
+	# Aggressively wipe all signatures from storage devices
+    echo "Aggressively wiping all signatures from storage devices..."
+    for device in "${HDD_DEVICES[@]}" "${CACHE_DEVICES[@]}"; do
+        if [ -b "$device" ]; then
+            # Use wipefs to remove ALL signatures, including LVM and RAID
+            wipefs --all --force --backup "$device"
+        fi
+    done
+
+    # Final check for busy devices before proceeding
+    for device in "${HDD_DEVICES[@]}" "${CACHE_DEVICES[@]}"; do
+        if [ -b "$device" ]; then
+            if lsof "$device" >/dev/null 2>&1; then
+                echo "Error: Device $device is still busy. Cannot proceed."
+                exit 1
+            fi
+        fi
+    done
+
 	# 1. Install necessary packages
 	echo "Installing storage management tools..."
-	dnf install mdadm lvm2 xfsprogs -y
+	dnf install mdadm lvm2 xfsprogs device-mapper-persistant-data -y
 
 	# 2. Prepare HDD disks for RAID
     echo "Preparing HDD disks for RAID array..."
@@ -244,9 +266,6 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
 	
         echo "Attaching cache pool to main volume..."
         lvconvert --type cache --cachemode writeback --cachepool "$WAREHOUSE_VG/$CACHE_POOL_LV" "$WAREHOUSE_VG/$WAREHOUSE_LV"
-	
-        echo "Installing thin-provisioning-tools..."
-        dnf install thin-provisioning-tools -y
     fi
 	
 	# 7. Create an XFS filesystem on the logical volume
