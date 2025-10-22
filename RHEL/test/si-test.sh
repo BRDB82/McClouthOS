@@ -204,8 +204,54 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
 
 	# 1. Install necessary packages
 	echo "Installing storage management tools..."
-	sudo dnf install mdadm lvm2 xfsprogs -y
+	dnf install mdadm lvm2 xfsprogs -y
+
+	# 2. Prepare HDD disks for RAID
+    echo "Preparing HDD disks for RAID array..."
+    for device in "${HDD_DEVICES[@]}"; do
+        echo "Clearing superblock on $device..."
+        mdadm --zero-superblock --force "$device"
+    done
 	
+	# 3. Create mdadm RAID 5 array
+    echo "Creating RAID 5 array on ${HDD_DEVICES[*]} as $WAREHOUSE_DEVICE..."
+    mdadm --create "$WAREHOUSE_DEVICE" --level=5 --raid-devices="${#HDD_DEVICES[@]}" "${HDD_DEVICES[@]}" --auto=yes
+	
+	# 4. Wait for RAID array to finish syncing (optional, but recommended)
+    echo "Waiting for RAID to sync..."
+    while grep -q "resync" /proc/mdstat; do
+        sleep 10
+    done
+    echo "RAID sync complete."
+	
+	# 5. Create LVM logical volume on the RAID array
+    echo "Setting up LVM on the RAID array..."
+    pvcreate "$WAREHOUSE_DEVICE"
+    vgcreate "$WAREHOUSE_VG" "$WAREHOUSE_DEVICE"
+    lvcreate -l 100%FREE -n "$WAREHOUSE_LV" "$WAREHOUSE_VG"
+	
+	# 6. Configure SSD caching with dm-cache (assuming 1 SSD)
+    if [ "${#CACHE_DEVICES[@]}" -gt 0 ]; then
+        CACHE_SSD_DEVICE="${CACHE_DEVICES}"
+        echo "Preparing SSD for LVM cache: $CACHE_SSD_DEVICE"
+        pvcreate "$CACHE_SSD_DEVICE"
+        vgextend "$WAREHOUSE_VG" "$CACHE_SSD_DEVICE"
+
+        CACHE_POOL_LV="lv_cache_pool"
+	
+        echo "Creating cache pool logical volume: $WAREHOUSE_VG/$CACHE_POOL_LV..."
+        lvcreate --type cache-pool -n "$CACHE_POOL_LV" -l 100%FREE "$WAREHOUSE_VG" "$CACHE_SSD_DEVICE"
+	
+        echo "Attaching cache pool to main volume..."
+        lvconvert --type cache --cachemode writeback --cachepool "$WAREHOUSE_VG/$CACHE_POOL_LV" "$WAREHOUSE_VG/$WAREHOUSE_LV"
+	
+        echo "Installing thin-provisioning-tools..."
+        dnf install thin-provisioning-tools -y
+    fi
+	
+	# 7. Create an XFS filesystem on the logical volume
+    echo "Creating XFS filesystem..."
+    mkfs.xfs "/dev/$WAREHOUSE_VG/$WAREHOUSE_LV"
 else
         echo "Arrays were not passed or could not be recreated."
         exit 1
