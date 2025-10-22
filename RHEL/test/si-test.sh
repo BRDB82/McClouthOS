@@ -205,12 +205,15 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
 	# 0. Suppress LVM file descriptor warnings and enable --yes for commands
 	export LVM_SUPPRESS_FD_WARNINGS=1
 
-	# Aggressively wipe all signatures from storage devices
+    # Aggressively wipe all signatures from storage devices
     echo "Aggressively wiping all signatures from storage devices..."
     for device in "${HDD_DEVICES[@]}" "${CACHE_DEVICES[@]}"; do
         if [ -b "$device" ]; then
             # Use wipefs to remove ALL signatures, including LVM and RAID
             wipefs --all --force --backup "$device"
+            # Use dd to zero the first and last few blocks for extra safety
+            dd if=/dev/zero of="$device" bs=1M count=10 oflag=sync >/dev/null 2>&1
+            dd if=/dev/zero of="$device" bs=1M count=10 oflag=sync seek=$(($(blockdev --getsz "$device") - 10240)) >/dev/null 2>&1
         fi
     done
 
@@ -218,7 +221,7 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
     for device in "${HDD_DEVICES[@]}" "${CACHE_DEVICES[@]}"; do
         if [ -b "$device" ]; then
             if lsof "$device" >/dev/null 2>&1; then
-                echo "Error: Device $device is still busy. Cannot proceed."
+                echo "Error: Device $device is still busy ($device is possibly still in use)."
                 exit 1
             fi
         fi
@@ -226,7 +229,7 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
 
 	# 1. Install necessary packages
 	echo "Installing storage management tools..."
-	dnf install mdadm lvm2 xfsprogs device-mapper-persistant-data -y
+	dnf install mdadm lvm2 xfsprogs device-mapper-persistent-data -y
 
 	# 2. Prepare HDD disks for RAID
     echo "Preparing HDD disks for RAID array..."
