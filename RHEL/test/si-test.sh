@@ -245,7 +245,7 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
 			CACHE_DATA_LV_SIZE_GB=$(echo "scale=2; $SSD_SIZE_GB - 1" | bc)
 		
 			# 6.2. Create the cache data and metadata logical volumes
-			echo "Creating cache data logical volume (${CACHE_DATA_LV_SIZE_GB}G)..."
+			echo "Creating cache data logical volume - ${CACHE_DATA_LV_SIZE_GB}G..."
 			sudo lvcreate -L ${CACHE_DATA_LV_SIZE_GB}G -n lv_cache_data "$WAREHOUSE_VG" "$CACHE_SSD_DEVICE"
 		
 			echo "Creating cache metadata logical volume (${CACHE_META_LV_SIZE})..."
