@@ -248,7 +248,7 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
 			echo "Creating cache data logical volume - ${CACHE_DATA_LV_SIZE_GB}G..."
 			sudo lvcreate -L ${CACHE_DATA_LV_SIZE_GB}G -n lv_cache_data "$WAREHOUSE_VG" "$CACHE_SSD_DEVICE"
 		
-			echo "Creating cache metadata logical volume (${CACHE_META_LV_SIZE})..."
+			echo "Creating cache metadata logical volume ${CACHE_META_LV_SIZE}..."
 			sudo lvcreate -L "$CACHE_META_LV_SIZE" -n lv_cache_meta "$WAREHOUSE_VG" "$CACHE_SSD_DEVICE"
 	
 			# 6.3. Create the cache pool by combining data and metadata
@@ -268,6 +268,6 @@ if [[ -n "$HDD_DEVICES_EXPORTED" ]]; then
 		echo "Creating XFS filesystem..."
 		sudo mkfs.xfs "/dev/$WAREHOUSE_VG/$WAREHOUSE_LV"
 else
-        echo "Arays were not passed or could not be recreated."
+        echo "Arrays were not passed or could not be recreated."
         exit 1
 fi
