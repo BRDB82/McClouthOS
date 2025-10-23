@@ -25,7 +25,7 @@ pidfile="/var/run/emblancher.pid"
 logfile="/root/emblancher.log"
 export WAREHOUSE_DEVICE="/dev/md0"
 export WAREHOUSE_VG="vg_warehouse"
-export WAREHOUSE_LV="vl_warehouse"
+export WAREHOUSE_LV="lb_warehouse"
 
 select_option() {
     local options=("$@")
