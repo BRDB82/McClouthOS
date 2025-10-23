@@ -92,16 +92,25 @@ for device in "${ALL_DEVICES[@]}"; do
     fi
 done
 
-# Step 7: Final low-level wipe to guarantee a clean slate
+# Step 7: Forcefully zap any lingering partition tables.
+echo "Forcefully zapping all GPT and MBR partition tables..."
+for device in "${ALL_DEVICES[@]}"; do
+    if [ -b "$device" ]; then
+        echo "  - Zapping partition table: $device"
+        sgdisk --zap-all "$device" >/dev/null 2>&1 || true
+    fi
+done
+
+# Step 8: Final low-level wipe to guarantee a clean slate
 echo "Performing a low-level wipe of device beginnings..."
 for device in "${ALL_DEVICES[@]}"; do
     if [ -b "$device" ]; then
-        echo "  - Wiping device: $device"
+        echo "  - : $device"
         dd if=/dev/zero of="$device" bs=1M count=100 >/dev/null 2>&1 || true
     fi
 done
 
-# Step 8: Refresh device-mapper and partition tables.
+# Step 9: Refresh device-mapper and partition tables.
 echo "Refreshing LVM cache and device-mapper entries..."
 dmsetup remove_all --force >/dev/null 2>&1 || true
 vgscan --cache >/dev/null 2>&1 || true
