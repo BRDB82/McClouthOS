@@ -1,5 +1,9 @@
 #!/bin/bash
 
+export WAREHOUSE_DEVICE="/dev/md0"
+export WAREHOUSE_VG="vg_warehouse"
+export WAREHOUSE_LV="vl_warehouse"
+
 # Define a list of devices to check and clean
 HDD_DEVICES=("/dev/sdb" "/dev/sdc" "/dev/sdd" "/dev/sde")
 
