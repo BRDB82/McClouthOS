@@ -78,4 +78,5 @@ restorecon -R -v /srv/warehouse
 setsebool -P samba_export_all_rw on
 
 systemctl restart smb.service
-semanage fcontext -a -t samba_share_t "/srv/warehouse/DATA(/.*)?"echo "Samba is configured! Shares DATA and BACKUP are available for smb001mi on Windows, Linux, and MacOS."
+semanage fcontext -a -t samba_share_t "/srv/warehouse/DATA(/.*)?"
+echo "Samba is configured! Shares DATA and BACKUP are available for smb001mi on Windows, Linux, and MacOS."
