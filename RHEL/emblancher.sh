@@ -129,6 +129,16 @@ if [[ ! -f /etc/dnf/vars/releasever ]]; then
 fi
 
 dnf -y upgrade --refresh
+dnf clean all
+dnf makecache
+dnf install rpm
+dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
+dnf install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
+dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
+setfont ter-118b
+
+systemctl enable systemd-resolved
+systemctl start systemd-resolved
 
 if ! rpm -q gptfdisk &>/dev/null; then
     dnf list gptfdisk &>/dev/null
