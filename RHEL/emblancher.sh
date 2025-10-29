@@ -63,4 +63,10 @@ if is_registered; then
 else
     echo "[STATUS]:: System unregistered"
     #subscription-manager register --username="$RH_USER" --password="$RH_PASS"
+	if is_registered; then
+	    echo "[STATUS] :: System registered"
+	else
+	    echo "[STATUS]:: System can't be registered"
+	    exit 1
+	fi
 fi
