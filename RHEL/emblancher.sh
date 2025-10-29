@@ -4,6 +4,10 @@ is_registered() {
     subscription-manager status | grep -q 'Overall Status: Registered'
 }
 
+is_repo_enabled() {
+	subscription-manager repos --list-enabled | grep -q "$1"
+}
+
 # Check if the user is root
 if [ $(id -u) -ne 0 ]; then
     echo "emblancher must be run as root."
@@ -69,4 +73,18 @@ else
 	    echo "[STATUS]:: System can't be registered"
 	    exit 1
 	fi
+fi
+
+if repo_is_enabled "rhel-10-for-x86_64-baseos-rpms"; then
+    echo "BaseOS repository is already enabled."
+else
+    echo "Enabling BaseOS repository..."
+    subscription-manager repos --enable=rhel-10-for-x86_64-baseos-rpms
+fi
+
+if repo_is_enabled "rhel-10-for-x86_64-appstream-rpms"; then
+    echo "AppStream repository is already enabled."
+else
+    echo "Enabling AppStream repository..."
+    subscription-manager repos --enable=rhel-10-for-x86_64-appstream-rpms
 fi
