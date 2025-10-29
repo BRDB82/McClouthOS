@@ -91,10 +91,15 @@ fi
 
 BASEOS_REPO_ID=$(get_repo_id "BaseOS")
 APPSTREAM_REPO_ID=$(get_repo_id "AppStream")
+CRB_REPO_ID=$(get repo_id "CodeReady Linux Builder")
 REPO_VERSION=$(rhel_version)
+
 if [[ -z "$BASEOS_REPO_ID" || -z "$APPSTREAM_REPO_ID" ]]; then
     echo "Error: Could not find BaseOS or AppStream repository IDs."
     exit 1
+elif [[ -z "$CRB_REPO_ID" ]]; then
+	echo "Error: Could not find CRB repository ID."
+	exit 1
 elif [[ -z "$REPO_VERSION" ]]; then
     echo "Error: Could not determine RHEL release version."
     exit 1
@@ -113,8 +118,25 @@ else
    subscription-manager repos --enable="$APPSTREAM_REPO_ID"
 fi
 
+if is_repo_enabled "$CRB_REPO_ID"; then
+    echo "[STATUS] :: CRB already enabled"
+else
+   subscription-manager repos --enable="$CRB_REPO_ID"
+fi
+
 if [[ ! -f /etc/dnf/vars/releasever ]]; then
     echo "$REPO_VERSION" > /etc/dnf/vars/releasever
 fi
 
 dnf -y upgrade --refresh
+
+if ! rpm -q gptfdisk &>/dev/null; then
+    dnf list gptfdisk &>/dev/null
+
+    if [ $? -eq 0 ]; then
+        dnf -y install gptfdisk
+	else
+		echo "[STATUS] :: Can't install gptfdisk"
+		exit 1
+	fi
+fi
