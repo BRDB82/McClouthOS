@@ -80,7 +80,7 @@ if is_registered; then
     echo "[STATUS] :: System already registered"
 else
     echo "[STATUS]:: System unregistered"
-    #subscription-manager register --username="$RH_USER" --password="$RH_PASS"
+    subscription-manager register --username="$RH_USER" --password="$RH_PASS"
 	if is_registered; then
 		echo "[STATUS]:: System registered"
 	else
