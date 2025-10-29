@@ -32,7 +32,7 @@ install_apps() {
     done
 
     if [ ${#missing_packages[@]} -gt 0 ]; then
-        dnf -y install "${options[@]}" "${missing_packages[@]}"
+        dnf -y install "${options[@]}" "${missing_packages[@]}" >/dev/null 2>&1
     fi
 }
 
