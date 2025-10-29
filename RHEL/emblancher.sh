@@ -68,7 +68,6 @@ else
     echo "[STATUS]:: System unregistered"
     #subscription-manager register --username="$RH_USER" --password="$RH_PASS"
 	if is_registered; then
-	    echo "[STATUS] :: System registered"
 	else
 	    echo "[STATUS]:: System can't be registered"
 	    exit 1
@@ -86,3 +85,5 @@ if is_repo_enabled "rhel-10-for-x86_64-appstream-rpms"; then
 else
     subscription-manager repos --enable=rhel-10-for-x86_64-appstream-rpms
 fi
+
+dnf -y upgrade
