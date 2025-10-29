@@ -160,7 +160,7 @@ dnf makecache
 install_apps rpm
 install_apps https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
 install_apps grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
-dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
+install_apps https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
 setfont ter-118b
 
 systemctl enable systemd-resolved
@@ -170,7 +170,7 @@ if ! rpm -q gdisk &>/dev/null; then
     dnf list gdisk &>/dev/null
 
     if [ $? -eq 0 ]; then
-        dnf -y install gdisk
+        install_apps gdisk
 	else
 		echo "[STATUS] :: Can't install gdisk"
 		exit 1
