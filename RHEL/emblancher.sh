@@ -56,6 +56,7 @@ echo ""
 
 read -p "Enter your Red Hat username: " RH_USER
 read -sp "Enter your Red Hat password: " RH_PASS
+echo ""
 
 if is_registered; then
     echo "[STATUS] :: System already registered"
