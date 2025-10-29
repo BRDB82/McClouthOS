@@ -75,14 +75,14 @@ else
 	fi
 fi
 
-if repo_is_enabled "rhel-10-for-x86_64-baseos-rpms"; then
+if is_repo_enabled "rhel-10-for-x86_64-baseos-rpms"; then
     echo "BaseOS repository is already enabled."
 else
     echo "Enabling BaseOS repository..."
     subscription-manager repos --enable=rhel-10-for-x86_64-baseos-rpms
 fi
 
-if repo_is_enabled "rhel-10-for-x86_64-appstream-rpms"; then
+if is_repo_enabled "rhel-10-for-x86_64-appstream-rpms"; then
     echo "AppStream repository is already enabled."
 else
     echo "Enabling AppStream repository..."
