@@ -20,13 +20,13 @@ if [ "$1" == "--help" ]; then
 fi
 
 if [ "$1" == "--update" ]; then
-	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/emblancher.sh" -o "emblancher.new" || {
+	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/emblancher.sh" -o "./emblancher.new" || {
 		echo "update failed"
-	    rm "emblancer.new"
+	    rm "./emblancer.new"
 	    exit 1
 	}
-	chmod +x "emblancher.new"
-	mv -f "emblancher.new" "emblancher.sh"
+	chmod +x "./emblancher.new"
+	mv -f "./emblancher.new" "./emblancher.sh"
 	echo "emblancher updated, please restart..."
 	exit 0
 fi
