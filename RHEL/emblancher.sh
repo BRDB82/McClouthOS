@@ -1,7 +1,13 @@
 #!/bin/bash
 
 get_repo_id() {
-    subscription-manager repos --list | grep "$1" | awk '/Repo ID:/ {print $3}' | head -n 1
+    local keyword="$1"
+    local repo_id=""
+    
+    # Use a refined grep command to exclude source, debug, and eus repos
+    repo_id=$(subscription-manager repos --list | grep -B1 "Repo Name:.*$keyword" | grep "Repo ID:" | grep -v "source" | grep -v "debug" | grep -v "eus" | head -n1 | cut -d':' -f2 | tr -d '[:space:]')
+    
+    echo "$repo_id"
 }
 
 is_registered() {
