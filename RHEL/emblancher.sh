@@ -25,14 +25,14 @@ install_apps() {
     done
 
 	local missing_packages=()
-    for package in "${all_to_install[@]}"; do
+    for package in "${packages_to_install[@]}"; do
         if ! rpm -q "$package" &>/dev/null; then
-            to_install+=("$package")
+            missing_packages+=("$package")
         fi
     done
 
-    if [ ${#to_install[@]} -gt 0 ]; then
-        dnf -y install "${options[@]}" "${to_install[@]}"
+    if [ ${#missing_packages[@]} -gt 0 ]; then
+        dnf -y install "${options[@]}" "${missing_packages[@]}"
     fi
 }
 
