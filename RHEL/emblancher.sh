@@ -91,7 +91,7 @@ fi
 
 BASEOS_REPO_ID=$(get_repo_id "BaseOS")
 APPSTREAM_REPO_ID=$(get_repo_id "AppStream")
-CRB_REPO_ID=$(get repo_id "CodeReady Linux Builder")
+CRB_REPO_ID=$(get_repo_id "CodeReady Linux Builder")
 REPO_VERSION=$(rhel_version)
 
 if [[ -z "$BASEOS_REPO_ID" || -z "$APPSTREAM_REPO_ID" ]]; then
