@@ -10,6 +10,32 @@ get_repo_id() {
     echo "$repo_id"
 }
 
+install_apps() {
+    local options=()
+    local packages_to_install=()
+    local all_args=("$@")
+    
+    # Separate options from packages
+    for arg in "${all_args[@]}"; do
+        if [[ "$arg" =~ ^- ]]; then
+            options+=("$arg")
+        else
+            packages_to_install+=("$arg")
+        fi
+    done
+
+	local missing_packages=()
+    for package in "${all_to_install[@]}"; do
+        if ! rpm -q "$package" &>/dev/null; then
+            to_install+=("$package")
+        fi
+    done
+
+    if [ ${#to_install[@]} -gt 0 ]; then
+        dnf -y install "${options[@]}" "${to_install[@]}"
+    fi
+}
+
 is_registered() {
     subscription-manager status | grep -q 'Overall Status: Registered'
 }
@@ -131,22 +157,22 @@ fi
 dnf -y upgrade --refresh
 dnf clean all
 dnf makecache
-dnf install rpm
-dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
-dnf install -y grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
+install_apps rpm
+install_apps https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
+install_apps grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
 dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
 setfont ter-118b
 
 systemctl enable systemd-resolved
 systemctl start systemd-resolved
 
-if ! rpm -q gptfdisk &>/dev/null; then
-    dnf list gptfdisk &>/dev/null
+if ! rpm -q gdisk &>/dev/null; then
+    dnf list gdisk &>/dev/null
 
     if [ $? -eq 0 ]; then
-        dnf -y install gptfdisk
+        dnf -y install gdisk
 	else
-		echo "[STATUS] :: Can't install gptfdisk"
+		echo "[STATUS] :: Can't install gdisk"
 		exit 1
 	fi
 fi
