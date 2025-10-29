@@ -1,5 +1,9 @@
 #!/bin/bash
 
+is_registered() {
+    subscription-manager status | grep -q 'Overall Status: Registered'
+}
+
 # Check if the user is root
 if [ $(id -u) -ne 0 ]; then
     echo "emblancher must be run as root."
@@ -15,6 +19,17 @@ if [ "$1" == "--help" ]; then
     echo "  --help     Show this help message and exit"
     echo "  --version  Show the version and exit"
     exit 0
+fi
+
+if [ "$1" == "--update" ]; then
+	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/emblancher.sh" -o "emblancher.new" || {
+		echo "update failed"
+	    rm "emblancer.new"
+	    exit 1
+	}
+	chmod +x "emblancher.new"
+	mv -f "emblancher.new" "emblancher"
+	exit 0
 fi
 
 if [ "$1" == "--version" ]; then
@@ -40,4 +55,9 @@ echo -ne "
 read -p "Enter your Red Hat username: " RH_USER
 read -sp "Enter your Red Hat password: " RH_PASS
 
-echo "$RH_PASS" | rhc connect --username="$RH_USER" --password-stdin
+if is_registered; then
+    echo "[STATUS] :: System already registered"
+else
+    echo [STATUS]:: System unregistered"
+    #echo "$RH_PASS" | rhc connect --username="$RH_USER" --password-stdin
+fi
