@@ -58,6 +58,6 @@ read -sp "Enter your Red Hat password: " RH_PASS
 if is_registered; then
     echo "[STATUS] :: System already registered"
 else
-    echo [STATUS]:: System unregistered"
-    #echo "$RH_PASS" | rhc connect --username="$RH_USER" --password-stdin
+    echo "[STATUS]:: System unregistered"
+    #subscription-manager register --username="$RH_USER" --password="$RH_PASS"
 fi
