@@ -1,5 +1,9 @@
 #!/bin/bash
 
+get_repo_id() {
+    subscription-manager repos --list | grep "$1" | awk '/Repo ID:/ {print $3}' | head -n 1
+}
+
 is_registered() {
     subscription-manager status | grep -q 'Overall Status: Registered'
 }
@@ -75,16 +79,24 @@ else
 	fi
 fi
 
-if is_repo_enabled "rhel-10-for-x86_64-baseos-rpms"; then
-    echo "[STATUS] :: BaseOS already enabled"
-else
-    subscription-manager repos --enable=rhel-10-for-x86_64-baseos-rpms
+BASEOS_REPO_ID=$(get_repo_id "BaseOS")
+APPSTREAM_REPO_ID=$(get_repo_id "AppStream")
+if [[ -z "$BASEOS_REPO_ID" || -z "$APPSTREAM_REPO_ID" ]]; then
+    echo "Error: Could not find BaseOS or AppStream repository IDs."
+    echo "Please check your subscription and network connection."
+    exit 1
 fi
 
-if is_repo_enabled "rhel-10-for-x86_64-appstream-rpms"; then
+if is_repo_enabled "$BASEOS_REPO_ID"; then
+    echo "[STATUS] :: BaseOS already enabled"
+else
+    subscription-manager repos --enable="$BASEOS_REPO_ID"
+fi
+
+if is_repo_enabled "$APPSTREAM_REPO_ID"; then
     echo "[STATUS] :: AppStream already enabled"
 else
-    subscription-manager repos --enable=rhel-10-for-x86_64-appstream-rpms
+   subscription-manager repos --enable="$APPSTREAM_REPO_ID"
 fi
 
 dnf -y upgrade
