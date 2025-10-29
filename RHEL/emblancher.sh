@@ -18,6 +18,10 @@ is_repo_enabled() {
 	subscription-manager repos --list-enabled | grep -q "$1"
 }
 
+rhel_version() {
+	echo $(grep -oE '[0-9]+' /etc/redhat-release | head -n1)
+}
+
 # Check if the user is root
 if [ $(id -u) -ne 0 ]; then
     echo "emblancher must be run as root."
@@ -87,11 +91,15 @@ fi
 
 BASEOS_REPO_ID=$(get_repo_id "BaseOS")
 APPSTREAM_REPO_ID=$(get_repo_id "AppStream")
+REPO_VERSION=$(rhel_version)
 if [[ -z "$BASEOS_REPO_ID" || -z "$APPSTREAM_REPO_ID" ]]; then
     echo "Error: Could not find BaseOS or AppStream repository IDs."
-    echo "Please check your subscription and network connection."
+    exit 1
+elif [[ -z "$REPO_VERSION" ]]; then
+    echo "Error: Could not determine RHEL release version."
     exit 1
 fi
+
 
 if is_repo_enabled "$BASEOS_REPO_ID"; then
     echo "[STATUS] :: BaseOS already enabled"
@@ -105,4 +113,8 @@ else
    subscription-manager repos --enable="$APPSTREAM_REPO_ID"
 fi
 
-dnf -y upgrade
+if [[ ! -f /etc/dnf/vars/releasever ]]; then
+    echo "$REPO_VERSION" > /etc/dnf/vars/releasever
+fi
+
+dnf -y upgrade --refresh
