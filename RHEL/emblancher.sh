@@ -40,7 +40,7 @@ fi
 if [ "$1" == "--update" ]; then
 	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/emblancher.sh" -o "./emblancher.new" || {
 		echo "update failed"
-	    rm "./emblancer.new"
+	    rm "./emblancher.new"
 	    exit 1
 	}
 	chmod +x "./emblancher.new"
