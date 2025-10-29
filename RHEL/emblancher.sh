@@ -10,8 +10,6 @@ if [ $(id -u) -ne 0 ]; then
     exit 1
 fi
 
-echo "Starting installer, one moment..."
-
 #check for parameters (--help or --version)
 if [ "$1" == "--help" ]; then
     echo "Usage: emblancher [options]"
@@ -29,6 +27,7 @@ if [ "$1" == "--update" ]; then
 	}
 	chmod +x "emblancher.new"
 	mv -f "emblancher.new" "emblancher"
+	echo "emblancher updated, please restart..."
 	exit 0
 fi
 
@@ -51,6 +50,9 @@ echo -ne "
 --------------------------------------------------------------------------------------------
 
 "
+
+echo "Starting installer, one moment..."
+echo ""
 
 read -p "Enter your Red Hat username: " RH_USER
 read -sp "Enter your Red Hat password: " RH_PASS
