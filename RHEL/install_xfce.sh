@@ -6,7 +6,10 @@ sudo dnf install meson ninja-build wayland-devel \
     libinput-devel mesa-libGLES-devel libdrm-devel libglvnd-devel \
     systemd-devel libcap-devel json-c-devel libudev-devel alsa-lib-devel \
     git mesa-libEGL-devel vulkan-devel cmake libgbm-devel lcms2-devel \
-    hwdata-devel atk-devel gobject-introspection-devel python3-devel
+    hwdata-devel atk-devel gobject-introspection-devel python3-devel \
+    libXrandr-devel libXinerama-devel libXi-devel libXcursor-devel \
+    libXcomposite-devel libXdamage-devel
+
 
 mkdir -p ~/xfce_RHEL10
 
@@ -118,10 +121,22 @@ meson setup build --prefix=/usr --buildtype=release \
     -Dselinux=disabled
 
 cd build
-ninja -C build
-sudo ninja -C build install
+ninja
+sudo ninja install
 
 sudo gio-querymodules /usr/lib64/gio/modules
+
+# Clone the gtk repository
+mkdir -p ~/xfce_RHEL10/gtk-build
+cd ~/xfce_RHEL10/gtk-build
+git clone https://gitlab.gnome.org/GNOME/gtk.git
+cd gtk
+
+meson setup build --prefix=/usr --buildtype=release
+
+cd build
+ninja
+sudo ninja install
 
 # Clone the xfce repository and change to the directory
 mkdir ~/xfce_RHEL10/xfce-build
@@ -130,8 +145,10 @@ git clone https://gitlab.xfce.org/xfce/xfce4-session.git
 cd xfce4-session
 
 meson setup build/
-ninja -C build
-sudo ninja -C build install
+
+cd build
+ninja
+sudo ninja install
 
 cat <<EOF > ~/.local/share/wayland-sessions/xfce-wayland.desktop
 [Desktop Entry]
@@ -145,3 +162,6 @@ EOF
 #meson setup build/ &> build.log
 
 #wlroots| Run-time dependency <dependency-name> found: NO (tried pkgconfig and cmake)
+
+#when experiencing runtime errors:
+#export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
