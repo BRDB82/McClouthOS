@@ -42,7 +42,7 @@ install_apps() {
     if [ ${#missing_packages[@]} -gt 0 ]; then
         #echo "Installing missing packages: ${missing_packages[*]}"
         # Note: dnf install accepts URLs alongside package names if they are RPM files/repo files
-        dnf -y install "${options[@]}" "${missing_packages[@]}" >/dev/null 2>&1
+        dnf -y install "${options[@]}" "${missing_packages[@]}" &>/dev/null 2>&1
         if [ $? -ne 0 ]; then
             echo "Failed to install standard packages." >&2
         fi
@@ -54,7 +54,7 @@ install_apps() {
     if [ ${#urls_to_install[@]} -gt 0 ]; then
         #echo "Installing URLs/Remote RPMs: ${urls_to_install[*]}"
         # DNF can handle a list of URLs directly as inputs
-        dnf -y install "${options[@]}" "${urls_to_install[@]}" >/dev/null 2>&1
+        dnf -y install "${options[@]}" "${urls_to_install[@]}" &>/dev/null 2>&1
         if [ $? -ne 0 ]; then
             echo "Failed to install one or more remote files/URLs." >&2
         fi
@@ -181,14 +181,14 @@ if [[ ! -f /etc/dnf/vars/releasever ]]; then
     echo "$REPO_VERSION" > /etc/dnf/vars/releasever
 fi
 
-dnf -y upgrade --refresh
-dnf clean all
-dnf makecache
+dnf -y upgrade --refresh  &>/dev/null
+dnf clean all  &>/dev/null
+dnf makecache  &>/dev/null
 install_apps rpm
 install_apps https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
 install_apps grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
 install_apps https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
-setfont ter-118b
+setfont ter-118b &>/dev/null
 
 systemctl enable systemd-resolved
 systemctl start systemd-resolved
