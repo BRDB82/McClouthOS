@@ -40,7 +40,7 @@ install_apps() {
     done
 
     if [ ${#missing_packages[@]} -gt 0 ]; then
-        echo "Installing missing packages: ${missing_packages[*]}"
+        #echo "Installing missing packages: ${missing_packages[*]}"
         # Note: dnf install accepts URLs alongside package names if they are RPM files/repo files
         dnf -y install "${options[@]}" "${missing_packages[@]}" >/dev/null 2>&1
         if [ $? -ne 0 ]; then
@@ -52,7 +52,7 @@ install_apps() {
     # URLs must be passed to dnf install directly. 
     # DNF will download and install them immediately, usually requiring no pre-check via rpm -q
     if [ ${#urls_to_install[@]} -gt 0 ]; then
-        echo "Installing URLs/Remote RPMs: ${urls_to_install[*]}"
+        #echo "Installing URLs/Remote RPMs: ${urls_to_install[*]}"
         # DNF can handle a list of URLs directly as inputs
         dnf -y install "${options[@]}" "${urls_to_install[@]}" >/dev/null 2>&1
         if [ $? -ne 0 ]; then
@@ -106,6 +106,7 @@ if [ "$1" == "--version" ]; then
 fi
 
 #MAIN
+printf '\033%G'
 echo -ne "
 ███╗   ███╗ ██████╗ ██████╗██╗      ██████╗ ██╗   ██╗████████╗██╗  ██╗     ██████╗ ███████╗
 ████╗ ████║██╔════╝██╔════╝██║     ██╔═══██╗██║   ██║╚══██╔══╝██║  ██║    ██╔═══██╗██╔════╝
