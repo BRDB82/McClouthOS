@@ -125,8 +125,8 @@ printf "%s\n" "$logo_string"
 echo "Starting installer, one moment..."
 echo ""
 
-read -p "Enter your Red Hat username: " RH_USER
-read -sp "Enter your Red Hat password: " RH_PASS
+read -p "Enter your Red Hat Subscription username: " RH_USER
+read -sp "Enter your Red Hat Subscription password: " RH_PASS
 echo ""
 
 if is_registered; then
