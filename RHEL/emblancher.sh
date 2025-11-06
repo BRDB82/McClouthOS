@@ -203,3 +203,20 @@ if ! rpm -q gdisk &>/dev/null; then
 		exit 1
 	fi
 fi
+
+#LOCALIZATION
+	#Keyboard
+	#Language Support
+	#Time & Data
+
+#SOFTWARE
+	#Installation Source
+	#Software Selection
+
+#SYSTEM
+	#Installation Destination
+	#Network & Hostname
+
+#USER SETTINGS
+	#Root Password
+	#User Creation
