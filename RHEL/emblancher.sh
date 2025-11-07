@@ -258,11 +258,11 @@ if ! rpm -q gdisk &>/dev/null; then
 	fi
 fi
 
-echo "[STATUS] :: Install Environment [OK]
-
+echo "[STATUS] :: Install Environment [OK]"
+echo "...................................."
 #LOCALIZATION
 	#Keyboard
-		echo -ne "Please select key board layout from this list"
+		echo -ne "* Please select key board layout from this list"
 		options=(us ca de fr nl uk)
 		
 		select_option "${options[@]}"
@@ -272,8 +272,8 @@ echo "[STATUS] :: Install Environment [OK]
 		#For the time being we only support English
 	#Time & Data
 		time_zone="$(curl --fail -s https://ipapi.co/timezone)"
-		echo -ne "System detected your timezone to be '$time_zone' \n"
-		echo -ne "Is this correct?
+		echo -ne "* System detected your timezone to be '$time_zone' \n"
+		echo -ne "  Is this correct?
 		"
 		options=("Yes" "No")
 		select_option "${options[@]}"
@@ -285,14 +285,14 @@ echo "[STATUS] :: Install Environment [OK]
 				timedatectl set-timezone "$time_zone"
 				;;
 			1)
-				echo "Please enter your desired timezone e.g. Europe/Brussels :"
+				echo "- Please enter your desired timezone e.g. Europe/Brussels :"
 				read -r new_timezone
 				echo "${new_timezone} set as timezone"
 				export TIMEZONE=$new_timezone
 				timedatectl set-timezone "$new_timezone"
 				;;
 			*)
-				echo "Wrong option. Try again"
+				echo "!! Wrong option. Try again"
 				timezone
 				;;
 		esac
@@ -311,9 +311,7 @@ echo "[STATUS] :: Install Environment [OK]
 	#Installation Source
 		#already ok
 	#Software Selection
-		echo -ne "
-		Please select install type
-		"
+		echo -ne "* Please select install type"
 		
 		options=("Server" "Workstation")
 		
@@ -322,12 +320,122 @@ echo "[STATUS] :: Install Environment [OK]
 		case $? in
 		0) export INSTALL_TYPE="server";;
 		1) export INSTALL_TYPE="workstation";;
-		*) echo "Wrong option, please select again"; machine_type_selection;;
+		*) echo "!! Wrong option, please select again"; machine_type_selection;;
 		esac
 
 #SYSTEM
 	#Installation Destination
+		#Destination
+		PS3='* Select the disk to install on: '
+		options=($(lsblk -n --output TYPE,KNAME,SIZE | awk '$1=="disk"{print "/dev/"$2"|"$3}'))
+		
+		select_option "${options[@]}"
+		disk=${options[$?]%|*}
+		
+		export DISK=${disk%|*}
+		#FileSystem
+		echo -ne "* Please Select your file system for both boot and root"
+		options=("xfs" "ext4")
+		select_option "${options[@]}"
+		
+		case $? in
+		0) export FS=xfs;;
+		1) export FS=ext4;;
+		*) echo "!! Wrong option please select again"; filesystem;;
+		esac
+		#SSD
+		echo -ne "* Is this an SSD? yes/no:"
+		options=("Yes" "No")
+		select_option "${options[@]}"
+		
+		case $? in
+			0)
+		    	export MOUNT_OPTIONS="noatime,commit=120"
+		    	;;
+		    1)
+		        export MOUNT_OPTIONS="noatime,commit=120"
+		        ;;
+		    *)
+		        echo "!! Wrong option. Try again"
+		        disk_type
+		        ;;
+		esac
 	#Network & Hostname
+		PS3='* Select the network device to configure: '
+		options=($(nmcli -t -f DEVICE,TYPE dev status | awk -F':' '$2=="ethernet" && $1!="lo" {print $1}'))
+		
+		# Check if any ethernet devices were found
+		if [ ${#options[@]} -eq 0 ]; then
+		    echo "!! No Ethernet devices were found. Aborting network configuration. !!"
+		    exit 1
+		fi
+		
+		select_option "${options[@]}"
+		interface=${options[$?]}
+		
+		export INTERFACE_NAME=${interface}
+	
+		# Check INSTAL_TYPE
+		if [ "$INSTALL_TYPE" = "server" ]; then
+		    set_fixed_ip="yes"
+		else
+		    # Ask user for input and store it in a variable named `user_choice`
+		    read -p "- Do you want a fixed IP for your system? (yes/no): " user_choice
+		
+		    # Convert the user's choice to lowercase for easier comparison
+		    user_choice=$(echo "$user_choice" | tr '[:upper:]' '[:lower:]')
+		
+		    # Check the user's input and set the `set_fixed_ip` variable
+		    if [ "$user_choice" = "yes" ] || [ "$user_choice" = "y" ]; then
+		        set_fixed_ip="yes"
+		    fi
+		fi
+		export SET_FIXED_IP=$set_fixed_ip
+	
+		if [[ "$SET_FIXED_IP" == "yes" ]]; then
+			while true
+			do
+			    read -r -p "- Please enter the IP address for the first NIC (format 0.0.0.0): " ip_address
+			    # First, check if the format matches the regular expression
+			    if [[ $ip_address =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+			        # If the format is correct, split the IP address into octets
+			        OIFS=$IFS
+			        IFS='.'
+			        read -ra octets <<< "$ip_address"
+			        IFS=$OIFS
+			
+			        # Check if all four octets are numbers between 0 and 255
+			        if (( octets[0] <= 255 && octets[1] <= 255 && octets[2] <= 255 && octets[3] <= 255 )); then
+			            break # Exit the loop if the IP address is valid
+			        else
+			            echo "!! Error: Each number in the IP address must be between 0 and 255."
+			        fi
+			    else
+			        echo "!! Error: The IP address format is invalid. Please use the format 0.0.0.0."
+			    fi
+			done
+			export IP_ADDRESS=$ip_address
+			export SUBNET_MASK="24"
+			export DNS_SERVERS="1.1.1.1 8.8.8.8"
+			export GATEWAY=$(echo "$IP_ADDRESS" | sed 's/\.[0-9]\+$/.1/')
+		fi
+
+		while true
+		do
+				read -r -p "* Please name your machine: " name_of_machine
+				# hostname regex (!!couldn't find spec for computer name!!)
+				if [[ "${name_of_machine,,}" =~ ^[a-z][a-z0-9_.-]{0,62}[a-z0-9]$ ]]
+				then
+						break
+				fi
+				# if validation fails allow the user to force saving of the hostname
+				read -r -p "!! Hostname doesn't seem correct. Do you still want to save it? (y/n)" force
+				if [[ "${force,,}" = "y" ]]
+				then
+						break
+				fi
+		done
+		export NAME_OF_MACHINE=$name_of_machine	
 
 #USER SETTINGS
 	#Root Password
