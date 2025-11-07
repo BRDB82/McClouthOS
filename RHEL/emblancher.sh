@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set_fixed_ip="N"
+local_user="loa001mi"
+
 get_repo_id() {
     local keyword="$1"
     local repo_id=""
@@ -262,32 +265,26 @@ echo "[STATUS] :: Install Environment [OK]"
 echo "...................................."
 #LOCALIZATION
 	#Keyboard
-		echo -ne "* Please select key board layout from this list"
-		options=(us ca de fr nl uk)
-		
-		select_option "${options[@]}"
-		keymap=${options[$?]}
+		echo -ne "* Please select a keyboard layout from this list [us,ca,de,fr,nl,uk]"
+		read -r keymap
 		export KEYMAP=$keymap
 	#Language Support
 		#For the time being we only support English
 	#Time & Data
 		time_zone="$(curl --fail -s https://ipapi.co/timezone)"
 		echo -ne "* System detected your timezone to be '$time_zone' \n"
-		echo -ne "  Is this correct?
+		echo -ne "  Is this correct (y/n)?
 		"
-		options=("Yes" "No")
-		select_option "${options[@]}"
+		read -r options
 		
-		case $? in
-			0)
-				echo "${time_zone} set as timezone"
+		case "$options" in
+			y|Y)
 				export TIMEZONE=$time_zone
 				timedatectl set-timezone "$time_zone"
 				;;
-			1)
+			n|N)
 				echo "- Please enter your desired timezone e.g. Europe/Brussels :"
 				read -r new_timezone
-				echo "${new_timezone} set as timezone"
 				export TIMEZONE=$new_timezone
 				timedatectl set-timezone "$new_timezone"
 				;;
@@ -311,17 +308,9 @@ echo "...................................."
 	#Installation Source
 		#already ok
 	#Software Selection
-		echo -ne "* Please select install type"
-		
-		options=("Server" "Workstation")
-		
-		select_option "${options[@]}"
-		
-		case $? in
-		0) export INSTALL_TYPE="server";;
-		1) export INSTALL_TYPE="workstation";;
-		*) echo "!! Wrong option, please select again"; machine_type_selection;;
-		esac
+		echo -ne "* Please select install type[Server,Workstation]"
+		read -r install_type
+		export INSTALL_TYPE=$install_type
 
 #SYSTEM
 	#Installation Destination
@@ -334,25 +323,18 @@ echo "...................................."
 		
 		export DISK=${disk%|*}
 		#FileSystem
-		echo -ne "* Please Select your file system for both boot and root"
-		options=("xfs" "ext4")
-		select_option "${options[@]}"
-		
-		case $? in
-		0) export FS=xfs;;
-		1) export FS=ext4;;
-		*) echo "!! Wrong option please select again"; filesystem;;
-		esac
+		echo -ne "* Please Select your file system for both boot and root[ext4,xfs]"
+		read -r fs
+		export FS=$fs
 		#SSD
-		echo -ne "* Is this an SSD? yes/no:"
-		options=("Yes" "No")
-		select_option "${options[@]}"
-		
-		case $? in
-			0)
+		echo -ne "* Is this an SSD?[yes,no]"
+		read -r options
+	
+		case "$options" in
+			yes)
 		    	export MOUNT_OPTIONS="noatime,commit=120"
 		    	;;
-		    1)
+		    no)
 		        export MOUNT_OPTIONS="noatime,commit=120"
 		        ;;
 		    *)
@@ -439,4 +421,33 @@ echo "...................................."
 
 #USER SETTINGS
 	#Root Password
-	#User Creation
+	while true
+	do
+		echo -ne "\n"
+		read -rs -p "* Please enter password for root: " PASSWORD1
+		echo -ne "\n"
+		read -rs -p "  Please re-enter password: " PASSWORD2
+		echo -ne "\n"
+		if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
+			break
+		else
+			echo -ne "!! ERROR! Passwords do not match. \n"
+		fi
+	done
+	export rPASSWORD=$PASSWORD1
+	#User Creation (loa001mi
+	export USERNAME=$local_user
+	while true
+	do
+		echo -ne "\n"
+		read -rs -p "Please enter password for $USERNAME: " PASSWORD1
+		echo -ne "\n"
+		read -rs -p "Please re-enter password: " PASSWORD2
+		echo -ne "\n"
+		if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
+			break
+		else
+			echo -ne "ERROR! Passwords do not match. \n"
+		fi
+	done
+	export PASSWORD=$PASSWORD1
