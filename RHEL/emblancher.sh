@@ -451,3 +451,30 @@ echo "...................................."
 		fi
 	done
 	export PASSWORD=$PASSWORD1
+
+	echo ""
+	echo "SUMMARY
+	echo "-------"
+	echo "* LOCALIZATION:"
+	echo "	- keyboard layout: $KEYMAP"
+	echo "	- language: English"
+	echo "	- timezone: $TIMEZONE"
+	echo "* SOFTWARE:"
+	echo "	- Installation Source: RHEL Repositories"
+	echo "	- Software Selection: $INSTALL_TYPE"
+	echo "* SYSTEM:"
+	echo "	- Installation Destination: $DISK"
+	echo "	- Destination FilesSystem: $FS"
+	echo "	- Network: $INTERFACE_NAME; $IP_ADDRESS/$SUBNET_MASK"
+	echo "	- Hostname: $NAME_OF_MACHINE"
+	echo ""
+	read -r "Is this correction(y/n)?"
+	case "$options" in
+		y|Y)
+			break
+			;;
+		n|N)
+			echo "Please restart installation."
+			exit 0
+			;;
+	esac
