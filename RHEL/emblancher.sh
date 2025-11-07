@@ -47,7 +47,7 @@ install_apps() {
         # Note: dnf install accepts URLs alongside package names if they are RPM files/repo files
         dnf -y install "${options[@]}" "${missing_packages[@]}" &>/dev/null 2>&1
         if [ $? -ne 0 ]; then
-            echo "Failed to install standard packages." >&2
+            echo "Failed to install standard packages. ${missing_packages[@]}" >&2
         fi
     fi
 
