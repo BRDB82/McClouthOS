@@ -73,6 +73,60 @@ rhel_version() {
 	echo $(grep -oE '[0-9]+' /etc/redhat-release | head -n1)
 }
 
+select_option() {
+    local options=("$@")
+    local num_options=${#options[@]}
+    local selected=0
+    local last_selected=-1
+
+    while true; do
+        # Move cursor up to the start of the menu
+        if [ $last_selected -ne -1 ]; then
+            echo -ne "\033[${num_options}A"
+        fi
+
+        if [ $last_selected -eq -1 ]; then
+            echo "Please select an option using the arrow keys and Enter:"
+        fi
+        for i in "${!options[@]}"; do
+            if [ "$i" -eq $selected ]; then
+                echo "> ${options[$i]}"
+            else
+                echo "  ${options[$i]}"
+            fi
+        done
+
+        last_selected=$selected
+
+        # Read user input
+        read -rsn1 key
+        case $key in
+            $'\x1b') # ESC sequence
+                read -rsn2 -t 0.1 key
+                case $key in
+                    '[A') # Up arrow
+                        ((selected--))
+                        if [ $selected -lt 0 ]; then
+                            selected=$((num_options - 1))
+                        fi
+                        ;;
+                    '[B') # Down arrow
+                        ((selected++))
+                        if [ $selected -ge $num_options ]; then
+                            selected=0
+                        fi
+                        ;;
+                esac
+                ;;
+            '') # Enter key
+                break
+                ;;
+        esac
+    done
+
+    return $selected
+}
+
 # Check if the user is root
 if [ $(id -u) -ne 0 ]; then
     echo "emblancher must be run as root."
@@ -204,14 +258,72 @@ if ! rpm -q gdisk &>/dev/null; then
 	fi
 fi
 
+echo "[STATUS] :: Install Environment [OK]
+
 #LOCALIZATION
 	#Keyboard
+		echo -ne "Please select key board layout from this list"
+		options=(us ca de fr nl uk)
+		
+		select_option "${options[@]}"
+		keymap=${options[$?]}
+		export KEYMAP=$keymap
 	#Language Support
+		#For the time being we only support English
 	#Time & Data
+		time_zone="$(curl --fail -s https://ipapi.co/timezone)"
+		echo -ne "System detected your timezone to be '$time_zone' \n"
+		echo -ne "Is this correct?
+		"
+		options=("Yes" "No")
+		select_option "${options[@]}"
+		
+		case $? in
+			0)
+				echo "${time_zone} set as timezone"
+				export TIMEZONE=$time_zone
+				timedatectl set-timezone "$time_zone"
+				;;
+			1)
+				echo "Please enter your desired timezone e.g. Europe/Brussels :"
+				read -r new_timezone
+				echo "${new_timezone} set as timezone"
+				export TIMEZONE=$new_timezone
+				timedatectl set-timezone "$new_timezone"
+				;;
+			*)
+				echo "Wrong option. Try again"
+				timezone
+				;;
+		esac
+
+		sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+		timedatectl --no-ask-password set-timezone ${TIMEZONE}
+		timedatectl --no-ask-password set-ntp 1
+		localectl --no-ask-password set-locale LANG="en_US.UTF-8" LC_TIME="en_US.UTF-8"
+		ln -s /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+		
+		# Set keymaps
+		echo "KEYMAP=${KEYMAP}" > /etc/vconsole.conf
+		echo "XKBLAYOUT=${KEYMAP}" >> /etc/vconsole.conf
 
 #SOFTWARE
 	#Installation Source
+		#already ok
 	#Software Selection
+		echo -ne "
+		Please select install type
+		"
+		
+		options=("Server" "Workstation")
+		
+		select_option "${options[@]}"
+		
+		case $? in
+		0) export INSTALL_TYPE="server";;
+		1) export INSTALL_TYPE="workstation";;
+		*) echo "Wrong option, please select again"; machine_type_selection;;
+		esac
 
 #SYSTEM
 	#Installation Destination
