@@ -445,7 +445,7 @@ echo ""
 	echo "	- Hostname: $NAME_OF_MACHINE"
 	echo ""
 	while true; do
-		read -r -p "Is this correction(y/n)?" options
+		read -r -p "Is this correct(y/n)?" options
 	
 		case "$options" in
 			y|Y)
@@ -457,8 +457,8 @@ echo ""
 				;;
 		esac
 	done
+	
 	#setup installation environment
-
 	dnf -y upgrade --refresh  &>/dev/null
 	dnf clean all  &>/dev/null
 	dnf makecache  &>/dev/null
