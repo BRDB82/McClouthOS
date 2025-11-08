@@ -401,8 +401,9 @@ echo ""
 	#Root Password
 	while true
 	do
+		echo ""
 		read -rs -p "* Please enter password for root: " PASSWORD1
-		read -rs -p "  Please re-enter password: " PASSWORD2
+		read -rs -p "\n  Please re-enter password: " PASSWORD2
 		if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
 			break
 		else
@@ -414,8 +415,9 @@ echo ""
 	export USERNAME=$local_user
 	while true
 	do
+		echo ""
 		read -rs -p "* Please enter password for $USERNAME: " PASSWORD1
-		read -rs -p "  Please re-enter password: " PASSWORD2
+		read -rs -p "\n  Please re-enter password: " PASSWORD2
 		if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
 			break
 		else
