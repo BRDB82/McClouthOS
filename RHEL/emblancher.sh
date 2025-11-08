@@ -401,7 +401,7 @@ echo ""
 	#Root Password
 	while true
 	do
-		echo ""
+		#echo ""
 		read -rs -p "* Please enter password for root: " PASSWORD1
 		echo ""
 		read -rs -p "  Please re-enter password: " PASSWORD2
@@ -444,17 +444,19 @@ echo ""
 	echo "	- Network: $INTERFACE_NAME; $IP_ADDRESS/$SUBNET_MASK"
 	echo "	- Hostname: $NAME_OF_MACHINE"
 	echo ""
-	read -r -p "Is this correction(y/n)?" options
-	case "$options" in
-		y|Y)
-			break
-			;;
-		n|N)
-			echo "Please restart installation."
-			exit 0
-			;;
-	esac
-
+	while true; do
+		read -r -p "Is this correction(y/n)?" options
+	
+		case "$options" in
+			y|Y)
+				break
+				;;
+			n|N)
+				echo "Please restart installation."
+				exit 0
+				;;
+		esac
+	done
 	#setup installation environment
 
 	dnf -y upgrade --refresh  &>/dev/null
