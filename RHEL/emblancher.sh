@@ -187,88 +187,6 @@ printf "%s\n" "$logo_string"
 echo "Starting installer, one moment..."
 echo ""
 
-read -p "Enter your Red Hat Subscription username: " RH_USER
-read -sp "Enter your Red Hat Subscription password: " RH_PASS
-echo ""
-
-if is_registered; then
-    echo "[STATUS] :: System already registered"
-else
-    echo "[STATUS]:: System unregistered"
-    subscription-manager register --username="$RH_USER" --password="$RH_PASS"
-	if is_registered; then
-		echo "[STATUS]:: System registered"
-	else
-	    echo "[STATUS]:: System can't be registered"
-	    exit 1
-	fi
-fi
-
-BASEOS_REPO_ID=$(get_repo_id "BaseOS")
-APPSTREAM_REPO_ID=$(get_repo_id "AppStream")
-CRB_REPO_ID=$(get_repo_id "CodeReady Linux Builder")
-REPO_VERSION=$(rhel_version)
-
-if [[ -z "$BASEOS_REPO_ID" || -z "$APPSTREAM_REPO_ID" ]]; then
-    echo "Error: Could not find BaseOS or AppStream repository IDs."
-    exit 1
-elif [[ -z "$CRB_REPO_ID" ]]; then
-	echo "Error: Could not find CRB repository ID."
-	exit 1
-elif [[ -z "$REPO_VERSION" ]]; then
-    echo "Error: Could not determine RHEL release version."
-    exit 1
-fi
-
-
-if is_repo_enabled "$BASEOS_REPO_ID"; then
-    echo "[STATUS] :: BaseOS already enabled"
-else
-    subscription-manager repos --enable="$BASEOS_REPO_ID"
-fi
-
-if is_repo_enabled "$APPSTREAM_REPO_ID"; then
-    echo "[STATUS] :: AppStream already enabled"
-else
-   subscription-manager repos --enable="$APPSTREAM_REPO_ID"
-fi
-
-if is_repo_enabled "$CRB_REPO_ID"; then
-    echo "[STATUS] :: CRB already enabled"
-else
-   subscription-manager repos --enable="$CRB_REPO_ID"
-fi
-
-if [[ ! -f /etc/dnf/vars/releasever ]]; then
-    echo "$REPO_VERSION" > /etc/dnf/vars/releasever
-fi
-
-dnf -y upgrade --refresh  &>/dev/null
-dnf clean all  &>/dev/null
-dnf makecache  &>/dev/null
-sleep 3
-install_apps rpm
-install_apps https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
-install_apps grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
-install_apps https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
-setfont ter-118b &>/dev/null
-
-systemctl enable systemd-resolved
-systemctl start systemd-resolved
-
-if ! rpm -q gdisk &>/dev/null; then
-    dnf list gdisk &>/dev/null
-
-    if [ $? -eq 0 ]; then
-        install_apps gdisk
-	else
-		echo "[STATUS] :: Can't install gdisk"
-		exit 1
-	fi
-fi
-
-echo "[STATUS] :: Install Environment [OK]"
-echo "...................................."
 #LOCALIZATION
 	#Keyboard
 		echo -ne "* Please select a keyboard layout from this list [us,ca,de,fr,nl,uk]"
@@ -311,8 +229,62 @@ echo "...................................."
 		echo "XKBLAYOUT=${KEYMAP}" >> /etc/vconsole.conf
 
 #SOFTWARE
+	# Connect to Red Hat
+		read -p "Enter your Red Hat Subscription username: " RH_USER
+		read -sp "Enter your Red Hat Subscription password: " RH_PASS
+		echo ""
+		
+		if is_registered; then
+		    echo "[STATUS] :: System already registered"
+		else
+		    echo "[STATUS]:: System unregistered"
+		    subscription-manager register --username="$RH_USER" --password="$RH_PASS"
+			if is_registered; then
+				echo "[STATUS]:: System registered"
+			else
+			    echo "[STATUS]:: System can't be registered"
+			    exit 1
+			fi
+		fi
 	#Installation Source
-		#already ok
+		BASEOS_REPO_ID=$(get_repo_id "BaseOS")
+		APPSTREAM_REPO_ID=$(get_repo_id "AppStream")
+		CRB_REPO_ID=$(get_repo_id "CodeReady Linux Builder")
+		REPO_VERSION=$(rhel_version)
+		
+		if [[ -z "$BASEOS_REPO_ID" || -z "$APPSTREAM_REPO_ID" ]]; then
+		    echo "Error: Could not find BaseOS or AppStream repository IDs."
+		    exit 1
+		elif [[ -z "$CRB_REPO_ID" ]]; then
+			echo "Error: Could not find CRB repository ID."
+			exit 1
+		elif [[ -z "$REPO_VERSION" ]]; then
+		    echo "Error: Could not determine RHEL release version."
+		    exit 1
+		fi
+		
+		
+		if is_repo_enabled "$BASEOS_REPO_ID"; then
+		    echo "[STATUS] :: BaseOS already enabled"
+		else
+		    subscription-manager repos --enable="$BASEOS_REPO_ID"
+		fi
+		
+		if is_repo_enabled "$APPSTREAM_REPO_ID"; then
+		    echo "[STATUS] :: AppStream already enabled"
+		else
+		   subscription-manager repos --enable="$APPSTREAM_REPO_ID"
+		fi
+		
+		if is_repo_enabled "$CRB_REPO_ID"; then
+		    echo "[STATUS] :: CRB already enabled"
+		else
+		   subscription-manager repos --enable="$CRB_REPO_ID"
+		fi
+		
+		if [[ ! -f /etc/dnf/vars/releasever ]]; then
+		    echo "$REPO_VERSION" > /etc/dnf/vars/releasever
+		fi
 	#Software Selection
 		echo -ne "* Please select install type[Server,Workstation]"
 		read -r install_type
@@ -459,7 +431,7 @@ echo "...................................."
 	export PASSWORD=$PASSWORD1
 
 	echo ""
-	echo "SUMMARY
+	echo "SUMMARY"
 	echo "-------"
 	echo "* LOCALIZATION:"
 	echo "	- keyboard layout: $KEYMAP"
@@ -484,3 +456,45 @@ echo "...................................."
 			exit 0
 			;;
 	esac
+
+	#setup installation environment
+
+	dnf -y upgrade --refresh  &>/dev/null
+	dnf clean all  &>/dev/null
+	dnf makecache  &>/dev/null
+	sleep 3
+	install_apps rpm
+	install_apps https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
+	install_apps grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
+	install_apps https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
+	setfont ter-118b &>/dev/null
+	
+	systemctl enable systemd-resolved
+	systemctl start systemd-resolved
+	
+	if ! rpm -q gdisk &>/dev/null; then
+	    dnf list gdisk &>/dev/null
+	
+	    if [ $? -eq 0 ]; then
+	        install_apps gdisk
+		else
+			echo "[STATUS] :: Can't install gdisk"
+			exit 1
+		fi
+	fi
+	
+	echo "[STATUS] :: Install Environment [OK]"
+	echo "...................................."
+
+	#format disk
+
+	#create filesystem
+
+	#install on drive
+
+	#install grub
+
+	#enter chroot
+		#network setup
+		#set language and local
+		#adding user
