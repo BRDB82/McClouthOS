@@ -401,11 +401,8 @@ echo ""
 	#Root Password
 	while true
 	do
-		echo -ne "\n"
 		read -rs -p "* Please enter password for root: " PASSWORD1
-		echo -ne "\n"
 		read -rs -p "  Please re-enter password: " PASSWORD2
-		echo -ne "\n"
 		if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
 			break
 		else
@@ -417,11 +414,8 @@ echo ""
 	export USERNAME=$local_user
 	while true
 	do
-		echo -ne "\n"
-		read -rs -p "Please enter password for $USERNAME: " PASSWORD1
-		echo -ne "\n"
-		read -rs -p "Please re-enter password: " PASSWORD2
-		echo -ne "\n"
+		read -rs -p "* Please enter password for $USERNAME: " PASSWORD1
+		read -rs -p "  Please re-enter password: " PASSWORD2
 		if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
 			break
 		else
@@ -446,7 +440,7 @@ echo ""
 	echo "	- Network: $INTERFACE_NAME; $IP_ADDRESS/$SUBNET_MASK"
 	echo "	- Hostname: $NAME_OF_MACHINE"
 	echo ""
-	read -r "Is this correction(y/n)?"
+	read -r "Is this correction(y/n)?" options
 	case "$options" in
 		y|Y)
 			break
