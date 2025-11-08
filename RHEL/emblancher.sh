@@ -37,7 +37,8 @@ install_apps() {
     local missing_packages=()
     for package in "${packages_to_install[@]}"; do
         # We can only check installation status for normal package names via rpm -q
-        if ! rpm -q "$package" &>/dev/null; then
+        #if ! rpm -q "$package" &>/dev/null; then
+		if ! dnf list installed "$package" &>/dev/null; then
             missing_packages+=("$package")
         fi
     done
