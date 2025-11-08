@@ -229,19 +229,19 @@ echo ""
 
 #SOFTWARE
 	# Connect to Red Hat
-		read -p "Enter your Red Hat Subscription username: " RH_USER
-		read -sp "Enter your Red Hat Subscription password: " RH_PASS
+		read -p "* Enter your Red Hat Subscription username: " RH_USER
+		read -sp "  Enter your Red Hat Subscription password: " RH_PASS
 		echo ""
 		
 		if is_registered; then
 		    echo "[STATUS] :: System already registered"
 		else
-		    echo "[STATUS]:: System unregistered"
+		    echo "[STATUS] :: System unregistered"
 		    subscription-manager register --username="$RH_USER" --password="$RH_PASS"
 			if is_registered; then
-				echo "[STATUS]:: System registered"
+				echo "[STATUS] :: System registered"
 			else
-			    echo "[STATUS]:: System can't be registered"
+			    echo "[STATUS] :: System can't be registered"
 			    exit 1
 			fi
 		fi
@@ -261,7 +261,6 @@ echo ""
 		    echo "Error: Could not determine RHEL release version."
 		    exit 1
 		fi
-		
 		
 		if is_repo_enabled "$BASEOS_REPO_ID"; then
 		    echo "[STATUS] :: BaseOS already enabled"
@@ -285,7 +284,7 @@ echo ""
 		    echo "$REPO_VERSION" > /etc/dnf/vars/releasever
 		fi
 	#Software Selection
-		echo -ne "* Please select install type[Server,Workstation]"
+		echo -ne "* Please select install type [Server,Workstation]: "
 		read -r install_type
 		export INSTALL_TYPE=$install_type
 
@@ -300,18 +299,18 @@ echo ""
 		
 		export DISK=${disk%|*}
 		#FileSystem
-		echo -ne "* Please Select your file system for both boot and root[ext4,xfs]"
+		echo -ne "* Please Select your file system for both boot and root [ext4,xfs]: "
 		read -r fs
 		export FS=$fs
 		#SSD
-		echo -ne "* Is this an SSD?[yes,no]"
+		echo -ne "* Is this an SSD (y/n): "
 		read -r options
 	
 		case "$options" in
-			yes)
+			y|Y)
 		    	export MOUNT_OPTIONS="noatime,commit=120"
 		    	;;
-		    no)
+		    n|N)
 		        export MOUNT_OPTIONS="noatime,commit=120"
 		        ;;
 		    *)
@@ -335,11 +334,13 @@ echo ""
 		export INTERFACE_NAME=${interface}
 	
 		# Check INSTAL_TYPE
-		if [ "$INSTALL_TYPE" = "server" ]; then
+		INSTALL_TYPE_LOWER=$(echo "$INSTALL_TYPE" | tr '[:upper:]' '[:lower:]')
+
+		if [ "$INSTALL_TYPE_LOWER" = "server" ]; then
 		    set_fixed_ip="yes"
 		else
 		    # Ask user for input and store it in a variable named `user_choice`
-		    read -p "- Do you want a fixed IP for your system? (yes/no): " user_choice
+		    read -p "- Do you want a fixed IP for your system? (y/n): " user_choice
 		
 		    # Convert the user's choice to lowercase for easier comparison
 		    user_choice=$(echo "$user_choice" | tr '[:upper:]' '[:lower:]')
