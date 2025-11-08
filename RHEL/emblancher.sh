@@ -46,7 +46,11 @@ install_apps() {
     if [ ${#missing_packages[@]} -gt 0 ]; then
         #echo "Installing missing packages: ${missing_packages[*]}"
         # Note: dnf install accepts URLs alongside package names if they are RPM files/repo files
-        dnf -y install "${options[@]}" "${missing_packages[@]}" &>/dev/null 2>&1
+		if [ $[#options[@] -eq 0 ]; then
+        	dnf -y install "${missing_packages[@]}" &>/dev/null 2>&1
+		else
+			dnf -y install "${options[@]}" "${missing_packages[@]}" &>/dev/null 2>&1
+		fi
         if [ $? -ne 0 ]; then
             echo "Failed to install standard packages: ${missing_packages[@]}, options: ${options[@]}" >&2
         fi
@@ -242,6 +246,7 @@ fi
 dnf -y upgrade --refresh  &>/dev/null
 dnf clean all  &>/dev/null
 dnf makecache  &>/dev/null
+sleep 3
 install_apps htop
 install_apps rpm
 install_apps https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
