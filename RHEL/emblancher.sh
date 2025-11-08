@@ -247,7 +247,6 @@ dnf -y upgrade --refresh  &>/dev/null
 dnf clean all  &>/dev/null
 dnf makecache  &>/dev/null
 sleep 3
-install_apps htop
 install_apps rpm
 install_apps https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm --nogpgcheck
 install_apps grub2 grub2-tools grub2-efi-x64 grub2-efi-x64-modules kbd systemd-resolved
