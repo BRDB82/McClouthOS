@@ -189,7 +189,7 @@ echo ""
 
 #LOCALIZATION
 	#Keyboard
-		echo -ne "* Please select a keyboard layout from this list [us,ca,de,fr,nl,uk]"
+		echo -ne "* Please select a keyboard layout from this list [us,ca,de,fr,nl,uk]: "
 		read -r keymap
 		export KEYMAP=$keymap
 	#Language Support
@@ -197,8 +197,7 @@ echo ""
 	#Time & Data
 		time_zone="$(curl --fail -s https://ipapi.co/timezone)"
 		echo -ne "* System detected your timezone to be '$time_zone' \n"
-		echo -ne "  Is this correct (y/n)?
-		"
+		echo -ne "  Is this correct (y/n)? "
 		read -r options
 		
 		case "$options" in
@@ -218,11 +217,11 @@ echo ""
 				;;
 		esac
 
-		sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+		echo 'LANG="en_US.UTF-8"' > /etc/locale.conf
 		timedatectl --no-ask-password set-timezone ${TIMEZONE}
 		timedatectl --no-ask-password set-ntp 1
 		localectl --no-ask-password set-locale LANG="en_US.UTF-8" LC_TIME="en_US.UTF-8"
-		ln -s /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+		ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
 		
 		# Set keymaps
 		echo "KEYMAP=${KEYMAP}" > /etc/vconsole.conf
