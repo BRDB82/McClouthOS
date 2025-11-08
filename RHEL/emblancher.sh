@@ -403,7 +403,8 @@ echo ""
 	do
 		echo ""
 		read -rs -p "* Please enter password for root: " PASSWORD1
-		read -rs -p "\n  Please re-enter password: " PASSWORD2
+		echo ""
+		read -rs -p "  Please re-enter password: " PASSWORD2
 		if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
 			break
 		else
@@ -417,7 +418,8 @@ echo ""
 	do
 		echo ""
 		read -rs -p "* Please enter password for $USERNAME: " PASSWORD1
-		read -rs -p "\n  Please re-enter password: " PASSWORD2
+		echo ""
+		read -rs -p "  Please re-enter password: " PASSWORD2
 		if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
 			break
 		else
