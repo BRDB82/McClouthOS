@@ -46,7 +46,7 @@ install_apps() {
     if [ ${#missing_packages[@]} -gt 0 ]; then
         #echo "Installing missing packages: ${missing_packages[*]}"
         # Note: dnf install accepts URLs alongside package names if they are RPM files/repo files
-		if [ $[#options[@] -eq 0 ]; then
+		if [ ${#options[@]} -eq 0 ]; then
         	dnf -y install "${missing_packages[@]}" &>/dev/null 2>&1
 		else
 			dnf -y install "${options[@]}" "${missing_packages[@]}" &>/dev/null 2>&1
