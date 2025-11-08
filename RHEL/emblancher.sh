@@ -384,7 +384,7 @@ echo ""
 		do
 				read -r -p "* Please name your machine: " name_of_machine
 				# hostname regex (!!couldn't find spec for computer name!!)
-				if [[ "${name_of_machine,,}" =~ ^[a-z][a-z0-9_.-]{0,62}[a-z0-9]$ ]]
+				if [[ "${name_of_machine,,}" =~ ^[a-z0-9][a-z0-9_.-]{0,62}[a-z0-9]$ ]]
 				then
 						break
 				fi
