@@ -442,7 +442,7 @@ echo ""
 	echo "	- Network: $INTERFACE_NAME; $IP_ADDRESS/$SUBNET_MASK"
 	echo "	- Hostname: $NAME_OF_MACHINE"
 	echo ""
-	read -r "Is this correction(y/n)?" options
+	read -r -p "Is this correction(y/n)?" options
 	case "$options" in
 		y|Y)
 			break
