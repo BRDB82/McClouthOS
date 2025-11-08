@@ -482,17 +482,146 @@ echo ""
 			exit 1
 		fi
 	fi
+
+	wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/dnfstrap.sh
+	  chmod +x dnfstrap.sh
+	  mv dnfstrap.sh /usr/bin/dnfstrap
+	wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/common
+	  mv common /usr/bin/dnfcommon
+	wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/rhel-chroot.sh
+	  chmod +x rhel-chroot.sh
+	  mv rhel-chroot.sh /usr/bin/rhel-chroot
+	wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/genfstab.sh
+	  chmod +x genfstab.sh
+	  mv genfstab.sh /usr/bin/genfstab
+	wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/rhel-install-scripts/fstab-helpers
+	  mv fstab-helpers /usr/bin/fstab-helpers
 	
 	echo "[STATUS] :: Install Environment [OK]"
 	echo "...................................."
 
 	#format disk
-
+	echo -ne "------------------------------------------------------------------------
+THIS WILL FORMAT AND DELETE ALL DATA ON THE DISK
+Please make sure you know what you are doing because
+after formatting your disk there is no way to get data back
+*****BACKUP YOUR DATA BEFORE CONTINUING*****
+***I AM NOT RESPONSIBLE FOR ANY DATA LOSS***
+------------------------------------------------------------------------"
+	while true; do
+		read -r -p "Do you want to continue(y/n)?" options
+	
+		case "$options" in
+			y|Y)
+				break
+				;;
+			n|N)
+				echo "Installation stopped by user."
+				exit 0
+				;;
+		esac
+	done
+	umount -A --recursive /mnt # make sure everything is unmounted before we start
+	# disk prep
+	sgdisk -Z "${DISK}" # zap all on disk
+	sgdisk -a 2048 -o "${DISK}" # new gpt disk 2048 alignment
+	
+	# create partitions
+	sgdisk -n 1::+1G --typecode=1:8300 --change-name=1:'BOOT' "${DISK}" # partition 1 (BIOS Boot Partition)
+	sgdisk -n 2::+1G --typecode=2:ef00 --change-name=2:'EFIBOOT' "${DISK}" # partition 2 (UEFI Boot Partition)
+	sgdisk -n 3::-0 --typecode=3:8300 --change-name=3:'ROOT' "${DISK}" # partition 3 (Root), default start, remaining
+	if [[ ! -d "/sys/firmware/efi" ]]; then # Checking for bios system
+		sgdisk -A 1:set:2 "${DISK}"
+	fi
+	partprobe "${DISK}" # reread partition table to ensure it is correct
+	
+	if [[ "${DISK}" =~ "nvme" ]]; then
+		partition1=${DISK}p1
+		partition2=${DISK}p2
+		partition3=${DISK}p3
+	else
+		partition1=${DISK}1
+		partition2=${DISK}2
+		partition3=${DISK}3
+	fi
+	
+	for dev in "${partition1}" "${partition2}" "${partition3}"; do
+	    for i in {1..10}; do
+	        [[ -b "$dev" ]] && break
+	        sleep 0.5
+	    done
+	done
+	
 	#create filesystem
+	mkfs.ext4 -L BOOT "${partition1}"
+    mkfs.fat -F32 -n "EFIBOOT" "${partition2}"
+    
+    if [[ "${FS}" == "xfs" ]]; then 
+        mkfs.xfs -f -L ROOT "${partition3}"
+        mount -t xfs "${partition3}" /mnt
+    elif [[ "${FS}" == "ext4" ]]; then
+        mkfs.ext4 "${partition3}"
+        mount -t ext4 "${partition3}" /mnt
+    fi
+    
+    BOOT_UUID=$(blkid -s UUID -o value "${partition1}")
+    EFI_UUID=$(blkid -s UUID -o value "${partition2}")
+    
+    sync
+    if ! mountpoint -q /mnt; then
+        echo "ERROR! Failed to mount ${partition3} to /mnt after multiple attempts."
+        exit 1
+    fi
+    
+    mkdir -p /mnt/boot
+    mount -U "${BOOT_UUID}" /mnt/boot/
+    mkdir -p /mnt/boot/efi
+    mount -U "${EFI_UUID}" /mnt/boot/efi
+    
+    if ! grep -qs '/mnt' /proc/mounts; then
+        echo "Drive is not mounted, cannot continue"
+        echo "Rebooting in 3 Seconds ..." && sleep 1
+        echo "Rebooting in 2 Seconds ..." && sleep 1
+        echo "Rebooting in 1 Second ..." && sleep 1
+        reboot now
+    fi
 
 	#install on drive
+	dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules subscription-manager redhat-release nano dnf dnf-plugins-core --assumeyes --releasever=10
+
+	genfstab -U /mnt >> /mnt/etc/fstab
+    echo "
+      Generated /etc/fstab:
+    "
+    cat /mnt/etc/fstab
+
+	#install bootloader
+	efibootmgr -v | grep Boot
+    
+	echo ""
+	read -p "Give all entries to remove, or enter stop to continue: " input
+	
+	if [[ "$input" == "stop" ]]; then
+	  echo ""
+	else
+	 for bootnum in $input; do
+		  if [[ "$bootnum" =~ ^[0-9]+$ ]]; then
+			  echo "Removing entry $bootnum..."
+			  efibootmgr -B -b "$bootnum"
+		  else
+			  echo "Invalid entry: '$bootnum'"
+		  fi
+	  done
+	fi
 
 	#install grub
+	grub2-install \
+  --target=x86_64-efi \
+  --efi-directory=/mnt/boot/efi \
+  --bootloader-id=McClouthOS \
+  --boot-directory=/mnt/boot \
+  --recheck \
+  --force
 
 	#enter chroot
 		#network setup
