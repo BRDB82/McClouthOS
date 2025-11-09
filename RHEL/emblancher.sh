@@ -509,6 +509,7 @@ after formatting your disk there is no way to get data back
 ***I AM NOT RESPONSIBLE FOR ANY DATA LOSS***
 ------------------------------------------------------------------------"
 	while true; do
+		echo ""
 		read -r -p "Do you want to continue(y/n)?" options
 	
 		case "$options" in
@@ -586,7 +587,7 @@ after formatting your disk there is no way to get data back
         reboot now
     fi
 
-	#install on drive
+	#install on drive - this seems to need a registration? But it seems we can install
 	dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules subscription-manager redhat-release nano dnf dnf-plugins-core --assumeyes --releasever=10
 
 	genfstab -U /mnt >> /mnt/etc/fstab
@@ -624,6 +625,40 @@ after formatting your disk there is no way to get data back
   --force
 
 	#enter chroot
+	rhel-chroot /mnt /bin/bash <<EOF
+
+	echo ""
+	echo "SUMMARY"
+	echo "-------"
+	echo "* LOCALIZATION:"
+	echo "	- keyboard layout: $KEYMAP"
+	echo "	- language: English"
+	echo "	- timezone: $TIMEZONE"
+	echo "* SOFTWARE:"
+	echo "	- Installation Source: RHEL Repositories"
+	echo "	- Software Selection: $INSTALL_TYPE"
+	echo "* SYSTEM:"
+	echo "	- Installation Destination: $DISK"
+	echo "	- Destination FilesSystem: $FS"
+	echo "	- Network: $INTERFACE_NAME; $IP_ADDRESS/$SUBNET_MASK"
+	echo "	- Hostname: $NAME_OF_MACHINE"
+	echo ""
+	while true; do
+		read -r -p "Is this correct(y/n)?" options
+	
+		case "$options" in
+			y|Y)
+				break
+				;;
+			n|N)
+				echo "Please restart installation."
+				exit 0
+				;;
+		esac
+	done
+	
 		#network setup
 		#set language and local
 		#adding user
+
+	EOF
