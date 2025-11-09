@@ -285,6 +285,11 @@ echo ""
 		if [[ ! -f /etc/dnf/vars/releasever ]]; then
 		    echo "$REPO_VERSION" > /etc/dnf/vars/releasever
 		fi
+
+		export REP_REP1=$BASEOS_REPO_ID
+		export REP_REP2=$APPSTREAM_REPO_ID
+		export REP_REP3=$CRB_REPO_ID
+		export REP_REPO_VERSION=$REPO_VERSION
 	#Software Selection
 		echo -ne "* Please select install type [Server,Workstation]: "
 		read -r install_type
@@ -674,7 +679,91 @@ after formatting your disk there is no way to get data back
 	done
 	
 		#network setup
+		echo 'nameserver 1.1.1.1' > /etc/resolv.conf
+	
+		mkdir -p /etc/yum.repos.d
+		
+		echo "Registring with Red Hat with $REP_USER..."
+		/usr/sbin/subscription-manager register --username="$REP_USER" --password="$REP_PASS" 2>&1
+
+		if [[ -z "$REP_REPO1" || -z "$REP_REPO2" ]]; then
+		    echo "Error: Could not find BaseOS or AppStream repository IDs."
+		    exit 1
+		elif [[ -z "$REP_REPO3" ]]; then
+			echo "Error: Could not find CRB repository ID."
+			exit 1
+		elif [[ -z "$REP_REPO_VERSION" ]]; then
+		    echo "Error: Could not determine RHEL release version."
+		    exit 1
+		fi
+		
+		subscription-manager repos --enable="$REP_REPO1"
+		subscription-manager repos --enable="$REP_REPO2"
+		subscription-manager repos --enable="$REP_REPO3"
+		fi
+		
+		if [[ ! -f /etc/dnf/vars/releasever ]]; then
+		    echo "$REP_REPO_VERSION" > /etc/dnf/vars/releasever
+		fi
+
+		subscription-manager refresh
+		dnf update -y
+		dnf clean all
+		dnf makecache
+		dnf install rpm -y
+	
+		dnf install -y NetworkManager --nogpgcheck
+		systemctl enable NetworkManager
+		systemctl start NetworkManager
+	
+		dnf install -y curl git wget chrony
+		dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
+		dnf install -y rsync grub2
+		dnf install -y ntp
+
+		chronyd -q
+		systemctl enable chronyd.service
+		echo "  Chrony (NTP) enabled"
+		systemctl disable network.service 2>/dev/null || true
+		systemctl enable NetworkManager.service
+		echo "  NetworkManager enabled"
+	
+		# Check if a interface was found
+		if [ -z "$INTERFACE_NAME" ]; then
+		    echo "!! Failed to find an active ethernet connection after multiple attempts. Aborting network setup. !!"
+		    exit 1
+		else
+			#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
+			nmcli connection modify "$INTERFACE_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
+			nmcli connection up "$INTERFACE_NAME"
+		fi
+
+		
 		#set language and local
+		locale -a | grep -q en_US.UTF-8 || localedef -i en_US -f UTF-8 en_US.UTF-8
+		timedatectl --no-ask-password set-timezone "${TIMEZONE}"
+		timedatectl --no-ask-password set-ntp 1
+		localectl --no-ask-password set-locale LANG="en_US.UTF-8" LC_TIME="en_US.UTF-8"
+		ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+	
+		localectl --no-ask-password set-keymap "${KEYMAP}"
+		echo "KEYMAP=${KEYMAP}" > /etc/vconsole.conf
+		echo "XKBLAYOUT=${KEYMAP}" >> /etc/vconsole.conf
 		#adding user
+		sed -i 's/^# %wheel ALL=(ALL) NOPASSWD: ALL/%wheel ALL=(ALL) NOPASSWD: ALL/' /etc/sudoers
+		sed -i 's/^# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers
+		echo "root:$rPASSWORD"| chpasswd
+		getent group libvirt >/dev/null || groupadd libvirt
+		useradd -m -G wheel,libvirt -s /bin/bash "$USERNAME"
+		echo "$USERNAME created, home directory created, added to wheel and libvirt group, default shell set to /bin/bash"
+		echo "$USERNAME:$PASSWORD" | chpasswd
+		echo "$USERNAME password set"
+
+		# Remove no password sudo rights
+		visudo -c >/dev/null && sed -i 's/^%wheel ALL=(ALL) NOPASSWD: ALL/# &/' /etc/sudoers
+		visudo -c >/dev/null && sed -i 's/^%wheel ALL=(ALL:ALL) NOPASSWD: ALL/# &/' /etc/sudoers
+		# Add sudo rights
+		visudo -c >/dev/null && sed -i 's/^# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/' /etc/sudoers
+		visudo -c >/dev/null && sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 EOF
