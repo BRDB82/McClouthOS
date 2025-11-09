@@ -245,6 +245,8 @@ echo ""
 			    exit 1
 			fi
 		fi
+		export REP_USER=$RH_USER
+		export REP_PASS=$RH_PASS
 	#Installation Source
 		BASEOS_REPO_ID=$(get_repo_id "BaseOS")
 		APPSTREAM_REPO_ID=$(get_repo_id "AppStream")
@@ -636,6 +638,12 @@ after formatting your disk there is no way to get data back
 	echo "	- timezone: $TIMEZONE"
 	echo "* SOFTWARE:"
 	echo "	- Installation Source: RHEL Repositories"
+	if [ ! -z "$REP_USER" ] && [ ! -z "$REP_PASS" ]; then
+	    echo "    REP_INFO known"
+	else
+		echo "Error: REP_INFO is missing inside the script." >&2
+    	exit 1
+	fi
 	echo "	- Software Selection: $INSTALL_TYPE"
 	echo "* SYSTEM:"
 	echo "	- Installation Destination: $DISK"
