@@ -286,9 +286,9 @@ echo ""
 		    echo "$REPO_VERSION" > /etc/dnf/vars/releasever
 		fi
 
-		export REP_REP1=$BASEOS_REPO_ID
-		export REP_REP2=$APPSTREAM_REPO_ID
-		export REP_REP3=$CRB_REPO_ID
+		export REP_REPO1=$BASEOS_REPO_ID
+		export REP_REPO2=$APPSTREAM_REPO_ID
+		export REP_REPO3=$CRB_REPO_ID
 		export REP_REPO_VERSION=$REPO_VERSION
 	#Software Selection
 		echo -ne "* Please select install type [Server,Workstation]: "
