@@ -629,6 +629,7 @@ after formatting your disk there is no way to get data back
 	#enter chroot
 	rhel-chroot /mnt /bin/bash <<EOF
 
+	#initial check to see if all variables are parsed to the chroot
 	echo ""
 	echo "SUMMARY"
 	echo "-------"
