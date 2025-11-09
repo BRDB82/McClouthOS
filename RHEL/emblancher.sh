@@ -640,7 +640,7 @@ after formatting your disk there is no way to get data back
 	echo "* SOFTWARE:"
 	echo "	- Installation Source: RHEL Repositories"
 	if [ ! -z "$REP_USER" ] && [ ! -z "$REP_PASS" ]; then
-	    echo "    REP_INFO known"
+		echo "	  REP_INFO known"
 	else
 		echo "Error: REP_INFO is missing inside the script." >&2
     	exit 1
@@ -670,4 +670,4 @@ after formatting your disk there is no way to get data back
 		#set language and local
 		#adding user
 
-	EOF
+EOF
