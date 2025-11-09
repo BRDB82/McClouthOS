@@ -642,7 +642,7 @@ after formatting your disk there is no way to get data back
 	if [ ! -z "$REP_USER" ] && [ ! -z "$REP_PASS" ]; then
 		echo "	  REP_INFO known"
 	else
-		echo "Error: REP_INFO is missing inside the script." >&2
+		echo "!! Error: REP_INFO is missing inside the script." >&2
     	exit 1
 	fi
 	echo "	- Software Selection: $INSTALL_TYPE"
@@ -651,6 +651,13 @@ after formatting your disk there is no way to get data back
 	echo "	- Destination FilesSystem: $FS"
 	echo "	- Network: $INTERFACE_NAME; $IP_ADDRESS/$SUBNET_MASK"
 	echo "	- Hostname: $NAME_OF_MACHINE"
+	echo "	- Users:"
+		if [ ! -z "$rPASSWORD" ] && [ ! -z "$PASSWORD" ]; then
+		echo "	  INFO known"
+	else
+		echo "Error: INFO is missing inside the script." >&2
+    	exit 1
+	fi
 	echo ""
 	while true; do
 		read -r -p "Is this correct(y/n)?" options
