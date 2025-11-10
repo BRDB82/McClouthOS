@@ -98,7 +98,7 @@ dnfstrap() {
     msg 'Installing group "%s" inside installroot' "$group"
     if ! dnf --installroot="$newroot" \
       -c /etc/dnf/dnf.conf \
-      --disable-plugin=subscription-manager \
+      --disableplugin=subscription-manager \
       --setopt=reposdir=/etc/yum.repos.d \
       --setopt=persistdir=/var/cache/dnf \
       --setopt=install_weak_deps=False \
@@ -113,7 +113,7 @@ dnfstrap() {
     msg 'Installing "%s" inside installroot' "${dnf_args[@]}"
     if ! dnf --installroot="$newroot" \
       -c /etc/dnf/dnf.conf \
-      --disable-plugin=subscription-manager \
+      --disableplugin=subscription-manager \
       --setopt=reposdir=/etc/yum.repos.d \
       --setopt=persistdir=/var/cache/dnf \
       install -y "${dnf_args[@]}"; then
