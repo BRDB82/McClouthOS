@@ -99,10 +99,12 @@ dnfstrap() {
   for group in "${dnf_group_args[@]}"; do
     msg 'Installing group "%s" inside installroot' "$group"
     if ! dnf --installroot="$newroot" \
+      -c /etc/dnf/dnf.conf \
       --disable-plugin=subscription-manager \
+      --setopt=reposdir=/etc/yum.repos.d \
+      --setopt=persistdir=/var/cache/dnf \
       --setopt=install_weak_deps=False \
       --setopt=group_package_types=mandatory \
-      --setopt=reposdir=/etc/yum.repos.d \
       group install "$group" -y; then
       die 'Failed to install group "%s"' "$group"
     fi
@@ -111,7 +113,12 @@ dnfstrap() {
   # Then install regular packages into installroot
   if (( ${#dnf_args[@]} )); then
     msg 'Installing "%s" inside installroot' "${dnf_args[@]}"
-    if ! dnf --installroot="$newroot" --disable-plugin=subscription-manager install -y "${dnf_args[@]}" --setopt=reposdir=/etc/yum.repos.d; then
+    if ! dnf --installroot="$newroot" \
+      -c /etc/dnf/dnf.conf \
+      --disable-plugin=subscription-manager \
+      --setopt=reposdir=/etc/yum.repos.d \
+      --setopt=persistdir=/var/cache/dnf \
+      install -y "${dnf_args[@]}"; then
       die 'Failed to install packages to new root'
     fi
   fi
