@@ -92,17 +92,18 @@ dnfstrap() {
     cp -a "$dnf_config" "$newroot/etc/dnf/dnf.conf"
   fi
 
-  dnf --installroot="$newroot" --releasever=10 --setopt=reposdir=/etc/yum.repos.d clean all
-  dnf --installroot="$newroot" --releasever=10 --setopt=reposdir=/etc/yum.repos.d makecache
+  dnf --installroot="$newroot" --setopt=reposdir=/etc/yum.repos.d clean all
+  dnf --installroot="$newroot" --setopt=reposdir=/etc/yum.repos.d makecache
 
   # First install groups inside chroot
   for group in "${dnf_group_args[@]}"; do
     msg 'Installing group "%s" inside installroot' "$group"
     if ! dnf --installroot="$newroot" \
+      --disable-plugin=subscription-manager \
       --setopt=install_weak_deps=False \
       --setopt=group_package_types=mandatory \
       --setopt=reposdir=/etc/yum.repos.d \
-      group install "$group" -y --releasever=10; then
+      group install "$group" -y; then
       die 'Failed to install group "%s"' "$group"
     fi
   done
@@ -110,7 +111,7 @@ dnfstrap() {
   # Then install regular packages into installroot
   if (( ${#dnf_args[@]} )); then
     msg 'Installing "%s" inside installroot' "${dnf_args[@]}"
-    if ! dnf --installroot="$newroot" install -y "${dnf_args[@]}" --setopt=reposdir=/etc/yum.repos.d --releasever=10; then
+    if ! dnf --installroot="$newroot" --disable-plugin=subscription-manager install -y "${dnf_args[@]}" --setopt=reposdir=/etc/yum.repos.d; then
       die 'Failed to install packages to new root'
     fi
   fi
