@@ -595,7 +595,7 @@ after formatting your disk there is no way to get data back
     fi
 
 	#install on drive - this seems to need a registration? But it seems we can install
-	dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules subscription-manager redhat-release nano dnf dnf-plugins-core --assumeyes --releasever=10
+	dnfstrap /mnt @core @"Development Tools" kernel linux-firmware grub2 efibootmgr grub2-efi-x64 grub2-efi-x64-modules subscription-manager redhat-release nano dnf dnf-plugins-core --assumeyes
 
 	genfstab -U /mnt >> /mnt/etc/fstab
     echo "
@@ -614,8 +614,7 @@ after formatting your disk there is no way to get data back
 	else
 	 for bootnum in $input; do
 		  if [[ "$bootnum" =~ ^[0-9]+$ ]]; then
-			  echo "Removing entry $bootnum..."
-			  efibootmgr -B -b "$bootnum"
+dn
 		  else
 			  echo "Invalid entry: '$bootnum'"
 		  fi
