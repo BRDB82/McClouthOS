@@ -70,17 +70,15 @@ dnfstrap() {
     #  echo ""
     #else
     #  # install the host's repo definitions onto the new root
-    #  mkdir -p "$newroot/etc/pki/ca-trust"
-    #  cp -a /etc/pki/ca-trust "$newroot/etc/pki/ca-trust/"
-    #  cp -a /etc/pki/consumer "$newroot/etc/pki/"
-    #  cp -a /etc/pki/entitlement "$newroot/etc/pki/"
-    #  cp -a /etc/yum.repos.d/redhat.repo "$newroot/etc/yum.repos.d/"
-    #  #sed -i 's/^enabled=0/enabled=1/' "$newroot/etc/yum.repos.d/redhat.repo"
-    #  cp -a /etc/rhsm "$newroot/etc/"
-    #  cp -a /etc/machine-id "$newroot/etc/"
-    #  #sed -i 's|BaseOS-$releasever$rltype|$rltype-BaseOS-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
-    #  #sed -i 's|AppStream-$releasever$rltype|$rltype-AppStream-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
-    #  #sed -i 's|extras-$releasever$rltype|$rltype-extras-$releasever|g' "$newroot/etc/yum.repos.d/"*.repo
+    # Set up necessary directories in the target root
+    mkdir -p "$newroot/etc/pki/consumer"
+    mkdir -p "$newroot/etc/yum.repos.d"
+    
+    # Create symlinks from the target root to the host's authenticated files
+    ln -s /etc/pki/consumer/ca.pem "$newroot/etc/pki/consumer/ca.pem"
+    ln -s /etc/pki/consumer/cert.pem "$newroot/etc/pki/consumer/cert.pem"
+    ln -s /etc/pki/consumer/key.pem "$newroot/etc/pki/consumer/key.pem"
+    ln -s /etc/yum.repos.d/redhat.repo "$newroot/etc/yum.repos.d/redhat.repo"
     mkdir -p /mnt/etc/dnf/vars
     echo "10" > /mnt/etc/dnf/vars/releasever
     echo "production" > /mnt/etc/dnf/vars/rltype
@@ -184,3 +182,5 @@ fi
 
 setup=chroot_setup
 dnfstrap "$@"
+rm "$newroot/etc/pki/consumer/ca.pem" "$newroot/etc/pki/consumer/cert.pem" "$newroot/etc/pki/consumer/key.pem"
+rm "$newroot/etc/yum.repos.d/redhat.repo"
