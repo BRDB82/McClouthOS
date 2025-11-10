@@ -103,6 +103,9 @@ dnfstrap() {
       --setopt=persistdir=/var/cache/dnf \
       --setopt=install_weak_deps=False \
       --setopt=group_package_types=mandatory \
+      --setopt=timeout=300 \
+      --setopt=max_parallel_downloads=1 \
+      --setopt=retries=10 \
       group install "$group" -y; then
       die 'Failed to install group "%s"' "$group"
     fi
@@ -116,6 +119,9 @@ dnfstrap() {
       --disableplugin=subscription-manager \
       --setopt=reposdir=/etc/yum.repos.d \
       --setopt=persistdir=/var/cache/dnf \
+      --setopt=timeout=300 \
+      --setopt=max_parallel_downloads=1 \
+      --setopt=retries=10 \
       install -y "${dnf_args[@]}"; then
       die 'Failed to install packages to new root'
     fi
