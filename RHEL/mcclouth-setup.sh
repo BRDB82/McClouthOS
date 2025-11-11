@@ -255,7 +255,7 @@ while true; do
 			fi
 			;;
 		*)
-			echo "'
+			echo ""
 			echo "!!INVALID INPUT!!"
 			sleep 1.5
 			;;
