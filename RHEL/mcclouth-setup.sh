@@ -79,6 +79,17 @@ cockpit_setup() {
 	fi
 }
 
+display_logo() {
+	clear
+	logo
+	
+	#update will be added later
+	
+	echo "GNU Bash, version $BASH_VERSION"
+	. /etc/os-release
+	echo "$NAME $VERSION"
+}
+
 file_storage_setup() {
 #Disk Information
 		root_device=$(df / | tail -1 | awk '{print $1}') #get root device
@@ -159,6 +170,20 @@ hypervisor_install() {
 	systemctl enable --now libvirtd
 }
 
+main_menu() {
+	echo ""
+	echo "================================================================================"
+	echo " Server Setup"
+	echo "================================================================================"
+	echo ""
+	echo "Hostname: $HOSTNAME"
+	echo ""
+	echo "1. Storage Service"
+	echo "2. Hypervisor"
+	echo ""
+	echo "0. Reboot"
+}
+
 server_install() {
 if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" = "none" ]; } \
    && { ! command -v dmidecode &> /dev/null || ! [[ "$(dmidecode -s system-product-name 2>/dev/null)" =~ (VMware|KVM|HVM|Bochs|QEMU) ]]; } \
@@ -189,23 +214,49 @@ fi
 }
 
 #main
-clear
-logo
+if [ "$EUID" -ne 0 ]; then
+	exec su -c "bash \"$0\" \"$@\"" root
+	echo "Failed to run as root."
+	exit 1
+fi
 
-#update will be added later
+while true; do
+	display_logo
+	main_menu
+	read -r -p "Choose an option: " menu_option
+	
+	case $menu_option in
+		0)
+			read -r -p "Are you sure you want to reboot?" sys_reboot
+			case $sys_reboot in
+				y|Y)
+					reboot
+					;;
+			esac
+			;;
+		1) 
+			read -r -p "Are you sure you want to update 'mcclouth-setup'?" app_update
+			update_failed=0
+			case $app_update in
+				y|Y)
+					curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup.sh" -o "./mcclouth-setup.new" || {
+						echo "update filed"
+						rm "./mcclouth-setup.new"
+						update_failed=1
+					}
+					;;
+			esac
 
-echo "GNU Bash, version $BASH_VERSION"
-. /etc/os-release
-echo "$NAME $VERSION"
-
-echo ""
-echo "================================================================================"
-echo " Server Setup"
-echo "================================================================================"
-echo ""
-echo "Hostname: $HOSTNAME"
-echo ""
-echo "1. Storage Service"
-echo "2. Hypervisor"
-echo ""
-read -r -p "Choose an option: " menu_option
+			if [ "$update_failed" -eq 0 ]; then
+				chmod +x "./mcclouth-setup.new"
+				mv -f "./mcclouth-setup.new" "/usr/bin/mcclouth-setup"
+				echo "'mcclouth-setup updated..."
+				exec "mcclouth-setup" "$0"
+			fi
+		*)
+			echo "'
+			echo "!!INVALID INPUT!!"
+			sleep 1.5
+			;;
+	esac
+done
