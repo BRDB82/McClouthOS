@@ -733,10 +733,12 @@ dn
 		    exit 1
 		else
 			#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
-			nmcli connection modify "$INTERFACE_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
-			nmcli connection up "$INTERFACE_NAME"
+			#nmcli connection modify "$INTERFACE_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
+			#nmcli connection up "$INTERFACE_NAME"
+			ip addr add "$IP_ADDRESS/$SUBNET_MASK" dev "$INTERFACE_NAME"
+			ip route add default via "$GATEWAY"
+			ip link set "$INTERFACE_NAME" up
 		fi
-
 		
 		#set language and local
 		locale -a | grep -q en_US.UTF-8 || localedef -i en_US -f UTF-8 en_US.UTF-8
@@ -769,9 +771,9 @@ EOF
 
 	# If we are running as a server, make sure to run the setup script after login
 	if [ "${INSTALL_TYPE,,}" = "server" ]; then
-		wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup.sh
-		chmod +x mcclouth-setup.sh
-		mv mcclouth-setup.sh /mnt/usr/bin/mcclouth-setup
+		curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup.sh" -o "./mcclouth-setup.new"
+		chmod +x "./mcclouth-setup.new"
+		mv -f "./mcclouth-setup.new" "/usr/bin/mcclouth-setup"
 
 		echo "#!/bin/bash" > "/mnt/etc/profile.d/mcclouth_setup_script.sh"
 		echo "# Check if the script exists and run it at login" >> "/mnt/etc/profile.d/mcclouth_setup_script.sh"
