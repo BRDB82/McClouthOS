@@ -738,6 +738,7 @@ dn
 			ip addr add "$IP_ADDRESS/$SUBNET_MASK" dev "$INTERFACE_NAME"
 			ip route add default via "$GATEWAY"
 			ip link set "$INTERFACE_NAME" up
+			hostnamectl set-hostname "$NAME_OF_MACHINE"
 		fi
 		
 		#set language and local
