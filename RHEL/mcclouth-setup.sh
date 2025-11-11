@@ -261,7 +261,9 @@ while true; do
 			read -r -p "Are you sure you want to update this system?" sys_update
 			case $sys_update in
 				y|Y)
+					echo ""
 					dnf update
+					echo ""
 					;;
 			esac
 			;;
