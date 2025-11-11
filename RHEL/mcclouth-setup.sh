@@ -192,9 +192,9 @@ fi
 clear
 logo
 echo -ne "
---------------------------------------------------------------------------------------------
-             Automated McClouth OS Extended Installer
---------------------------------------------------------------------------------------------
+============================================================================================
+ Server Setup
+============================================================================================
 "
 
 if [ -z "$1" ]; then
@@ -212,9 +212,6 @@ if [ -z "$1" ]; then
     fi
 else
   case "$1" in
-    server|workstation)
-      system_type="$1"
-      ;;
     --update)
 		echo -ne "
 --------------------------------------------------------------------------------------------
@@ -238,18 +235,18 @@ else
   esac
 fi
 
-case "$system_type" in
-  server)
-    echo "Installing server components..."
-	base_setup
-    server_install
-    ;;
-  workstation)
-    echo "Installing workstation environment..."
-    #workstation install logic here
-    ;;
-  *)
-    echo "Unknown system type: '$system_type'"
-    exit 1
-    ;;
-esac
+echo "GNU Bash, version $BASH-VERSION"
+. /etc/os-release
+echo "$NAME $VERSION"
+
+echo ""
+echo "================================================================================"
+echo " Server Setup"
+echo "================================================================================"
+echo ""
+echo "Hostname: $HOSTNAME"
+echo ""
+echo "1. Storage Service"
+echo "2. Hypervisor"
+echo ""
+read -r -p "Choose an option: " menu_option
