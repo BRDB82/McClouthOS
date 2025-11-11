@@ -194,7 +194,7 @@ logo
 
 #update will be added later
 
-echo "GNU Bash, version $BASH-VERSION"
+echo "GNU Bash, version $BASH_VERSION"
 . /etc/os-release
 echo "$NAME $VERSION"
 
