@@ -8,7 +8,7 @@ sms_ssd_list=()
 readonly sms_version="0.01-a"
 readonly sms_warehouse="/srv/warehouse"
 readonly sms_warehouse_conf="$sms_warehouse/njord.conf"
-readonly CONFIG_FILE="/etc/mcclouth/mcclouth.conf"
+readonly CONFIG_FILE="/etc/mcclouthos/server.conf"
 
 clear() {
   printf "\033[H\033[J" #clear
@@ -191,11 +191,6 @@ fi
 #main
 clear
 logo
-echo -ne "
-============================================================================================
- Server Setup
-============================================================================================
-"
 
 if [ -z "$1" ]; then
   if [ -f "$CONFIG_FILE" ]; then
