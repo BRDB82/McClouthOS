@@ -178,8 +178,11 @@ main_menu() {
 	echo ""
 	echo "Hostname: $HOSTNAME"
 	echo ""
-	echo "1. Storage Service"
-	echo "2. Hypervisor"
+	echo "1. Update 'mcclouth-setup'"
+	echo "2. Update system"
+	echo ""
+	echo "3. Storage Service"
+	echo "4. Hypervisor"
 	echo ""
 	echo "0. Reboot"
 }
