@@ -753,7 +753,7 @@ dn
 		sed -i 's/^# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers
 		echo "root:$rPASSWORD"| chpasswd
 		getent group libvirt >/dev/null || groupadd libvirt
-		useradd -m -G wheel,libvirt -s /bin/bash "$USERNAME"
+		useradd -m -G wheel -s /bin/bash "$USERNAME"
 		echo "$USERNAME created, home directory created, added to wheel and libvirt group, default shell set to /bin/bash"
 		echo "$USERNAME:$PASSWORD" | chpasswd
 		echo "$USERNAME password set"
