@@ -773,11 +773,11 @@ EOF
 		chmod +x mcclouth-setup.sh
 		mv mcclouth-setup.sh /mnt/usr/bin/mcclouth-setup
 
-		echo "#!/bin/bash" > "$newroot/etc/profile.d/mcclouth_setup_script.sh"
-		echo "# Check if the script exists and run it at login" >> "$newroot/etc/profile.d/mcclouth_setup_script.sh"
-		echo "if [ -x \"/usr/bin/mcclouth-setup\" ]; then" >> "$newroot/etc/profile.d/mcclouth_setup_script.sh"
-		echo "    /usr/bin/mcclouth-setup" >> "$newroot/etc/profile.d/mcclouth_setup_script.sh"
-		echo "fi" >> "$newroot/etc/profile.d/mcclouth_setup_script.sh"
+		echo "#!/bin/bash" > "/mnt/etc/profile.d/mcclouth_setup_script.sh"
+		echo "# Check if the script exists and run it at login" >> "/mnt/etc/profile.d/mcclouth_setup_script.sh"
+		echo "if [ -x \"/usr/bin/mcclouth-setup\" ]; then" >> "/mnt/etc/profile.d/mcclouth_setup_script.sh"
+		echo "    /usr/bin/mcclouth-setup" >> "/mnt/etc/profile.d/mcclouth_setup_script.sh"
+		echo "fi" >> "/mnt/etc/profile.d/mcclouth_setup_script.sh"
 		
 		# Ensure the new script is executable
 		chmod +x /mnt/etc/profile.d/mcclouth_setup_script.sh
