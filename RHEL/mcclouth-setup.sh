@@ -257,6 +257,14 @@ while true; do
 				exec "mcclouth-setup" "$0"
 			fi
 			;;
+		2)
+			read -r -p "Are you sure you want to update this system?" sys_update
+			case $sys_update in
+				y|Y)
+					dnf update
+					}
+					;;
+			esac
 		*)
 			echo ""
 			echo "!!INVALID INPUT!!"
