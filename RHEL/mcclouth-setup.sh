@@ -192,43 +192,7 @@ fi
 clear
 logo
 
-if [ -z "$1" ]; then
-  if [ -f "$CONFIG_FILE" ]; then
-        system_type=$(grep '^system_type=' "$CONFIG_FILE" | cut -d'=' -f2)
-    else
-  		mih=$(hostname)
-  		if [ "${mih:4:1}" == "S" ]; then
-  			system_type="server"
-  		else
-        echo "Error: No system type provided and config file not found."
-        usage
-        exit 1
-  		fi
-    fi
-else
-  case "$1" in
-    --update)
-		echo -ne "
---------------------------------------------------------------------------------------------
-             Updating mcclouth-setup
---------------------------------------------------------------------------------------------
-"
-      curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup.sh" -o "/usr/bin/mcclouth-setup.new" || {
-	      echo "update failed"
-	      rm "/usr/bin/mcclouth-setup.new"
-	      exit 1
-	    }
-	    chmod +x "/usr/bin/mcclouth-setup.new"
-	    mv -f "/usr/bin/mcclouth-setup.new" "/usr/bin/mcclouth-setup"
-	    exit 0
-      ;;
-    *)
-      echo "Unknown system type: '$1'"
-      usage
-      exit 1
-      ;;
-  esac
-fi
+#update will be added later
 
 echo "GNU Bash, version $BASH-VERSION"
 . /etc/os-release
