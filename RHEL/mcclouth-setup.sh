@@ -265,6 +265,7 @@ while true; do
 					}
 					;;
 			esac
+			;;
 		*)
 			echo ""
 			echo "!!INVALID INPUT!!"
