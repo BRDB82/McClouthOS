@@ -253,6 +253,7 @@ while true; do
 				echo "'mcclouth-setup updated..."
 				exec "mcclouth-setup" "$0"
 			fi
+			;;
 		*)
 			echo "'
 			echo "!!INVALID INPUT!!"
