@@ -621,6 +621,22 @@ dn
 	  done
 	fi
 
+	# Convert to lowercase and check the value
+	if [ "${INSTALL_TYPE,,}" = "server" ]; then
+		wget https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup.sh
+		chmod +x mcclouth-setup.sh
+		mv mcclouth-setup.sh /mnt/usr/bin/mcclouth-setup
+
+		echo "#!/bin/bash" > "$newroot/etc/profile.d/mcclouth_setup_script.sh"
+		echo "# Check if the script exists and run it at login" >> "$newroot/etc/profile.d/mcclouth_setup_script.sh"
+		echo "if [ -x \"/usr/bin/mcclouth-setup\" ]; then" >> "$newroot/etc/profile.d/mcclouth_setup_script.sh"
+		echo "    /usr/bin/mcclouth-setup" >> "$newroot/etc/profile.d/mcclouth_setup_script.sh"
+		echo "fi" >> "$newroot/etc/profile.d/mcclouth_setup_script.sh"
+		
+		# Ensure the new script is executable
+		chmod +x /mnt/etc/profile.d/mcclouth_setup_script.sh
+	fi
+
 	#install grub
 	grub2-install \
   --target=x86_64-efi \
