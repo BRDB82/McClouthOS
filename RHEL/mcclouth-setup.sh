@@ -262,7 +262,6 @@ while true; do
 			case $sys_update in
 				y|Y)
 					dnf update
-					}
 					;;
 			esac
 			;;
