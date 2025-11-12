@@ -55,7 +55,8 @@ base_setup() {
 }
 
 check_config() {
-
+	#later we need to adjust this for either phsysical or virtual hardware
+	
 	if [ ! -f "$CONFIG_FILE" ]; then
 		sudo mkdir -p "$(dirname "$CONFIG_FILE")"
 		cat <<EOF | sudo tee "$CONFIG_FILE" > /dev/null
@@ -93,7 +94,7 @@ display_logo() {
 	echo "$NAME $VERSION"
 }
 
-file_storage_setup() {
+warehouse_setup() {
 #Disk Information
 		root_device=$(df / | tail -1 | awk '{print $1}') #get root device
 		root_disk=$(lsblk -no pkname "$root_device") #identify root disk
@@ -171,6 +172,12 @@ file_storage_setup() {
 hypervisor_install() {
 	dnf install -y qemu-kvm libvirt virt-install bridge-utils cockpit-machines
 	systemctl enable --now libvirtd
+}
+
+hypervisor_menu() {
+	#normally when we are on virtual hw this option should't be available
+
+	echo ""
 }
 
 main_menu() {
