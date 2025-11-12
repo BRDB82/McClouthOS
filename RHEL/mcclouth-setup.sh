@@ -75,8 +75,6 @@ display_logo() {
 	clear
 	logo
 	
-	#update will be added later
-	
 	echo "GNU Bash, version $BASH_VERSION"
 	. /etc/os-release
 	echo "$NAME $VERSION"
@@ -163,7 +161,7 @@ hypervisor_install() {
 }
 
 main_menu() {
-	if [ $sms_hardware -eq "physcial" ]; then
+	if [ "$sms_hardware" -eq "physcial" ]; then
 		echo "STATUS :: physical hw detected"
 	fi
 	echo ""
