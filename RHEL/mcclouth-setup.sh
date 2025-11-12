@@ -161,7 +161,7 @@ hypervisor_install() {
 }
 
 main_menu() {
-	if [ "$sms_hardware" -eq "physcial" ]; then
+	if [[ "$sms_hardware" -eq "physcial" ]]; then
 		echo "STATUS :: physical hw detected"
 	fi
 	echo ""
