@@ -3,6 +3,7 @@
 # ---------
 # VARIABLES
 # ---------
+sms_hardware=""
 sms_hdd_list=()
 sms_ssd_list=()
 readonly sms_version="0.01-a"
@@ -162,6 +163,9 @@ hypervisor_install() {
 }
 
 main_menu() {
+	if [ $sms_hardware -eq "physcial" ]; then
+		echo "STATUS :: physical hw detected
+	fi
 	echo ""
 	echo "================================================================================"
 	echo " Server Setup"
@@ -182,9 +186,9 @@ hw_detect() {
 if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" = "none" ]; } \
    && { ! command -v dmidecode &> /dev/null || ! [[ "$(dmidecode -s system-product-name 2>/dev/null)" =~ (VMware|KVM|HVM|Bochs|QEMU) ]]; } \
    && ! grep -qi hypervisor /proc/cpuinfo; then
-	echo "Real hardware"
+	sms_hardware = "physical"
 else
-  echo "Virtual hardware"
+	sms_hardware = "virtual"
 fi
 }
 
