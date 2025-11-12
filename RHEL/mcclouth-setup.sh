@@ -196,6 +196,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 hw_detect
+sleep 5
 
 while true; do
 	display_logo
