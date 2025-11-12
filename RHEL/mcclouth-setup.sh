@@ -29,23 +29,14 @@ Powered by RHEL
 
 usage() {
   cat <<EOF
-Usage: ${0##*/} [system_type]
-
-Arguments:
-  server        Install server components
-  workstation   Install workstation environment
+Usage: ${0##*/} [option]
 
 Options:
   --help        Print this help message
   --update      Update to the latest version
 
 Description:
-  This script installs McClouth OS components into the current system context.
-  If no system_type is provided, the script attempts to read from the config file.
-
-Examples:
-  ${0##*/} server
-  ${0##*/} workstation
+  This script configures McClouth OS Server.
 
 EOF
   exit 1
@@ -187,30 +178,11 @@ main_menu() {
 	echo "0. Reboot"
 }
 
-server_install() {
+hw_detect() {
 if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" = "none" ]; } \
    && { ! command -v dmidecode &> /dev/null || ! [[ "$(dmidecode -s system-product-name 2>/dev/null)" =~ (VMware|KVM|HVM|Bochs|QEMU) ]]; } \
    && ! grep -qi hypervisor /proc/cpuinfo; then
 	echo "Real hardware"
-
-	#CPU information
-	if [ "$(nproc)" -lt 4 ]; then #should be at least 12 but for testiing only 4
-		echo "System doesn't have enough cores."
-		exit 1
-	fi
-
-	#Memory Information
-	total_mem=$(free -g | awk '/^Mem:/ { print $2 }')
-	#total_mem=$((total_mem / 1024 / 1024))
-	
-	if [ "$total_mem" -lt 16 ]; then #should be at least 16 for testing only 8
-		echo "System needs at least 32 GB of RAM."
-		exit 1
-	fi
-	
-	cockpit_setup
-
-	#file_storage_setup
 else
   echo "Virtual hardware"
 fi
@@ -222,6 +194,8 @@ if [ "$EUID" -ne 0 ]; then
 	echo "Failed to run as root."
 	exit 1
 fi
+
+hw_detect
 
 while true; do
 	display_logo
