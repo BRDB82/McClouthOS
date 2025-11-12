@@ -55,6 +55,11 @@ base_setup() {
 }
 
 check_config() {
+
+	if [ ! -f "$CONFIG_FILE" ]; then
+   		echo "STATUS :: Configuration file not found."
+	fi
+
 }
 
 cockpit_setup() {
