@@ -186,9 +186,9 @@ hw_detect() {
 if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" = "none" ]; } \
    && { ! command -v dmidecode &> /dev/null || ! [[ "$(dmidecode -s system-product-name 2>/dev/null)" =~ (VMware|KVM|HVM|Bochs|QEMU) ]]; } \
    && ! grep -qi hypervisor /proc/cpuinfo; then
-	sms_hardware = "physical"
+	sms_hardware="physical"
 else
-	sms_hardware = "virtual"
+	sms_hardware="virtual"
 fi
 }
 
