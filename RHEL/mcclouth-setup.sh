@@ -57,7 +57,12 @@ base_setup() {
 check_config() {
 
 	if [ ! -f "$CONFIG_FILE" ]; then
-   		echo "STATUS :: Configuration file not found."
+		sudo mkdir -p "$(dirname "$CONFIG_FILE")"
+		cat <<EOF | sudo tee "$CONFIG_FILE" > /dev/null
+[SERVER]
+FileStorage_Service = disabled
+Hypervisor_Service = disabled
+EOF
 	fi
 
 }
