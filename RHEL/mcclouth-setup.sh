@@ -173,9 +173,10 @@ main_menu() {
 	echo ""
 	echo "1. Update 'mcclouth-setup'"
 	echo "2. Update system"
+	echo "3. Terminal"
 	echo ""
-	echo "3. Storage Service"
-	echo "4. Hypervisor"
+	echo "4. Storage Service"
+	echo "5. Hypervisor"
 	echo ""
 	echo "0. Reboot"
 }
@@ -207,7 +208,7 @@ while true; do
 	
 	case $menu_option in
 		0)
-			read -r -p "Are you sure you want to reboot[y/N]? " sys_reboot
+			read -r -p "Are you sure you want to reboot [y/N]? " sys_reboot
 			case $sys_reboot in
 				y|Y)
 					reboot
@@ -215,7 +216,7 @@ while true; do
 			esac
 			;;
 		1) 
-			read -r -p "Are you sure you want to update 'mcclouth-setup'[y/N]? " app_update
+			read -r -p "Are you sure you want to update 'mcclouth-setup' [y/N]? " app_update
 			update_failed=0
 			case $app_update in
 				y|Y)
@@ -237,11 +238,21 @@ while true; do
 			fi
 			;;
 		2)
-			read -r -p "Are you sure you want to update this system[y/N]? " sys_update
+			read -r -p "Are you sure you want to update this system [y/N]? " sys_update
 			case $sys_update in
 				y|Y)
 					echo ""
 					dnf update
+					echo ""
+					;;
+			esac
+			;;
+		3)
+			read -r -p "Are you sure you want to open an interactive terminal [y/N]? " sys_term
+			case $sys_term in
+				y|Y)
+					echo ""
+					bash
 					echo ""
 					;;
 			esac
