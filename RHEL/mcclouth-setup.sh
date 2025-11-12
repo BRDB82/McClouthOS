@@ -208,8 +208,7 @@ if [ "$EUID" -ne 0 ]; then
 	exit 1
 fi
 
-#check_config
-
+check_config
 hw_detect
 sleep 5
 
