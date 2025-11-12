@@ -54,6 +54,9 @@ base_setup() {
 	fi
 }
 
+check_config() {
+}
+
 cockpit_setup() {
 	if ! rpm -q cockpit &>/dev/null; then
 		dnf install cockpit cockpit-networkmanager cockpit-storaged -y
@@ -163,6 +166,8 @@ hypervisor_install() {
 main_menu() {
 	if [[ "$sms_hardware" == "physcial" ]]; then
 		echo "STATUS :: physical hw detected"
+	else
+		echo "STATUS :: virtual hw detected"
 	fi
 	echo ""
 	echo "================================================================================"
@@ -197,6 +202,8 @@ if [ "$EUID" -ne 0 ]; then
 	echo "Failed to run as root."
 	exit 1
 fi
+
+#check_config
 
 hw_detect
 sleep 5
