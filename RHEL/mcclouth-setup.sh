@@ -233,7 +233,7 @@ while true; do
 			if [ "$update_failed" -eq 0 ]; then
 				chmod +x "./mcclouth-setup.new"
 				mv -f "./mcclouth-setup.new" "/usr/bin/mcclouth-setup"
-				echo "'mcclouth-setup updated..."
+				echo "mcclouth-setup updated..."
 				read -r -p "Press any key to continue..." continue
 				exec "mcclouth-setup" "$0"
 			fi
