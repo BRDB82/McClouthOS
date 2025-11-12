@@ -221,6 +221,7 @@ while true; do
 						echo "update filed"
 						rm "./mcclouth-setup.new"
 						update_failed=1
+						read -r -p "Press any key to continue..." continue
 					}
 					;;
 			esac
@@ -229,6 +230,7 @@ while true; do
 				chmod +x "./mcclouth-setup.new"
 				mv -f "./mcclouth-setup.new" "/usr/bin/mcclouth-setup"
 				echo "'mcclouth-setup updated..."
+				read -r -p "Press any key to continue..." continue
 				exec "mcclouth-setup" "$0"
 			fi
 			;;
