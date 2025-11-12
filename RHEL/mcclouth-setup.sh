@@ -6,7 +6,7 @@
 sms_hardware=""
 sms_hdd_list=()
 sms_ssd_list=()
-readonly sms_version="0.01-a"
+readonly sms_version="0.01-a001"
 readonly sms_warehouse="/srv/warehouse"
 readonly sms_warehouse_conf="$sms_warehouse/njord.conf"
 readonly CONFIG_FILE="/etc/mcclouthos/server.conf"
@@ -168,7 +168,7 @@ main_menu() {
 	fi
 	echo ""
 	echo "================================================================================"
-	echo " Server Setup"
+	echo " Server Setup - v$sms_version"
 	echo "================================================================================"
 	echo ""
 	echo "Hostname: $HOSTNAME"
