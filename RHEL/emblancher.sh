@@ -798,6 +798,9 @@ EOF
 
 	# If we are running as a server, make sure to run the setup script after login
 	if [ "${INSTALL_TYPE,,}" = "server" ]; then
+		#do hardware check; physical or virtual and install the correct script accordingly
+		#physical: mcclouth-setup-physical.sh
+		#virtual: mcclouth-setup-virtual.sh
 		curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup.sh" -o "./mcclouth-setup.new"
 		chmod +x "./mcclouth-setup.new"
 		mv -f "./mcclouth-setup.new" "/usr/bin/mcclouth-setup"
