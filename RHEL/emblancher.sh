@@ -699,7 +699,6 @@ dn
 		subscription-manager repos --enable="$REP_REPO1"
 		subscription-manager repos --enable="$REP_REPO2"
 		subscription-manager repos --enable="$REP_REPO3"
-		fi
 		
 		if [[ ! -f /etc/dnf/vars/releasever ]]; then
 		    echo "$REP_REPO_VERSION" > /etc/dnf/vars/releasever
