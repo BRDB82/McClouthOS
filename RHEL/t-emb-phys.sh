@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#base install + physical hardware script put in place
+
 set_fixed_ip="N"
 local_user="loa001mi"
 
@@ -797,16 +799,7 @@ EOF
 
 	# If we are running as a server, make sure to run the setup script after login
 	if [ "${INSTALL_TYPE,,}" = "server" ]; then
-		#do hardware check; physical or virtual and install the correct script accordingly
-		if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" = "none" ]; } \
-   && { ! command -v dmidecode &> /dev/null || ! [[ "$(dmidecode -s system-product-name 2>/dev/null)" =~ (VMware|KVM|HVM|Bochs|QEMU) ]]; } \
-   && ! grep -qi hypervisor /proc/cpuinfo; then
-			curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup-physical.sh" -o "./mcclouth-setup.new"
-		else
-			curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup-virtual.sh" -o "./mcclouth-setup.new"
-		fi
-		
-	
+		curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup-physical.sh" -o "./mcclouth-setup.new"	
 		chmod +x "./mcclouth-setup.new"
 		mv -f "./mcclouth-setup.new" "/usr/bin/mcclouth-setup"
 
