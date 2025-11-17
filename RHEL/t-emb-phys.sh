@@ -716,10 +716,10 @@ dn
 		systemctl enable NetworkManager
 		systemctl start NetworkManager
 	
-		dnf install -y curl git wget chrony
+		dnf install -y curl git wget
 		dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
 		dnf install -y rsync grub2
-		dnf install -y ntp
+		dnf install -y chrony
 
 		chronyd -q
 		systemctl enable chronyd.service
@@ -736,6 +736,11 @@ dn
 			#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
 			#nmcli connection modify "$INTERFACE_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
 			#nmcli connection up "$INTERFACE_NAME"
+
+			#nmcli device disconnect "$INTERFACE_NAME" 
+			#nmcli connection modify "$INTERFACE_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
+			#nmcli connection up "$INTERFACE_NAME"
+			
 			#ip addr add "$IP_ADDRESS/$SUBNET_MASK" dev "$INTERFACE_NAME"
 			#ip route add default via "$GATEWAY"
 			#ip link set "$INTERFACE_NAME" up
