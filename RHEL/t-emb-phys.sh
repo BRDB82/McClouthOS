@@ -793,6 +793,8 @@ NM_CONFIG
 		echo "$USERNAME:$PASSWORD" | chpasswd
 		echo "$USERNAME password set"
 
+		touch /.autorelabel
+
 		# Remove no password sudo rights
 		visudo -c >/dev/null && sed -i 's/^%wheel ALL=(ALL) NOPASSWD: ALL/# &/' /etc/sudoers
 		visudo -c >/dev/null && sed -i 's/^%wheel ALL=(ALL:ALL) NOPASSWD: ALL/# &/' /etc/sudoers
