@@ -370,7 +370,7 @@ if [[ "$SET_FIXED_IP" == "yes" ]]; then
 			do
 			    read -r -p "- Please enter the IP address for the first NIC (format 0.0.0.0): " ip_address
 			    # First, check if the format matches the regular expression
-			    if [[ $ip_address =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+			   if [[ $ip_address =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
 			        # If the format is correct, split the IP address into octets
 			        OIFS=$IFS
 			        IFS='.'
