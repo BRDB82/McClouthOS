@@ -365,27 +365,34 @@ echo ""
 		fi
 		export SET_FIXED_IP=$set_fixed_ip
 	
-		if [[ "$SET_FIXED_IP" == "yes" ]]; then
+if [[ "$SET_FIXED_IP" == "yes" ]]; then
 			while true
 			do
-			    read -r -p "- Please enter the IP address for the first NIC (format 0.0.0.0): " ip_address
-			    # First, check if the format matches the regular expression
-			    if [[ $ip_address =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-			        # If the format is correct, split the IP address into octets
-			        OIFS=$IFS
-			        IFS='.'
-			        read -ra octets <<< "$ip_address"
-			        IFS=$OIFS
+			    read -r -p "- Please enter the IP address for the first NIC (format 0.0.0.0): " ip_address
+			    # First, check if the format matches the regular expression
+			    if [[ $ip_address =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+			        # If the format is correct, split the IP address into octets
+			        OIFS=$IFS
+			        IFS='.'
+			        read -ra octets <<< "$ip_address"
+			        IFS=$OIFS
 			
-			        # Check if all four octets are numbers between 0 and 255
-			        if (( octets[0] <= 255 && octets[1] <= 255 && octets[2] <= 255 && octets[3] <= 255 )); then
-			            break # Exit the loop if the IP address is valid
-			        else
-			            echo "!! Error: Each number in the IP address must be between 0 and 255."
-			        fi
-			    else
-			        echo "!! Error: The IP address format is invalid. Please use the format 0.0.0.0."
-			    fi
+			        # Check if all four octets are numbers between 0 and 255
+			        if (( octets[0] <= 255 && octets[1] <= 255 && octets[2] <= 255 && octets[3] <= 255 )); then
+			            
+                           if arping -c 1 -w 1 -q "$ip_address" 2>/dev/null; then
+                                # Arping returns 0 if a device responded (IP is in use)
+                                echo "!! Error: IP address $ip_address is already in use by another device on the network."
+                            else
+                                # Arping returns 1 or higher if no response was received (IP is likely free)
+                                break # Exit the loop, IP is valid and free
+                            fi
+			        else
+			            echo "!! Error: Each number in the IP address must be between 0 and 255."
+			        fi
+			    else
+			        echo "!! Error: The IP address format is invalid. Please use the format 0.0.0.0."
+			    fi
 			done
 			export IP_ADDRESS=$ip_address
 			export SUBNET_MASK="24"
