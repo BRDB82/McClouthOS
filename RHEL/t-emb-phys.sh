@@ -2,8 +2,9 @@
 
 #base install + physical hardware script put in place
 
-set_fixed_ip="N"
 local_user="loa001mi"
+logfile="/root/emblancher.log"
+set_fixed_ip="N"
 
 get_repo_id() {
     local keyword="$1"
@@ -168,6 +169,9 @@ if [ "$1" == "--version" ]; then
     echo "emblancher 1.0.0"
     exit 0
 fi
+
+exec 3> >(tee -a "$logfile")
+exec 1>&3 2>&3
 
 #MAIN
 printf '\033%G'
@@ -783,7 +787,7 @@ NM_CONFIG
 		timedatectl --no-ask-password set-ntp 1
 		localectl --no-ask-password set-locale LANG="en_US.UTF-8" LC_TIME="en_US.UTF-8"
 		ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
-	
+
 		localectl --no-ask-password set-keymap "${KEYMAP}"
 		echo "KEYMAP=${KEYMAP}" > /etc/vconsole.conf
 		echo "XKBLAYOUT=${KEYMAP}" >> /etc/vconsole.conf
