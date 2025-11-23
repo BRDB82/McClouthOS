@@ -701,6 +701,8 @@ dn
 		subscription-manager repos --enable="$REP_REPO1"
 		subscription-manager repos --enable="$REP_REPO2"
 		subscription-manager repos --enable="$REP_REPO3"
+
+		mkdir -p /etc/dnf/vars
 		
 		if [[ ! -f /etc/dnf/vars/releasever ]]; then
 		    echo "$REP_REPO_VERSION" > /etc/dnf/vars/releasever
@@ -720,6 +722,7 @@ dn
 		dnf install -y https://dl.fedoraproject.org/pub/epel/8/Everything/x86_64/Packages/t/terminus-fonts-console-4.48-1.el8.noarch.rpm --nogpgcheck
 		dnf install -y rsync grub2
 		dnf install -y chrony
+		dnf install -y glibc-langpack-en
 
 		chronyd -q
 		systemctl enable chronyd.service
@@ -745,15 +748,16 @@ dn
 			#ip route add default via "$GATEWAY"
 			#ip link set "$INTERFACE_NAME" up
 			#hostnamectl set-hostname "$NAME_OF_MACHINE"
+			mkdir -p /etc/NetworkManager/system-connections
 			CONNECTION_FILE="/etc/NetworkManager/system-connections/$INTERFACE_NAME.nmconnection"
-			cat << NM_CONFIG > "$CONNECTION_FILE"
+cat << NM_CONFIG > "$CONNECTION_FILE"
 [connection]
 id=$INTERFACE_NAME
 uuid=$(uuidgen)
 type=ethernet
 autoconnect-priority=100
 interface-name=$INTERFACE_NAME
-timestamp=$(date +%s)
+timestamp=$(date +%s)C
 
 [ipv4]
 address1=$IP_ADDRESS/$SUBNET_MASK,$GATEWAY
