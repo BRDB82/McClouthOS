@@ -763,30 +763,38 @@ dn
 			#ip link set "$INTERFACE_NAME" up
 			#hostnamectl set-hostname "$NAME_OF_MACHINE"
 			mkdir -p /etc/NetworkManager/system-connections
+			
 			CONNECTION_FILE="/etc/NetworkManager/system-connections/$INTERFACE_NAME.nmconnection"
-cat << NM_CONFIG > "$CONNECTION_FILE"
-[connection]
-id=$INTERFACE_NAME
-uuid=$(uuidgen)
-type=ethernet
-autoconnect-priority=100
-interface-name=$INTERFACE_NAME
-timestamp=$(date +%s)C
-
-[ipv4]
-address1=$IP_ADDRESS/$SUBNET_MASK,$GATEWAY
-dns=$DNS_SERVERS;
-method=manual
-
-[ipv6]
-addr-gen-mode=stable-privacy
-method=auto
-
-[proxy]
-NM_CONFIG
-
-	    	chmod 600 "$CONNECTION_FILE"
-	    	chown root:root "$CONNECTION_FILE"
+			
+			# Generate necessary dynamic values
+			CONNECTION_UUID=$(uuidgen)
+			CURRENT_TIMESTAMP=$(date +%s)
+			
+			# Create the file line by line using echo
+			# Use > to create the file and >> to append subsequent lines
+			echo "[connection]" > "$CONNECTION_FILE"
+			echo "id=$INTERFACE_NAME" >> "$CONNECTION_FILE"
+			echo "uuid=$CONNECTION_UUID" >> "$CONNECTION_FILE"
+			echo "type=ethernet" >> "$CONNECTION_FILE"
+			echo "autoconnect-priority=100" >> "$CONNECTION_FILE"
+			echo "interface-name=$INTERFACE_NAME" >> "$CONNECTION_FILE"
+			echo "timestamp=$CURRENT_TIMESTAMP" >> "$CONNECTION_FILE"
+			echo "" >> "$CONNECTION_FILE"
+			echo "[ipv4]" >> "$CONNECTION_FILE"
+			# Format for address1 is IP/CIDR,Gateway
+			echo "address1=$IP_ADDRESS/$SUBNET_MASK,$GATEWAY" >> "$CONNECTION_FILE"
+			echo "dns=$DNS_SERVERS" >> "$CONNECTION_FILE"
+			echo "method=manual" >> "$CONNECTION_FILE"
+			echo "" >> "$CONNECTION_FILE"
+			echo "[ipv6]" >> "$CONNECTION_FILE"
+			echo "addr-gen-mode=stable-privacy" >> "$CONNECTION_FILE"
+			echo "method=auto" >> "$CONNECTION_FILE"
+			echo "" >> "$CONNECTION_FILE"
+			echo "[proxy]" >> "$CONNECTION_FILE"
+			
+			# Set correct permissions
+			chmod 600 "$CONNECTION_FILE"
+			chown root:root "$CONNECTION_FILE"
 	    
 	    	hostnamectl set-hostname "$NAME_OF_MACHINE"
 		fi
