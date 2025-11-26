@@ -402,6 +402,8 @@ echo ""
 		        fi
 		    done
 		fi
+		export IP_ADDRESS=$ip_address
+		export SUBNET_MASK=25
 
 		while true
 		do
