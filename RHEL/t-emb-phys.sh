@@ -772,28 +772,27 @@ dn
 			CONNECTION_UUID=$(uuidgen)
 			CURRENT_TIMESTAMP=$(date +%s)
 			
-			# Create the file line by line using echo
-			# Use > to create the file and >> to append subsequent lines
-			echo "[connection]" > "$CONNECTION_FILE"
-			echo "id=$INTERFACE_NAME" >> "$CONNECTION_FILE"
-			echo "uuid=$CONNECTION_UUID" >> "$CONNECTION_FILE"
-			echo "type=ethernet" >> "$CONNECTION_FILE"
-			echo "autoconnect-priority=100" >> "$CONNECTION_FILE"
-			echo "interface-name=$INTERFACE_NAME" >> "$CONNECTION_FILE"
-			echo "timestamp=$CURRENT_TIMESTAMP" >> "$CONNECTION_FILE"
-			echo "" >> "$CONNECTION_FILE"
-			echo "[ipv4]" >> "$CONNECTION_FILE"
-			# Format for address1 is IP/CIDR,Gateway
-			echo "address1=$IP_ADDRESS/$SUBNET_MASK,$GATEWAY" >> "$CONNECTION_FILE"
-			echo "dns=$DNS_SERVERS" >> "$CONNECTION_FILE"
-			echo "method=manual" >> "$CONNECTION_FILE"
-			echo "" >> "$CONNECTION_FILE"
-			echo "[ipv6]" >> "$CONNECTION_FILE"
-			echo "addr-gen-mode=stable-privacy" >> "$CONNECTION_FILE"
-			echo "method=auto" >> "$CONNECTION_FILE"
-			echo "" >> "$CONNECTION_FILE"
-			echo "[proxy]" >> "$CONNECTION_FILE"
-			
+echo -e "\
+[connection]\n\
+id=$INTERFACE_NAME\n\
+uuid=$(uuidgen)\n\
+type=ethernet\n\
+autoconnect-priority=100\n\
+interface-name=$INTERFACE_NAME\n\
+timestamp=$(date +%s)\n\
+\n\
+[ipv4]\n\
+address1=$IP_ADDRESS/$SUBNET_MASK,$GATEWAY\n\
+dns=$DNS_SERVERS\n\
+method=manual\n\
+\n\
+[ipv6]\n\
+addr-gen-mode=stable-privacy\n\
+method=auto\n\
+\n\
+[proxy]\n\
+" | sed -e 's/\\//g' > "$CONNECTION_FILE" # Final redirection must happen
+
 			# Set correct permissions
 			chmod 600 "$CONNECTION_FILE"
 			chown root:root "$CONNECTION_FILE"
