@@ -822,6 +822,8 @@ method=auto\n\
 
 		touch /.autorelabel
 
+		grubby --update-kernel=ALL --args="quiet"
+
 		# Remove no password sudo rights
 		visudo -c >/dev/null && sed -i 's/^%wheel ALL=(ALL) NOPASSWD: ALL/# &/' /etc/sudoers
 		visudo -c >/dev/null && sed -i 's/^%wheel ALL=(ALL:ALL) NOPASSWD: ALL/# &/' /etc/sudoers
