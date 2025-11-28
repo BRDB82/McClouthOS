@@ -403,7 +403,8 @@ echo ""
 		    done
 		fi
 		export IP_ADDRESS=$ip_address
-		export SUBNET_MASK=25
+		export SUBNET_MASK=24
+		export DNS_SERVERS="1.1.1.1"
 
 		while true
 		do
@@ -747,58 +748,7 @@ dn
 		systemctl enable NetworkManager.service
 		echo "  NetworkManager enabled"
 	
-		# Check if a interface was found
-		if [ -z "$INTERFACE_NAME" ]; then
-		    echo "!! Failed to find an active ethernet connection after multiple attempts. Aborting network setup. !!"
-		    exit 1
-		else
-			#gonna assume we'll have an active NIC, there is in my case, because else, how could we've gotten this far anyway, right? ;-)
-			#nmcli connection modify "$INTERFACE_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
-			#nmcli connection up "$INTERFACE_NAME"
-
-			#nmcli device disconnect "$INTERFACE_NAME" 
-			#nmcli connection modify "$INTERFACE_NAME" ipv4.method manual ipv4.addresses "$IP_ADDRESS/$SUBNET_MASK" ipv4.gateway "$GATEWAY" ipv4.dns "$DNS_SERVERS"
-			#nmcli connection up "$INTERFACE_NAME"
-			
-			#ip addr add "$IP_ADDRESS/$SUBNET_MASK" dev "$INTERFACE_NAME"
-			#ip route add default via "$GATEWAY"
-			#ip link set "$INTERFACE_NAME" up
-			#hostnamectl set-hostname "$NAME_OF_MACHINE"
-			mkdir -p /etc/NetworkManager/system-connections
-			
-			CONNECTION_FILE="/etc/NetworkManager/system-connections/$INTERFACE_NAME.nmconnection"
-			
-			# Generate necessary dynamic values
-			CONNECTION_UUID=$(uuidgen)
-			CURRENT_TIMESTAMP=$(date +%s)
-			
-echo -e "\
-[connection]\n\
-id=$INTERFACE_NAME\n\
-uuid=$(uuidgen)\n\
-type=ethernet\n\
-autoconnect-priority=100\n\
-interface-name=$INTERFACE_NAME\n\
-timestamp=$(date +%s)\n\
-\n\
-[ipv4]\n\
-address1=$IP_ADDRESS/$SUBNET_MASK,$GATEWAY\n\
-dns=$DNS_SERVERS\n\
-method=manual\n\
-\n\
-[ipv6]\n\
-addr-gen-mode=stable-privacy\n\
-method=auto\n\
-\n\
-[proxy]\n\
-" | sed -e 's/\\//g' > "$CONNECTION_FILE" # Final redirection must happen
-
-			# Set correct permissions
-			chmod 600 "$CONNECTION_FILE"
-			chown root:root "$CONNECTION_FILE"
-	    
-	    	hostnamectl set-hostname "$NAME_OF_MACHINE"
-		fi
+		hostnamectl set-hostname "$NAME_OF_MACHINE"
 		
 		#set language and local
 		locale -a | grep -q en_US.UTF-8 || localedef -i en_US -f UTF-8 en_US.UTF-8
@@ -833,6 +783,47 @@ method=auto\n\
 
 EOF
 
+	# Since setting the network via the chroot doesn't work, we need to do it seperatly and hope it works after boot
+	if [[ "$SET_FIXED_IP" == "yes" ]]; then
+		# Assuming the necessary variables are defined (e.g., $INTERFACE_NAME="enp9s0")
+		CHROOT_ROOT="/mnt" # Assuming /mnt is where the new OS root is mounted
+		
+		# Define the file path within the chroot's filesystem
+		CONNECTION_FILE="$CHROOT_ROOT/etc/NetworkManager/system-connections/$INTERFACE_NAME.nmconnection"
+		
+		# Generate UUID and Timestamp
+		CONNECTION_UUID=$(uuidgen)
+		CURRENT_TIMESTAMP=$(date +%s)
+		
+		mkdir -p "$CHROOT_ROOT/etc/NetworkManager/system-connections"
+		
+		# Create the file with variables substituted
+		cat << EOF > "$CONNECTION_FILE"
+		[connection]
+		id=$INTERFACE_NAME
+		uuid=$CONNECTION_UUID
+		type=ethernet
+		autoconnect-priority=100
+		interface-name=$INTERFACE_NAME
+		timestamp=$CURRENT_TIMESTAMP
+		
+		[ipv4]
+		address1=$IP_ADDRESS/$SUBNET_MASK,$GATEWAY
+		dns=$DNS_SERVERS
+		method=manual
+		
+		[ipv6]
+		addr-gen-mode=stable-privacy
+		method=auto
+		
+		[proxy]
+		EOF
+		
+		# Set Mandatory Permissions (Required by NetworkManager)
+		chmod 600 "$CONNECTION_FILE"
+		chown root:root "$CONNECTION_FILE"
+	fi
+	
 	# If we are running as a server, make sure to run the setup script after login
 	if [ "${INSTALL_TYPE,,}" = "server" ]; then
 		curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup-physical.sh" -o "./mcclouth-setup.new"	
