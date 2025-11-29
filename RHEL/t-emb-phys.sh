@@ -4,6 +4,7 @@
 #---
 #server:
 #	* fixed ip - ok (outside chroot)
+#		- can't ping
 #	* hostname - ok
 #	* wake-up-by-lan -
 	* install script to start at boot
