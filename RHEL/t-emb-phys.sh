@@ -4,8 +4,11 @@
 #---
 #server:
 #	* fixed ip - ok (outside chroot)
-#	* hostname -
+#	* hostname - ok
 #	* wake-up-by-lan -
+	* install script to start at boot
+#---
+#workstation:
 
 
 local_user="loa001mi"
