@@ -802,26 +802,26 @@ EOF
 		mkdir -p "$CHROOT_ROOT/etc/NetworkManager/system-connections"
 		
 		# Create the file with variables substituted
-		cat << EOF > "$CONNECTION_FILE"
-		[connection]
-		id=$INTERFACE_NAME
-		uuid=$CONNECTION_UUID
-		type=ethernet
-		autoconnect-priority=100
-		interface-name=$INTERFACE_NAME
-		timestamp=$CURRENT_TIMESTAMP
-		
-		[ipv4]
-		address1=$IP_ADDRESS/$SUBNET_MASK,$GATEWAY
-		dns=$DNS_SERVERS
-		method=manual
-		
-		[ipv6]
-		addr-gen-mode=stable-privacy
-		method=auto
-		
-		[proxy]
-		EOF
+cat << EOF > "$CONNECTION_FILE"
+[connection]
+id=$INTERFACE_NAME
+uuid=$CONNECTION_UUID
+type=ethernet
+autoconnect-priority=100
+interface-name=$INTERFACE_NAME
+timestamp=$CURRENT_TIMESTAMP
+
+[ipv4]
+address1=$IP_ADDRESS/$SUBNET_MASK,$GATEWAY
+dns=$DNS_SERVERS
+method=manual
+
+[ipv6]
+addr-gen-mode=stable-privacy
+method=auto
+
+[proxy]
+EOF
 		
 		# Set Mandatory Permissions (Required by NetworkManager)
 		chmod 600 "$CONNECTION_FILE"
