@@ -753,8 +753,6 @@ dn
 		systemctl disable network.service 2>/dev/null || true
 		systemctl enable NetworkManager.service
 		echo "  NetworkManager enabled"
-	
-		hostnamectl set-hostname "$NAME_OF_MACHINE"
 		
 		#set language and local
 		locale -a | grep -q en_US.UTF-8 || localedef -i en_US -f UTF-8 en_US.UTF-8
@@ -828,6 +826,17 @@ EOF
 		# Set Mandatory Permissions (Required by NetworkManager)
 		chmod 600 "$CONNECTION_FILE"
 		chown root:root "$CONNECTION_FILE"
+	fi
+
+	HOSTNAME_FILE="/mnt/etc/hostname"
+	echo "$NAME_OF_MACHINE" > "$HOSTNAME_FILE"
+
+	HOSTS_FILE="/mnt/etc/hosts"
+	
+	sed -i "/127.0.1.1/s/.*/127.0.1.1\t$NAME_OF_MACHINE/" "$HOSTS_FILE"
+	
+	if ! grep -q "$NAME_OF_MACHINE" "$HOSTS_FILE"; then
+	    echo "127.0.1.1 $NAME_OF_MACHINE" >> "$HOSTS_FILE"
 	fi
 	
 	# If we are running as a server, make sure to run the setup script after login
