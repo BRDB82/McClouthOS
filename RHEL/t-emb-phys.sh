@@ -1,6 +1,12 @@
 #!/bin/bash
 
-#base install + physical hardware script put in place
+#base install
+#---
+#server:
+#	* fixed ip - ok (outside chroot)
+#	* hostname -
+#	* wake-up-by-lan -
+
 
 local_user="loa001mi"
 logfile="/root/emblancher.log"
