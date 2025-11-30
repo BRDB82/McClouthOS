@@ -4,10 +4,21 @@
 #---
 #server:
 #	* fixed ip - ok (outside chroot)
-#		- can't ping
+#		- no internet - fixed (adjusted script) - 20251130
 #	* hostname - ok
 #	* wake-up-by-lan -
-	* install script to start at boot
+#	* install script to start at boot -
+#		- build script
+#			- physical hardware:
+#				+ WAREHOUSE
+#				+ HYPERVISOR
+#			- virtual hardware:
+#				+ ADDC 
+#				+ Minecraft Server
+#				+ SQL DataBase
+#				+ Web Server
+#			- backup
+#			- update (script + OS)
 #---
 #workstation:
 
@@ -414,7 +425,9 @@ echo ""
 		fi
 		export IP_ADDRESS=$ip_address
 		export SUBNET_MASK=24
-		export DNS_SERVERS="1.1.1.1"
+		GATEWAY_PREFIX=$(echo "$IP_ADDRESS" | cut -d '.' -f 1-3)
+		export GATEWAY="$GATEWAY_PREFIX.1"
+		export DNS_SERVERS="$GATEWAY;1.1.1.1;8.8.8.8"
 
 		while true
 		do
