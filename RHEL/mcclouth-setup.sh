@@ -204,13 +204,13 @@ main_menu() {
 }
 
 hw_detect() {
-#if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" = "none" ]; } \
+if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" = "none" ]; } \
    && { ! command -v dmidecode &> /dev/null || ! [[ "$(dmidecode -s system-product-name 2>/dev/null)" =~ (VMware|KVM|HVM|Bochs|QEMU) ]]; } \
    && ! grep -qi hypervisor /proc/cpuinfo; then
 	sms_hardware="physical"
-#else
-#	sms_hardware="virtual"
-#fi
+else
+	sms_hardware="virtual"
+fi
 }
 
 #main
@@ -221,8 +221,11 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 check_config
-hw_detect
+#hw_detect
+sms_hardware="physical"
 sleep 5
+
+#handler
 
 while true; do
 	display_logo
