@@ -6,7 +6,7 @@
 #	* fixed ip - ok (outside chroot)
 #		- no internet - fixed (adjusted script) - 20251130
 #	* hostname - ok
-#	* wake-up-by-lan -
+#	* wake-up-by-lan (for future release) -
 #	* install script to start at boot -
 #		- build script
 #			- physical hardware:
