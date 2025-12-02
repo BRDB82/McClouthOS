@@ -1,0 +1,19 @@
+sms_exit=""
+
+handler() {
+	#phase_1
+		#initiate cmd's
+	#phase_2
+		#wait?
+	#phase_3
+		#display
+	#phase_4
+		#menu_handler
+}
+
+while : ; do
+	while [ -z "$sms_exit" ]; do
+		handler
+	done
+	break
+loop
