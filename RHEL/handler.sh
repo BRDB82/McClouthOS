@@ -2,7 +2,7 @@ sms_exit=0
 sms_hand="MIO:0000_0000x0"
 sms_hardware=""
 sms_root=0
-readyonly sms_version="0.01a"
+readonly sms_version="0.01a"
 
 app_update() {
 	read -r -p "Are you sure you want to update 'mcclouth-setup' [y/N]? " app_update
@@ -47,7 +47,7 @@ fi
 }
 
 display_box() {
-	#nothing here yet
+	echo 1
 }
 
 display_logo() {
@@ -110,7 +110,7 @@ for i in "$@"; do
 done
 
 detect_hardware
-write-host $sms_hardware
+echo $sms_hardware
 #check config
 while : ; do
 	while (( $sms_exit != 1 )); do
@@ -118,3 +118,4 @@ while : ; do
 	done
 	break
 loop
+exit 0
