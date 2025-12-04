@@ -9,7 +9,7 @@ app_update() {
 	update_failed=0
 	case $app_update in
 		y|Y)
-			curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/mcclouth-setup.sh" -o "./mcclouth-setup.new" || {
+			curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/handler.sh" -o "./mcclouth-setup.new" || {
 				echo "update filed"
 				rm "./mcclouth-setup.new"
 				update_failed=1
