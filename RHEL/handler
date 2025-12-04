@@ -1,4 +1,27 @@
 sms_exit=""
+sms_hand="MIO:0000_0000x0"
+sms_hardware=""
+readyonly sms_version="0.01a"
+
+display_box() {
+}
+
+display_logo() {
+echo -ne "
+███╗   ███╗ ██████╗ ██████╗██╗      ██████╗ ██╗   ██╗████████╗██╗  ██╗     ██████╗ ███████╗
+████╗ ████║██╔════╝██╔════╝██║     ██╔═══██╗██║   ██║╚══██╔══╝██║  ██║    ██╔═══██╗██╔════╝
+██╔████╔██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ███████║    ██║   ██║███████╗
+██║╚██╔╝██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ██╔══██║    ██║   ██║╚════██║
+██║ ╚═╝ ██║╚██████╗╚██████╗███████╗╚██████╔╝╚██████╔╝   ██║   ██║  ██║    ╚██████╔╝███████║
+╚═╝     ╚═╝ ╚═════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝     ╚═════╝ ╚══════╝
+Powered by RHEL
+   ________________  _____ 
+  / __/ __/_  __/ / / / _ \
+ _\ \/ _/  / / / /_/ / ___/
+/___/___/ /_/  \____/_/    
+                           
+"
+}
 
 handler() {
 	#phase_1
@@ -10,6 +33,41 @@ handler() {
 	#phase_4
 		#menu_handler
 }
+
+usage() {
+  cat <<EOF
+Usage: ${0##*/} [option]
+
+Options:
+  --help        Print this help message
+  --update      Update to the latest version
+
+Description:
+  This script configures McClouth OS Server.
+
+EOF
+  exit 0
+}
+
+#EUID check
+
+# Loop through all provided arguments (parameters)
+for i in "$@"; do
+    case $i in
+        --help)
+        usage
+        shift # Shift past the argument
+        ;;
+
+        --update)
+       	
+       	exit 0
+        ;;
+    esac
+done
+
+#detect hardware
+#check config
 
 while : ; do
 	while [ -z "$sms_exit" ]; do
