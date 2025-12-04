@@ -47,6 +47,7 @@ fi
 }
 
 display_box() {
+	#nothing here yet
 }
 
 display_logo() {
