@@ -112,10 +112,6 @@ done
 detect_hardware
 echo $sms_hardware
 #check config
-while : ; do
-	while (( $sms_exit != 1 )); do
-		handler
-	done
-	break
-loop
-exit 0
+while (( sms_exit != 1 )); do
+    handler
+done
