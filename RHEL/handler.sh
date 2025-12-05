@@ -57,6 +57,12 @@ display_box() {
 		echo "5. Update 'mcclouth-setup"
 		echo "6. Update system"
 		if [[ $njord_hardware -eq "physical"]]; then
+			echo ""
+			echo "7. Storage Service"
+			echo "8. Hypervisor"
+			echo ""
+			echo "E. Reboot"
+			echo ¨F. Shutdown¨
 		fi
 	fi
 }
