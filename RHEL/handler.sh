@@ -1,3 +1,4 @@
+njord_choice=""
 njord_exit=0
 njord_hand="NJORD:0000_0000x0"
 njord_hardware=""
@@ -63,6 +64,7 @@ display_box() {
 			echo ""
 			echo "E. Reboot"
 			echo "F. Shutdown"
+			read -p "Make your choice: " njord_choice
 		fi
 	fi
 }
@@ -87,7 +89,7 @@ handler() {
 	#phase_2
 		#wait?
 	#phase_3
-		#display
+		display_box
 	#phase_4
 		#menu_handler
 	njord_exit=1
@@ -126,8 +128,8 @@ for i in "$@"; do
     esac
 done
 
-detect_hardware
-echo $njord_hardware
+#detect_hardware
+njord_hardware="physical"
 #check config
 while (( njord_exit != 1 )); do
     handler
