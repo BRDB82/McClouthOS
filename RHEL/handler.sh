@@ -1,13 +1,12 @@
-sms_exit=0
-sms_hand="MIO:0000_0000x0"
-sms_hardware=""
-sms_root=0
-readonly sms_version="0.01a"
+njord_exit=0
+njord_hand="NJORD:0000_0000x0"
+njord_hardware=""
+readonly njord_version="0.01a"
 
 app_update() {
-	read -r -p "Are you sure you want to update 'mcclouth-setup' [y/N]? " app_update
+	read -r -p "Are you sure you want to update 'mcclouth-setup' [y/N]? " njord_update
 	update_failed=0
-	case $app_update in
+	case $njord_update in
 		y|Y)
 			curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/RHEL/handler.sh" -o "./mcclouth-setup.new" || {
 				echo "update filed"
@@ -40,14 +39,26 @@ detect_hardware() {
 	if { command -v systemd-detect-virt &> /dev/null && [ "$(systemd-detect-virt)" = "none" ]; } \
    && { ! command -v dmidecode &> /dev/null || ! [[ "$(dmidecode -s system-product-name 2>/dev/null)" =~ (VMware|KVM|HVM|Bochs|QEMU) ]]; } \
    && ! grep -qi hypervisor /proc/cpuinfo; then
-	sms_hardware="physical"
+	njord_hardware="physical"
 else
-	sms_hardware="virtual"
+	njord_hardware="virtual"
 fi
 }
 
 display_box() {
-	echo 1
+	if [[ $jnord_hand -eq "NJORD:0000_0000x0" ]]; then
+		echo ""
+		echo "1. Hostname: 						$HOSTNAME"
+		echo "2. Date & Time:					$(date %d-%m-%Y %H:%M"
+		echo "3. Network:						0.0.0.0/0"
+		echo "									0.0.0.0"
+		echo "									0.0.0.0, 0.0.0.0, 0.0.0.0"
+		echo "4. Secure Shell:					disabled"
+		echo "5. Update 'mcclouth-setup"
+		echo "6. Update system"
+		if [[ $njord_hardware -eq "physical"]]; then
+		fi
+	fi
 }
 
 display_logo() {
@@ -59,7 +70,7 @@ echo -ne "
 ██║╚██╔╝██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ██╔══██║    ██║   ██║╚════██║
 ██║ ╚═╝ ██║╚██████╗╚██████╗███████╗╚██████╔╝╚██████╔╝   ██║   ██║  ██║    ╚██████╔╝███████║
 ╚═╝     ╚═╝ ╚═════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝     ╚═════╝ ╚══════╝
-SERVER SETUP
+SERVER SETUP - v$njord_version
 
 "
 }
@@ -73,7 +84,7 @@ handler() {
 		#display
 	#phase_4
 		#menu_handler
-	sms_exit=1
+	njord_exit=1
 }
 
 usage() {
@@ -110,8 +121,8 @@ for i in "$@"; do
 done
 
 detect_hardware
-echo $sms_hardware
+echo $njord_hardware
 #check config
-while (( sms_exit != 1 )); do
+while (( njord_exit != 1 )); do
     handler
 done
