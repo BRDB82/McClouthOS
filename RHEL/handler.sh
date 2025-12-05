@@ -47,7 +47,7 @@ fi
 }
 
 display_box() {
-	if [[ $jnord_hand == "NJORD:0000_0000x0" ]]; then
+	if [[ $njord_hand == "NJORD:0000_0000x0" ]]; then
 		echo ""
 		echo "1. Hostname: 						$HOSTNAME"
 		echo "2. Date & Time:					$(date %d-%m-%Y %H:%M)"
