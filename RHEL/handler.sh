@@ -47,7 +47,7 @@ fi
 }
 
 display_box() {
-	if [[ $jnord_hand -eq "NJORD:0000_0000x0" ]]; then
+	if [[ $jnord_hand == "NJORD:0000_0000x0" ]]; then
 		echo ""
 		echo "1. Hostname: 						$HOSTNAME"
 		echo "2. Date & Time:					$(date %d-%m-%Y %H:%M)"
@@ -57,7 +57,7 @@ display_box() {
 		echo "4. Secure Shell:					disabled"
 		echo "5. Update 'mcclouth-setup"
 		echo "6. Update system"
-		if [[ $njord_hardware -eq "physical" ]]; then
+		if [[ $njord_hardware == "physical" ]]; then
 			echo ""
 			echo "7. Storage Service"
 			echo "8. Hypervisor"
