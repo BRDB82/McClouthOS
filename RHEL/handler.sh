@@ -62,7 +62,7 @@ display_box() {
 			echo "8. Hypervisor"
 			echo ""
 			echo "E. Reboot"
-			echo ¨F. Shutdown¨
+			echo "F. Shutdown"
 		fi
 	fi
 }
