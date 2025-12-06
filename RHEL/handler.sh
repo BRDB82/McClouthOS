@@ -140,6 +140,6 @@ done
 #detect_hardware
 njord_hardware="physical"
 #check config
-while (( $njord_exit -eq 0 )); do
+while (( $njord_exit == 0 )); do
     handler
 done
