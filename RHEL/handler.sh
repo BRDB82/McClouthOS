@@ -57,14 +57,14 @@ display_box() {
 		echo "4. Secure Shell:					disabled"
 		echo "5. Update 'mcclouth-setup"
 		echo "6. Update system"
+		echo "7. Terminal"
 		if [[ $njord_hardware == "physical" ]]; then
 			echo ""
-			echo "7. Storage Service"
-			echo "8. Hypervisor"
+			echo "8. Storage Service"
+			echo "9. Hypervisor"
 			echo ""
-			echo "D. Reboot"
-			echo "E. Shutdown"
-			echo "F. Exit"
+			echo "E. Reboot"
+			echo "F. Shutdown"
 			read -p "Make your choice: " njord_choice
 		fi
 	fi
@@ -86,8 +86,8 @@ SERVER SETUP - v$njord_version
 
 handler() {
 	#phase_1
-		if [[ $njord__hand == "NJORD:0000_0000xF" ]]; then
-			njord_exit=1
+		if [[ $njord__hand == "NJORD:0000_0000x5" ]]; then
+			app_update
 		fi
 	#phase_2
 		#wait?
@@ -96,10 +96,10 @@ handler() {
 	#phase_4
 		#menu_handler
 		if [[ $njord_hand == "NJORD:0000_0000x0" ]]; then
-			if [[ $njord_choice == "5" ]]; then
-				app_update
+			if [[ $njord_choice -eq 5 ]]; then
+				njord_hand="NJORD:0000_0000x5"
 			elif [[ $njord_choice == "F" ]]; then
-				$njord_hand="NJORD:0000_0000xF"
+				njord_hand="NJORD:0000_0000xF"
 			fi
 		fi
 }
