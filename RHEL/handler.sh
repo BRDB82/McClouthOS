@@ -62,8 +62,9 @@ display_box() {
 			echo "7. Storage Service"
 			echo "8. Hypervisor"
 			echo ""
-			echo "E. Reboot"
-			echo "F. Shutdown"
+			echo "D. Reboot"
+			echo "E. Shutdown"
+			echo "F. Exit"
 			read -p "Make your choice: " njord_choice
 		fi
 	fi
@@ -85,14 +86,20 @@ SERVER SETUP - v$njord_version
 
 handler() {
 	#phase_1
-		#initiate cmd's
+		if [[ $njord__hand == "NJORD:0000_0000xF" ]]; then
+			njord_exit=1
+		fi
 	#phase_2
 		#wait?
 	#phase_3
 		display_box
 	#phase_4
 		#menu_handler
-	njord_exit=1
+		if [[ $njord_hand == "NJORD:0000_0000x0" ]]; then
+			if [[ $njord_choice == "Exit" ]]; then
+				$njord_hand="NJORD:0000_0000xF"
+			fi
+		fi
 }
 
 usage() {
