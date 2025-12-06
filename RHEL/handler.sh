@@ -50,7 +50,7 @@ display_box() {
 	if [[ $njord_hand == "NJORD:0000_0000x0" ]]; then
 		echo ""
 		echo "1. Hostname: 						$HOSTNAME"
-		echo "2. Date & Time:					$(date +"%d-%m-%Y %H:%M")"
+		echo "2. Date & Time:						$(date +"%d-%m-%Y %H:%M")"
 		echo "3. Network:						0.0.0.0/0"
 		echo "							0.0.0.0"
 		echo "							0.0.0.0, 0.0.0.0, 0.0.0.0"
