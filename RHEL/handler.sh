@@ -50,10 +50,10 @@ display_box() {
 	if [[ $njord_hand == "NJORD:0000_0000x0" ]]; then
 		echo ""
 		echo "1. Hostname: 						$HOSTNAME"
-		echo "2. Date & Time:					$(date %d-%m-%Y %H:%M)"
+		echo "2. Date & Time:					$(date +%d-%m-%Y %H:%M)"
 		echo "3. Network:						0.0.0.0/0"
-		echo "									0.0.0.0"
-		echo "									0.0.0.0, 0.0.0.0, 0.0.0.0"
+		echo "								0.0.0.0"
+		echo "								0.0.0.0, 0.0.0.0, 0.0.0.0"
 		echo "4. Secure Shell:					disabled"
 		echo "5. Update 'mcclouth-setup"
 		echo "6. Update system"
@@ -140,6 +140,6 @@ done
 #detect_hardware
 njord_hardware="physical"
 #check config
-while (( njord_exit != 1 )); do
+while (( $njord_exit -eq 0 )); do
     handler
 done
