@@ -96,7 +96,9 @@ handler() {
 	#phase_4
 		#menu_handler
 		if [[ $njord_hand == "NJORD:0000_0000x0" ]]; then
-			if [[ $njord_choice == "Exit" ]]; then
+			if [[ $njord_choice == "5" ]]; then
+				app_update
+			elseif [[ $njord_choice == "F" ]]; then
 				$njord_hand="NJORD:0000_0000xF"
 			fi
 		fi
