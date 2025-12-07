@@ -156,6 +156,9 @@ handler() {
 			"NJORD:0000_0000x5")
 					app_update
 				;;
+			"NJORD:0000_0000x7")
+					bash
+				;;
 		esac
 	#phase_2
 		#wait?
@@ -167,6 +170,8 @@ handler() {
 			"NJORD:0000_0000x0")
 				if [[ $njord_choice == "5" ]]; then
 					njord_hand="NJORD:0000_0000x5"
+				elif [[ $njord_choice == "7" ]]; then
+					njord_hand="NJORD:0000_0000x7"
 				elif [[ $njord_choice == "F" ]]; then
 					njord_hand="NJORD:0000_0000xF"
 				fi
