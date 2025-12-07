@@ -1,7 +1,13 @@
 njord_choice=""
 njord_exit=0
 njord_hand="NJORD:0000_0000x0"
+
+njord_dns=""
+njord_gateway=""
 njord_hardware=""
+njord_ip=""
+njord_ipcomment=""
+
 readonly njord_version="0.01a"
 
 app_update() {
@@ -44,6 +50,52 @@ detect_hardware() {
 else
 	njord_hardware="virtual"
 fi
+
+	local interface=""
+    local ip_cidr=""
+    local found_match=0
+	local all_ips=$(ip -o -f inet addr show | awk '/scope global/ {print $2, $4}')
+	while read -r current_iface current_ip_cidr; do
+        current_ip=$(echo "$current_ip_cidr" | cut -d'/' -f1)
+
+        # Extract the last octet and perform an arithmetic check (integer comparison)
+        IFS=. read -r oct1 oct2 oct3 last_octet <<< "$current_ip"
+
+        if (( last_octet >= 200 && last_octet <= 254 )); then
+            # Found a match! Use this interface's details.
+            interface=$current_iface
+            ip_cidr=$current_ip_cidr
+            found_match=1
+            njord_ipcomment="" # IP is within the desired range
+            break # Exit the loop
+        fi
+    done <<< "$all_ips"
+	if [ "$found_match" -eq 0 ]; then
+        echo "Warning: No IP found in the 200-254 range. Falling back to the first available interface." >&2
+        # Re-run the command but just grab the first line of output
+        local first_nic_info=$(ip -o -f inet addr show | awk '/scope global/ {print $2, $4; exit}')
+
+        if [[ -n "$first_nic_info" ]]; then
+            interface=$(echo "$first_nic_info" | awk '{print $1}')
+            ip_cidr=$(echo "$first_nic_info" | awk '{print $2}')
+            njord_ipcomment="!!not fixed!!" # Mark this IP as non-standard/fallback
+        else
+            # Nothing worked
+            echo "Error: Could not detect any active network interface." >&2
+            return 1
+        fi
+    fi
+	njord_ip=$(echo "$ip_cidr" | cut -d'/' -f1)
+    njord_netmask=$(echo "$ip_cidr" | cut -d'/' -f2)
+
+    # Get Gateway (This is usually system-wide via the default route)
+    # This might fail if the fallback NIC isn't on the default route, but it's the standard way.
+    njord_gateway=$(ip route show default | awk '{print $3; exit}')
+    
+    # Get DNS Servers (system-wide from /etc/resolv.conf)
+    local dns_servers
+    dns_servers=$(grep nameserver /etc/resolv.conf | awk '{print $2}' | tr '\n' ',' | sed 's/,$//')
+    njord_dns=$dns_servers
 }
 
 display_box() {
@@ -52,9 +104,9 @@ display_box() {
 			echo ""
 			echo "1. Hostname: 						$HOSTNAME"
 			echo "2. Date & Time:						$(date +"%d-%m-%Y %H:%M")"
-			echo "3. Network:						0.0.0.0/0"
-			echo "							0.0.0.0"
-			echo "							0.0.0.0, 0.0.0.0, 0.0.0.0"
+			echo "3. Network:						$njord_ip/$njord_netmask $njord_ipcomment"
+			echo "							$njord_gateway"
+			echo "							$njord_dns"
 			echo "4. Secure Shell:					disabled"
 			echo "5. Update 'mcclouth-setup"
 			echo "6. Update system"
