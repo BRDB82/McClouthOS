@@ -2,11 +2,11 @@ njord_choice=""
 njord_exit=0
 njord_hand="NJORD:0000_0000x0"
 
-njord_dns=""
-njord_gateway=""
-njord_hardware=""
-njord_ip=""
-njord_ipcomment=""
+#njord_dns=""
+#njord_gateway=""
+#njord_hardware=""
+#njord_ip=""
+#njord_ipcomment=""
 
 readonly njord_version="0.01a"
 
@@ -54,6 +54,11 @@ fi
 	local interface=""
     local ip_cidr=""
     local found_match=0
+	njord_dns=""
+	njord_gateway=""
+	njord_hardware=""
+	njord_ip=""
+	njord_ipcomment=""
 	local all_ips=$(ip -o -f inet addr show | awk '/scope global/ {print $2, $4}')
 	while read -r current_iface current_ip_cidr; do
         current_ip=$(echo "$current_ip_cidr" | cut -d'/' -f1)
