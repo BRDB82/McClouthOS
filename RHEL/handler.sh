@@ -99,7 +99,7 @@ handler() {
 		display_box
 	#phase_4
 		#menu_handler
-		case "$njord_hand"in
+		case "$njord_hand" in
 			"NJORD:0000_0000x0")
 				if [[ $njord_choice == "5" ]]; then
 					njord_hand="NJORD:0000_0000x5"
