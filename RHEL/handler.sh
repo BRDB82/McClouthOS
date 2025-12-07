@@ -7,6 +7,7 @@ njord_gateway=""
 njord_hardware=""
 njord_ip=""
 njord_ipcomment=""
+njord_ssh=""
 
 readonly njord_version="0.01a"
 
@@ -99,8 +100,14 @@ fi
     
     # Get DNS Servers (system-wide from /etc/resolv.conf)
     local dns_servers
-    dns_servers=$(grep nameserver /etc/resolv.conf | awk '{print $2}' | tr '\n' ',' | sed 's/,$//')
+    dns_servers=$(grep nameserver /etc/resolv.conf | awk '{print $2}' | tr '\n' ', ' | sed 's/,$//')
     njord_dns=$dns_servers
+
+	if systemctl is-enabled --quiet sshd; then
+		njord_ssh="enabled"
+	else
+		njord_ssh="disabled"
+	fi
 }
 
 display_box() {
