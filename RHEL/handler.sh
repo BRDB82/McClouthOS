@@ -86,22 +86,26 @@ SERVER SETUP - v$njord_version
 
 handler() {
 	#phase_1
-		if [[ $njord__hand == "NJORD:0000_0000x5" ]]; then
-			app_update
-		fi
+		case "$njord_hand" in
+			"NJORD:0000_0000x5)
+					app_update
+				;;
+		esac
 	#phase_2
 		#wait?
 	#phase_3
 		display_box
 	#phase_4
 		#menu_handler
-		if [[ $njord_hand == "NJORD:0000_0000x0" ]]; then
-			if [[ $njord_choice -eq 5 ]]; then
-				njord_hand="NJORD:0000_0000x5"
-			elif [[ $njord_choice == "F" ]]; then
-				njord_hand="NJORD:0000_0000xF"
-			fi
-		fi
+		case "$njord_hand"in
+			"NJORD:0000_0000x0")
+				if [[ $njord_choice == "5" ]]; then
+					njord_hand="NJORD:0000_0000x5"
+				elif [[ $njord_choice == "F" ]]; then
+					njord_hand="NJORD:0000_0000xF"
+				fi
+				;;
+		esac
 }
 
 usage() {
