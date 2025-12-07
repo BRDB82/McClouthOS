@@ -157,7 +157,7 @@ handler() {
 					app_update
 				;;
 			"NJORD:0000_0000x7")
-					bash
+					bash --login -i 
 				;;
 		esac
 	#phase_2
