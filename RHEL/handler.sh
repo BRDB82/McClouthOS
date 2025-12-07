@@ -89,7 +89,7 @@ SERVER SETUP - v$njord_version
 handler() {
 	#phase_1
 		case "$njord_hand" in
-			"NJORD:0000_0000x5)
+			"NJORD:0000_0000x5")
 					app_update
 				;;
 		esac
