@@ -119,7 +119,7 @@ display_box() {
 			echo "3. Network:						$njord_ip/$njord_netmask $njord_ipcomment"
 			echo "							$njord_gateway"
 			echo "							$njord_dns"
-			echo "4. Secure Shell:					disabled"
+			echo "4. Secure Shell:					$njord_ssh"
 			echo "5. Update 'mcclouth-setup"
 			echo "6. Update system"
 			echo "7. Terminal"
