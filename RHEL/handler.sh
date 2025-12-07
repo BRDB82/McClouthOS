@@ -47,27 +47,29 @@ fi
 }
 
 display_box() {
-	if [[ $njord_hand == "NJORD:0000_0000x0" ]]; then
-		echo ""
-		echo "1. Hostname: 						$HOSTNAME"
-		echo "2. Date & Time:						$(date +"%d-%m-%Y %H:%M")"
-		echo "3. Network:						0.0.0.0/0"
-		echo "							0.0.0.0"
-		echo "							0.0.0.0, 0.0.0.0, 0.0.0.0"
-		echo "4. Secure Shell:					disabled"
-		echo "5. Update 'mcclouth-setup"
-		echo "6. Update system"
-		echo "7. Terminal"
-		if [[ $njord_hardware == "physical" ]]; then
+	case "$njord_hand" in 
+		"NJORD:0000_0000x0")
 			echo ""
-			echo "8. Storage Service"
-			echo "9. Hypervisor"
-			echo ""
-			echo "E. Reboot"
-			echo "F. Shutdown"
-			read -p "Make your choice: " njord_choice
-		fi
-	fi
+			echo "1. Hostname: 						$HOSTNAME"
+			echo "2. Date & Time:						$(date +"%d-%m-%Y %H:%M")"
+			echo "3. Network:						0.0.0.0/0"
+			echo "							0.0.0.0"
+			echo "							0.0.0.0, 0.0.0.0, 0.0.0.0"
+			echo "4. Secure Shell:					disabled"
+			echo "5. Update 'mcclouth-setup"
+			echo "6. Update system"
+			echo "7. Terminal"
+			if [[ $njord_hardware == "physical" ]]; then
+				echo ""
+				echo "8. Storage Service"
+				echo "9. Hypervisor"
+				echo ""
+				echo "E. Reboot"
+				echo "F. Shutdown"
+				read -p "Make your choice: " njord_choice
+			fi
+			;;
+	esac
 }
 
 display_logo() {
