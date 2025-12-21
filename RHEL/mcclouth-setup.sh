@@ -211,7 +211,8 @@ main_menu() {
 		echo ""
 		echo "4. Active Directory / Domain Controller"
 		echo "5. "
-		echo "WebServer 
+		echo "WebServer"  #maybe outside in docker (nginx or apache)
+		echo "Minecraft server"
 		echo ""
 		echo "F. Reboot"
 	fi
