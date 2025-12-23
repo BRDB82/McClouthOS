@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# are we running as full root
+# see if we are online
+# which distro are we running (we remigrated to AlmaLinux, evethough we don't have proper cockpit suupport)
+# setup repositories
+  # get version: distr_ver=$(sed 's/[^0-9]*\([0-9]\+\).*/\1/' /etc/almalinux-release)
+  # BaseOS: repo.almalinux.org
+  # AppStream: repo.almalinux.org
+  # CRB	repo.almalinux.org
+  # EPEL	dl.fedoraproject.org
+cat <<EOF > /etc/yum.repos.d/custom_installer.repo
+[baseos]
+name=Base
+baseurl=repo.almalinux.org{$distr_ver}/BaseOS/x86_64/os/
+enabled=1
+gpgcheck=1
+
+[appstream]
+name=App
+baseurl=repo.almalinux.org{$distr_ver}/AppStream/x86_64/os/
+enabled=1
+gpgcheck=1
+
+[crb]
+name=Builder
+baseurl=repo.almalinux.org{$distr_ver}/CRB/x86_64/os/
+enabled=1
+gpgcheck=1
+
+[epel]
+name=Extra
+baseurl=dl.fedoraproject.org{distr_ver}/Everything/x86_64/
+enabled=1
+gpgcheck=1
+EOF
+
+mkdir -p /etc/dnf/vars/
+echo "${distr_ver}" > /etc/dnf/vars/releasever
