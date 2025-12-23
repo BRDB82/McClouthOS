@@ -17,7 +17,7 @@ usage: ${0##*/} chroot-dir [command] [arguments...]
 
 If 'command' is unspecified, ${0##*/} will launch /bin/bash.
 
-Note that when using arch-chroot, the target chroot directory *should* be a
+Note that when using dnf-chroot, the target chroot directory *should* be a
 mountpoint. This ensures that tools such as dnf(8) or findmnt(8) have an
 accurate hierarchy of the mounted filesystems within the chroot.
 
@@ -63,7 +63,7 @@ chroot_add_resolv_conf() {
   chroot_add_mount "$src" "$dest" -c --bind
 }
 
-rhel-chroot() {
+dnf-chroot() {
   (( EUID == 0 )) || die 'This script must be run with root privileges'
 
   [[ -d $chrootdir ]] || die "Can't create chroot on non-directory %s" "$chrootdir"
@@ -116,4 +116,4 @@ shift
 
 args=("$@")
 setup=chroot_setup
-rhel-chroot
+dnf-chroot
