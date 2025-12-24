@@ -39,7 +39,7 @@ SPIGOT_JAR="spigot-*.jar"
 # Install prerequisites
 install_prereqs() {
     sudo apt update && sudo apt upgrade -y
-    sudo apt install -y openjdk-17-jdk git curl
+    sudo apt install -y openjdk-17-jdk git curl maven
     sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
     echo "JAVA_HOME=$(readlink -f /usr/bin/java | sed 's:/bin/java::')" >> "$HOME/.bashrc"
     export JAVA_HOME
