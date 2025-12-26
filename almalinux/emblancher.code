@@ -33,9 +33,12 @@ if ! sys_online; then                                #are we online?
   exit 1
 fi
 
-# which distro are we running (we remigrated to AlmaLinux, evethough we don't have proper cockpit suupport)
-# setup repositories
-  # get version: distr_ver=$(sed 's/[^0-9]*\([0-9]\+\).*/\1/' /etc/almalinux-release)
+if ! sys_distro; then
+  echo "$ID is not supported."
+  exit 1
+fi
+
+sys_vers=$(sed 's/[^0-9]*\([0-9]\+\).*/\1/' /etc/almalinux-release)
   # BaseOS: repo.almalinux.org
   # AppStream: repo.almalinux.org
   # CRB	repo.almalinux.org
