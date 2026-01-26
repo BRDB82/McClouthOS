@@ -1,41 +1,10 @@
 #!/bin/bash
 
 #base install
-#---
-#server:
-#	* fixed ip - ok (outside chroot)
-#		- no internet - fixed (adjusted script) - 20251130
-#	* hostname - ok
-#	* wake-up-by-lan (for future release) -
-#	* install script to start at boot -
-#		- build script
-#			- physical hardware:
-#				+ WAREHOUSE
-#				+ HYPERVISOR
-#			- virtual hardware:
-#				+ ADDC 
-#				+ Minecraft Server
-#				+ SQL DataBase
-#				+ Web Server
-#			- backup
-#			- update (script + OS)
-#---
-#workstation:
-
 
 local_user="loa001mi"
 logfile="/root/emblancher.log"
 set_fixed_ip="N"
-
-get_repo_id() {
-    local keyword="$1"
-    local repo_id=""
-    
-    # Use a refined grep command to exclude source, debug, and eus repos
-    repo_id=$(subscription-manager repos --list | grep -B1 "Repo Name:.*$keyword" | grep "Repo ID:" | grep -v "source" | grep -v "debug" | grep -v "eus" | head -n1 | cut -d':' -f2 | tr -d '[:space:]')
-    
-    echo "$repo_id"
-}
 
 install_apps() {
     local options=()
@@ -60,16 +29,12 @@ install_apps() {
     # --- Handle standard packages (grub2, kbd, etc.) ---
     local missing_packages=()
     for package in "${packages_to_install[@]}"; do
-        # We can only check installation status for normal package names via rpm -q
-        #if ! rpm -q "$package" &>/dev/null; then
 		if ! dnf list installed "$package" &>/dev/null; then
             missing_packages+=("$package")
         fi
     done
 
     if [ ${#missing_packages[@]} -gt 0 ]; then
-        #echo "Installing missing packages: ${missing_packages[*]}"
-        # Note: dnf install accepts URLs alongside package names if they are RPM files/repo files
 		if [ ${#options[@]} -eq 0 ]; then
         	dnf -y install "${missing_packages[@]}" &>/dev/null 2>&1
 		else
@@ -80,12 +45,7 @@ install_apps() {
         fi
     fi
 
-    # --- Handle URLs (EPEL repo files, specific RPM files) ---
-    # URLs must be passed to dnf install directly. 
-    # DNF will download and install them immediately, usually requiring no pre-check via rpm -q
     if [ ${#urls_to_install[@]} -gt 0 ]; then
-        #echo "Installing URLs/Remote RPMs: ${urls_to_install[*]}"
-        # DNF can handle a list of URLs directly as inputs
         dnf -y install "${options[@]}" "${urls_to_install[@]}" &>/dev/null 2>&1
         if [ $? -ne 0 ]; then
             echo "Failed to install one or more remote files/URLs." >&2
@@ -93,16 +53,15 @@ install_apps() {
     fi
 }
 
-is_registered() {
-    subscription-manager status | grep -q 'Overall Status: Registered'
-}
 
 is_repo_enabled() {
-	subscription-manager repos --list-enabled | grep -q "$1"
+	dnf repolist enabled | grep -q "$1"
 }
 
 rhel_version() {
-	echo $(grep -oE '[0-9]+' /etc/redhat-release | head -n1)
+	#echo $(grep -oE '[0-9]+' /etc/redhat-release | head -n1)
+	. /etc/os-release
+	echo $VERSION_ID | cut -d. -f1
 }
 
 select_option() {
@@ -255,62 +214,15 @@ echo ""
 		echo "XKBLAYOUT=${KEYMAP}" >> /etc/vconsole.conf
 
 #SOFTWARE
-	# Connect to Red Hat
-		read -p "* Enter your Red Hat Subscription username: " RH_USER
-		read -sp "  Enter your Red Hat Subscription password: " RH_PASS
-		echo ""
-		
-		if is_registered; then
-		    echo "[STATUS] :: System already registered"
-		else
-		    echo "[STATUS] :: System unregistered"
-		    subscription-manager register --username="$RH_USER" --password="$RH_PASS"
-			if is_registered; then
-				echo "[STATUS] :: System registered"
-			else
-			    echo "[STATUS] :: System can't be registered"
-			    exit 1
-			fi
-		fi
-		export REP_USER=$RH_USER
-		export REP_PASS=$RH_PASS
+
 	#Installation Source
-		BASEOS_REPO_ID=$(get_repo_id "BaseOS")
-		APPSTREAM_REPO_ID=$(get_repo_id "AppStream")
-		CRB_REPO_ID=$(get_repo_id "CodeReady Linux Builder")
+		BASEOS_REPO_ID="BaseOS"
+		APPSTREAM_REPO_ID="AppStream"
+		CRB_REPO_ID="crb"
 		REPO_VERSION=$(rhel_version)
 		
-		if [[ -z "$BASEOS_REPO_ID" || -z "$APPSTREAM_REPO_ID" ]]; then
-		    echo "Error: Could not find BaseOS or AppStream repository IDs."
-		    exit 1
-		elif [[ -z "$CRB_REPO_ID" ]]; then
-			echo "Error: Could not find CRB repository ID."
-			exit 1
-		elif [[ -z "$REPO_VERSION" ]]; then
-		    echo "Error: Could not determine RHEL release version."
-		    exit 1
-		fi
-		
-		if is_repo_enabled "$BASEOS_REPO_ID"; then
-		    echo "[STATUS] :: BaseOS already enabled"
-		else
-		    subscription-manager repos --enable="$BASEOS_REPO_ID"
-		fi
-		
-		if is_repo_enabled "$APPSTREAM_REPO_ID"; then
-		    echo "[STATUS] :: AppStream already enabled"
-		else
-		   subscription-manager repos --enable="$APPSTREAM_REPO_ID"
-		fi
-		
-		if is_repo_enabled "$CRB_REPO_ID"; then
-		    echo "[STATUS] :: CRB already enabled"
-		else
-		   subscription-manager repos --enable="$CRB_REPO_ID"
-		fi
-		
-		if [[ ! -f /etc/dnf/vars/releasever ]]; then
-		    echo "$REPO_VERSION" > /etc/dnf/vars/releasever
+		if ! is_repo_enabled "$CRB_REPO_ID"; then
+			dnf config-manager --set-enabled crb &>/dev/null || dnf config-manager --set-enabled PowerTools &>/dev/null
 		fi
 
 		export REP_REPO1=$BASEOS_REPO_ID
