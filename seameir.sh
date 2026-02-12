@@ -8,8 +8,6 @@ local_user=""
 log_file="/root/seamair.log"
 set_fixed_ip="N"
 
-#!/bin/bash
-
 # --- Color Palette ---
 NEON='\033[38;5;46m'
 WHITE='\033[1;37m'
@@ -72,3 +70,52 @@ EOF
 
 echo -e "                   ${GOLD}-- Powered by SEAMAIR Installer --${NC}"
 echo -e "\n"
+
+exec > >(tee -i mcclouthos.log)
+exec 2>&1
+
+#root-check
+if [[ "$(id -u)" != "0" ]]; then
+    echo -ne "!!ERROR!! This script must be as root, not with sudo.\n"
+    exit 0
+fi
+
+#get username
+    while true
+    do
+            read -r -p "Please enter username: " username
+            if [[ "${username,,}" =~ ^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$ ]]
+            then
+                    break
+            fi
+            echo "Incorrect username."
+    done
+    export USERNAME=$username
+
+    while true
+    do
+        read -rs -p "Please enter password: " PASSWORD1
+        echo -ne "\n"
+        read -rs -p "Please re-enter password: " PASSWORD2
+        echo -ne "\n"
+        if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
+            break
+        else
+            echo -ne "ERROR! Passwords do not match. \n"
+        fi
+    done
+    export uPASSWORD=$PASSWORD1
+
+    while true
+    do
+        read -rs -p "Please enter root password: " PASSWORD1
+        echo -ne "\n"
+        read -rs -p "Please re-enter root password: " PASSWORD2
+        echo -ne "\n"
+        if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
+            break
+        else
+            echo -ne "ERROR! Passwords do not match. \n"
+        fi
+    done
+    export rPASSWORD=$PASSWORD1
