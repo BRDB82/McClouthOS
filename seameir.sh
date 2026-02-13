@@ -16,7 +16,7 @@ if [ "$1" == "--update" ]; then
 	    rm "./seameir.new"
 	    exit 1
 	}
-	chmod +x "./seimeir.new"
+	chmod +x "./seameir.new"
 	mv -f "./seameir.new" "./seameir.sh"
 	echo "seameir updated, please restart..."
 	exit 0
