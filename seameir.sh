@@ -11,7 +11,7 @@ if [[ "$(id -u)" != "0" ]]; then
 fi
 
 if [ "$1" == "--update" ]; then
-	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/seameir.sh" -o "./seameir.new" || {
+	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/seameir.sh?v=$RANDOM" -o "./seameir.new" || {
 		echo "update failed"
 	    rm "./seameir.new"
 	    exit 1
