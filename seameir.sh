@@ -4,6 +4,24 @@
 
 # "Luck is what happens when preparation meets opportunity."
 
+#root-check
+if [[ "$(id -u)" != "0" ]]; then
+    echo -ne "!!ERROR!! This script must be as root, not with sudo.\n"
+    exit 0
+fi
+
+if [ "$1" == "--update" ]; then
+	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/seameir.sh" -o "./seameir.new" || {
+		echo "update failed"
+	    rm "./seameir.new"
+	    exit 1
+	}
+	chmod +x "./seimeir.new"
+	mv -f "./seameir.new" "./seameir.sh"
+	echo "seameir updated, please restart..."
+	exit 0
+fi
+
 log_file="/root/seamair.log"
 set_fixed_ip="N"
 
@@ -72,24 +90,6 @@ echo -e "\n"
 
 exec > >(tee -i $log_file)
 exec 2>&1
-
-#root-check
-if [[ "$(id -u)" != "0" ]]; then
-    echo -ne "!!ERROR!! This script must be as root, not with sudo.\n"
-    exit 0
-fi
-
-if [ "$1" == "--update" ]; then
-	curl -fsSL "https://raw.githubusercontent.com/BRDB82/McClouthOS/main/seameir.sh" -o "./seameir.new" || {
-		echo "update failed"
-	    rm "./seameir.new"
-	    exit 1
-	}
-	chmod +x "./seimeir.new"
-	mv -f "./seameir.new" "./seameir.sh"
-	echo "seameir updated, please restart..."
-	exit 0
-fi
 
 #set local admin
 export USERNAME="lsa001mi"
