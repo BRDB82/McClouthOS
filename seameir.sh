@@ -38,8 +38,8 @@ cols=$(tput cols)
 lines=$(tput lines)
 
 # Clean start
-clear
-tput civis # Hide cursor
+printf "\e[2J\e[H"
+printf "\e[?25l" # Hide cursor
 
 # --- The Rain Loop ---
 start_time=$(date +%s)
@@ -71,8 +71,8 @@ while [ $(( $(date +%s) - start_time )) -lt $duration ]; do
 done
 
 # --- The Finale ---
-clear
-tput cnorm # Show cursor
+printf "\e[2J\e[H"
+printf "\e[?25h" # Show cursor
 echo -e "${NEON}"
 cat << "EOF"
 ███╗   ███╗ ██████╗ ██████╗██╗      ██████╗ ██╗   ██╗████████╗██╗  ██╗     ██████╗ ███████╗
