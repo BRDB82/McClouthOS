@@ -80,21 +80,12 @@ if [[ "$(id -u)" != "0" ]]; then
     exit 0
 fi
 
-#get username
-    while true
-    do
-            read -r -p "Please enter username: " username
-            if [[ "${username,,}" =~ ^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$ ]]
-            then
-                    break
-            fi
-            echo "Incorrect username."
-    done
-    export USERNAME=$username
+#set local admin
+export USERNAME="lsa001mi"
 
-    while true
+while true
     do
-        read -rs -p "Please enter password: " PASSWORD1
+        read -rs -p "Please enter password for lsa00mi: " PASSWORD1
         echo -ne "\n"
         read -rs -p "Please re-enter password: " PASSWORD2
         echo -ne "\n"
@@ -104,18 +95,6 @@ fi
             echo -ne "ERROR! Passwords do not match. \n"
         fi
     done
-    export uPASSWORD=$PASSWORD1
+export uPASSWORD=$PASSWORD1
 
-    while true
-    do
-        read -rs -p "Please enter root password: " PASSWORD1
-        echo -ne "\n"
-        read -rs -p "Please re-enter root password: " PASSWORD2
-        echo -ne "\n"
-        if [[ "$PASSWORD1" == "$PASSWORD2" ]]; then
-            break
-        else
-            echo -ne "ERROR! Passwords do not match. \n"
-        fi
-    done
-    export rPASSWORD=$PASSWORD1
+
