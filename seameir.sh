@@ -81,7 +81,7 @@ cat << "EOF"
 ╚═╝     ╚═╝ ╚═════╝ ╚═════╝╚══════╝ ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝     ╚═════╝ ╚══════╝
 EOF
 
-echo -e "                   ${GOLD}-- Powered by SEAMAIR Installer --${NC}"
+echo -e "              ${GOLD}-- Powered by AlmaLinux with SEAMAIR Installer --${NC}"
 echo -e "\n"
 
 exec > >(tee -i $log_file)
