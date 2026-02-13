@@ -34,8 +34,10 @@ NC='\033[0m'
 # --- Configuration ---
 chars="0101☘01☘"
 duration=5 # Seconds to rain
-cols=$(tput cols)
-lines=$(tput lines)
+
+# Replaced tput with stty for terminal dimensions
+cols=$(stty size | awk '{print $2}')
+lines=$(stty size | awk '{print $1}')
 
 # Clean start
 printf "\e[2J\e[H"
@@ -44,13 +46,13 @@ printf "\e[?25l" # Hide cursor
 # --- The Rain Loop ---
 start_time=$(date +%s)
 while [ $(( $(date +%s) - start_time )) -lt $duration ]; do
-    # Random column (1 to cols) and length
-    col=$(( (RANDOM % cols) + 1 ))
+    # Reverted to 0-based column
+    col=$((RANDOM % cols))
     len=$(( (RANDOM % lines) / 2 + 5 ))
     
     for ((j=0; j<len; j++)); do
-        # Calculate row (1 to lines)
-        row=$(( (j % lines) + 1 ))
+        # Reverted to 0-based row
+        row=$((j % lines))
         
         # Position cursor using ANSI (\e[row;colH)
         printf "\e[${row};${col}H"
