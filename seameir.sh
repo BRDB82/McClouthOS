@@ -44,22 +44,21 @@ tput civis # Hide cursor
 # --- The Rain Loop ---
 start_time=$(date +%s)
 while [ $(( $(date +%s) - start_time )) -lt $duration ]; do
-    # Random column and length
-    col=$((RANDOM % cols))
-    len=$((RANDOM % lines / 2 + 5))
+    # Random column (1 to cols) and length
+    col=$(( (RANDOM % cols) + 1 ))
+    len=$(( (RANDOM % lines) / 2 + 5 ))
     
     for ((j=0; j<len; j++)); do
-        # Calculate row (loops around)
-        row=$((j % lines))
+        # Calculate row (1 to lines)
+        row=$(( (j % lines) + 1 ))
         
-        # Position cursor
-        tput cup $row $col
+        # Position cursor using ANSI (\e[row;colH)
+        printf "\e[${row};${col}H"
         
         # Draw the rain head (White) or body (Neon)
         if [ $j -eq $((len-1)) ]; then
             printf "${WHITE}${chars:$((RANDOM%${#chars})):1}${NC}"
         else
-            # Occasionally drop a gold clover
             if [ $((RANDOM % 20)) -eq 0 ]; then
                 printf "${GOLD}☘${NC}"
             else
@@ -67,7 +66,6 @@ while [ $(( $(date +%s) - start_time )) -lt $duration ]; do
             fi
         fi
         
-        # Small delay for "falling" effect
         sleep 0.001
     done
 done
