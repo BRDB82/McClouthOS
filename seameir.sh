@@ -33,31 +33,29 @@ NC='\033[0m'
 
 # --- Configuration ---
 chars="0101☘01☘"
-duration=5 # Seconds to rain
+duration=5 
 
-# Replaced tput with stty for terminal dimensions
-cols=$(stty size | awk '{print $2}')
-lines=$(stty size | awk '{print $1}')
+# Get dimensions with hardcoded fallbacks if stty fails
+cols=$(stty size 2>/dev/null | awk '{print $2}')
+lines=$(stty size 2>/dev/null | awk '{print $1}')
+: ${cols:=80}
+: ${lines:=24}
 
 # Clean start
-printf "\e[2J\e[H"
-printf "\e[?25l" # Hide cursor
+printf "\e[2J\e[H\e[?25l"
 
 # --- The Rain Loop ---
 start_time=$(date +%s)
 while [ $(( $(date +%s) - start_time )) -lt $duration ]; do
-    # Reverted to 0-based column
     col=$((RANDOM % cols))
     len=$(( (RANDOM % lines) / 2 + 5 ))
     
     for ((j=0; j<len; j++)); do
-        # Reverted to 0-based row
         row=$((j % lines))
         
-        # Position cursor using ANSI (\e[row;colH)
+        # Position cursor using ANSI
         printf "\e[${row};${col}H"
         
-        # Draw the rain head (White) or body (Neon)
         if [ $j -eq $((len-1)) ]; then
             printf "${WHITE}${chars:$((RANDOM%${#chars})):1}${NC}"
         else
@@ -67,14 +65,12 @@ while [ $(( $(date +%s) - start_time )) -lt $duration ]; do
                 printf "${NEON}${chars:$((RANDOM%${#chars})):1}${NC}"
             fi
         fi
-        
         sleep 0.001
     done
 done
 
 # --- The Finale ---
-printf "\e[2J\e[H"
-printf "\e[?25h" # Show cursor
+printf "\e[2J\e[H\e[?25h"
 echo -e "${NEON}"
 cat << "EOF"
 ███╗   ███╗ ██████╗ ██████╗██╗      ██████╗ ██╗   ██╗████████╗██╗  ██╗     ██████╗ ███████╗
