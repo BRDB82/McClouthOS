@@ -102,7 +102,7 @@ printf "\e[2J\e[H\e[?25l"
 start_time=$(date +%s)
 while [ $(( $(date +%s) - start_time )) -lt $duration ]; do
     col=$((RANDOM % cols))
-    len=$(( (RANDOM % lines) / 2 + 5 ))
+    len=$(( (RANDOM % lines) / 2 + 10 ))
     
     for ((j=0; j<len; j++)); do
         row=$((j % lines))
