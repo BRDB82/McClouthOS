@@ -286,3 +286,55 @@ Please select which system you want to install from this list
 
     #./mcclouth-setup
     export SYSTEM_OF_CHOICE=$system_choice
+
+	echo "Setting up mirrors for optimal download"
+is=$(curl -4 -s ifconfig.io/country_code)
+timedatectl set-ntp true
+
+# Robust version detection for minimal environments
+if [ -f /etc/os-release ]; then
+    VERSION=$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
+else
+    VERSION="9.4" # Fallback if os-release is missing
+fi
+
+MAJOR=$(echo "$VERSION" | cut -d. -f1)
+
+if ! grep -qi '^ID=almalinux' /etc/os-release 2>/dev/null; then
+  mkdir -p /etc/yum.repos.d /tmp/alma-repos.d
+
+  # --- BaseOS Repo ---
+  cat > /tmp/alma-repos.d/almalinux-baseos.repo <<EOF
+[baseos]
+name=AlmaLinux $VERSION - BaseOS
+baseurl=https://repo.almalinux.org/almalinux/$VERSION/BaseOS/x86_64/os/
+enabled=1
+gpgcheck=0
+EOF
+
+  # --- AppStream Repo ---
+  cat > /tmp/alma-repos.d/almalinux-appstream.repo <<EOF
+[appstream]
+name=AlmaLinux $VERSION - AppStream
+baseurl=https://repo.almalinux.org/almalinux/$VERSION/AppStream/x86_64/os/
+enabled=1
+gpgcheck=0
+EOF
+
+  # Create /etc/os-release
+  cat > /etc/os-release <<EOF
+NAME="AlmaLinux"
+VERSION="$VERSION"
+ID="almalinux"
+ID_LIKE="rhel centos fedora"
+VERSION_ID="$VERSION"
+PLATFORM_ID="platform:el$MAJOR"
+PRETTY_NAME="AlmaLinux $VERSION"
+ANSI_COLOR="0;34"
+CPE_NAME="cpe:/o:almalinux:almalinux:$VERSION"
+HOME_URL="https://almalinux.org/"
+BUG_REPORT_URL="https://bugs.almalinux.org/"
+EOF
+
+  echo "releasever=$VERSION" >> /etc/dnf/dnf.conf
+fi
