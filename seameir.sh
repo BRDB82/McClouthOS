@@ -79,14 +79,14 @@ fi
 log_file="/root/seamair.log"
 set_fixed_ip="N"
 
-# --- McClouth-Matrix: Enhanced Color & Trail ---
+# --- McClouthOS Matrix Core ---
 NEON='\033[38;5;46m'
 WHITE='\033[1;37m'
 GOLD='\033[38;5;226m'
 NC='\033[0m'
 
-# Chars: Mix of 0/1, Katakana (if supported), and your Keywords
-CHARS="01ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ0101☘"
+# Chars: Using ASCII blocks (▒ ▓ █) for depth + letters
+CHARS="01#X%&▒▓█$@+<>"
 WORDS=("ALMALINUX" "MCCLOUTHOS")
 
 # Setup Screen
@@ -94,61 +94,45 @@ printf "\e[2J\e[H\e[?25l"
 cols=$(tput cols 2>/dev/null || echo 80)
 lines=$(tput lines 2>/dev/null || echo 24)
 
-# Tracking arrays for each column
+# Initialize columns
 for ((i=0; i<cols; i++)); do
-    y[$i]=$((RANDOM % lines))     # Current head position
-    v[$i]=$((RANDOM % 3 + 1))      # Velocity/Speed
-    l[$i]=$((RANDOM % 15 + 5))     # Length of the trail
+    y[$i]=$((RANDOM % lines))
+    l[$i]=$((RANDOM % 10 + 5))
 done
 
-# --- The Rain Loop ---
-duration=15
-start=$(date +%s)
-
-while [ $(( $(date +%s) - start )) -lt $duration ]; do
+# --- 10 Second Matrix Rain ---
+start_time=$(date +%s)
+while [ $(( $(date +%s) - start_time )) -lt 10 ]; do
     for ((i=0; i<cols; i+=2)); do
-        # 1. Print the Lead (White)
+        # 1. Head (White)
         printf "\e[${y[$i]};${i}H${WHITE}${CHARS:$((RANDOM%${#CHARS})):1}${NC}"
         
-        # 2. Print the Trail (Neon Green)
+        # 2. Body (Neon)
         prev_y=$((y[$i] - 1))
         if [ $prev_y -gt 0 ]; then
-            # Small chance to inject a Gold Clover or Keyword letter in the trail
-            if [ $((RANDOM % 50)) -eq 0 ]; then
-                printf "\e[${prev_y};${i}H${GOLD}☘${NC}"
-            else
-                printf "\e[${prev_y};${i}H${NEON}${CHARS:$((RANDOM%${#CHARS})):1}${NC}"
-            fi
+             printf "\e[${prev_y};${i}H${NEON}${CHARS:$((RANDOM%${#CHARS})):1}${NC}"
         fi
 
-        # 3. Keyword Injection (Vertical Gold Words)
-        if [ $((RANDOM % 200)) -eq 0 ] && [ $((lines - y[$i])) -gt 12 ]; then
+        # 3. Rare Word Glitch (Gold)
+        if [ $((RANDOM % 150)) -eq 0 ] && [ $((lines - y[$i])) -gt 12 ]; then
             W=${WORDS[$((RANDOM%2))]}
             for ((j=0; j<${#W}; j++)); do
                 printf "\e[$((y[$i]+j));${i}H${GOLD}${W:$j:1}${NC}"
             done
         fi
 
-        # 4. Erase the "tail end" to create movement
+        # 4. Tail Erase
         erase_y=$((y[$i] - l[$i]))
-        if [ $erase_y -gt 0 ]; then
-            printf "\e[${erase_y};${i}H "
-        fi
-
-        # 5. Advance the "Head"
-        y[$i]=$((y[$i] + 1))
-
-        # 6. Reset column if it goes off-screen
+        if [ $erase_y -gt 0 ]; then printf "\e[${erase_y};${i}H "; fi
+        
+        # 5. Reset check
+        ((y[$i]++))
         if [ ${y[$i]} -ge $lines ]; then
-            # Clean the remaining trail before reset
-            for ((j=0; j<l[$i]; j++)); do
-                printf "\e[$((y[$i]-j));${i}H "
-            done
             y[$i]=1
-            l[$i]=$((RANDOM % 15 + 5))
+            l[$i]=$((RANDOM % 10 + 5))
         fi
     done
-    sleep 0.03
+    sleep 0.04
 done
 
 # --- The Finale ---
