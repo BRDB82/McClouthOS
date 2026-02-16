@@ -79,23 +79,29 @@ fi
 log_file="/root/seamair.log"
 set_fixed_ip="N"
 
-# --- McClouthOS Matrix Core ---
+# --- McClouthOS Matrix: Minimalist Edition ---
 NEON='\033[38;5;46m'
 WHITE='\033[1;37m'
 GOLD='\033[38;5;226m'
 NC='\033[0m'
 
-# Chars: Using ASCII blocks (▒ ▓ █) for depth + letters
-CHARS="01#X%&▒▓█$@+<>"
+# Chars: Safe ASCII for minimal environments
+CHARS="01#X%&@+<>ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 WORDS=("ALMALINUX" "MCCLOUTHOS")
 
-# Setup Screen
-printf "\e[2J\e[H\e[?25l"
-cols=$(tput cols 2>/dev/null || echo 80)
-lines=$(tput lines 2>/dev/null || echo 24)
+# 1. Get terminal size using ANSI (Since tput/stty are missing)
+# Move cursor to bottom right, then query position
+echo -ne "\e[999;999H\e[6n"
+read -sdR pos
+pos=${pos#*[} # Strip prefix
+lines=${pos%;*}
+cols=${pos#*;}
+
+# Reset cursor to top-left and hide it
+echo -ne "\e[H\e[J\e[?25l"
 
 # Initialize columns
-for ((i=0; i<cols; i++)); do
+for ((i=0; i<cols; i+=2)); do
     y[$i]=$((RANDOM % lines))
     l[$i]=$((RANDOM % 10 + 5))
 done
@@ -104,41 +110,33 @@ done
 start_time=$(date +%s)
 while [ $(( $(date +%s) - start_time )) -lt 10 ]; do
     for ((i=0; i<cols; i+=2)); do
-        # 1. Head (White)
-        printf "\e[${y[$i]};${i}H${WHITE}${CHARS:$((RANDOM%${#CHARS})):1}${NC}"
+        # Head
+        echo -ne "\e[${y[$i]};${i}H${WHITE}${CHARS:$((RANDOM%${#CHARS})):1}${NC}"
         
-        # 2. Body (Neon)
+        # Body
         prev_y=$((y[$i] - 1))
         if [ $prev_y -gt 0 ]; then
-             printf "\e[${prev_y};${i}H${NEON}${CHARS:$((RANDOM%${#CHARS})):1}${NC}"
+             echo -ne "\e[${prev_y};${i}H${NEON}${CHARS:$((RANDOM%${#CHARS})):1}${NC}"
         fi
 
-        # 3. Rare Word Glitch (Gold)
-        if [ $((RANDOM % 150)) -eq 0 ] && [ $((lines - y[$i])) -gt 12 ]; then
-            W=${WORDS[$((RANDOM%2))]}
-            for ((j=0; j<${#W}; j++)); do
-                printf "\e[$((y[$i]+j));${i}H${GOLD}${W:$j:1}${NC}"
-            done
-        fi
-
-        # 4. Tail Erase
+        # Tail Erase
         erase_y=$((y[$i] - l[$i]))
-        if [ $erase_y -gt 0 ]; then printf "\e[${erase_y};${i}H "; fi
+        if [ $erase_y -gt 0 ]; then echo -ne "\e[${erase_y};${i}H "; fi
         
-        # 5. Reset check
         ((y[$i]++))
         if [ ${y[$i]} -ge $lines ]; then
             y[$i]=1
             l[$i]=$((RANDOM % 10 + 5))
         fi
     done
-    sleep 0.04
+    sleep 0.05
 done
 
 # --- The Finale ---
-printf "\e[2J\e[H\e[?25h"
+echo -ne "\e[2J\e[H\e[?25h"
 echo -e "${NEON}"
-cat << "EOF"
+
+cat << 'EOF'
 ███╗   ███╗ ██████╗ ██████╗██╗      ██████╗ ██╗   ██╗████████╗██╗  ██╗     ██████╗ ███████╗
 ████╗ ████║██╔════╝██╔════╝██║     ██╔═══██╗██║   ██║╚══██╔══╝██║  ██║    ██╔═══██╗██╔════╝
 ██╔████╔██║██║     ██║     ██║     ██║   ██║██║   ██║   ██║   ███████║    ██║   ██║███████╗
