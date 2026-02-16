@@ -86,8 +86,8 @@ GOLD='\033[38;5;226m'
 NC='\033[0m'
 
 # --- Configuration ---
-chars="0101☘01☘"
-duration=5 
+chars="0101☘01☘ALMALINUX☘MCCLOUTHOS"
+duration=10
 
 # Get dimensions with hardcoded fallbacks if stty fails
 cols=$(stty size 2>/dev/null | awk '{print $2}')
