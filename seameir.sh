@@ -201,5 +201,50 @@ echo -ne "
     echo -e "\n${disk%|*} selected \n"
     export DISK=${disk%|*}
 
-    drivessd
+    echo -ne "
+Is this an SSD? yes/no:
+"
+    options=("Yes" "No")
+    select_option "${options[@]}"
 
+    case $? in
+        0)
+            export MOUNT_OPTIONS="noatime,commit=120"
+            ;;
+        1)
+            export MOUNT_OPTIONS="noatime,commit=120"
+            ;;
+        *)
+            echo "Wrong option. Try again"
+            drivessd
+            ;;
+    esac
+
+	export FS=ext4
+
+	 time_zone="$(curl --fail -s https://ipapi.co/timezone)"
+    echo -ne "
+System detected your timezone to be '$time_zone' \n"
+    echo -ne "Is this correct?
+    "
+    options=("Yes" "No")
+    select_option "${options[@]}"
+
+    case $? in
+        0)
+            echo "${time_zone} set as timezone"
+            export TIMEZONE=$time_zone
+            timedatectl set-timezone "$time_zone"
+            ;;
+        1)
+            echo "Please enter your desired timezone e.g. Europe/Brussels :"
+            read -r new_timezone
+            echo "${new_timezone} set as timezone"
+            export TIMEZONE=$new_timezone
+            timedatectl set-timezone "$new_timezone"
+            ;;
+        *)
+            echo "Wrong option. Try again"
+            timezone
+            ;;
+    esac
