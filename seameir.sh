@@ -79,48 +79,76 @@ fi
 log_file="/root/seamair.log"
 set_fixed_ip="N"
 
-# --- Color Palette ---
+# --- McClouth-Matrix: Enhanced Color & Trail ---
 NEON='\033[38;5;46m'
 WHITE='\033[1;37m'
 GOLD='\033[38;5;226m'
 NC='\033[0m'
 
-# --- Configuration ---
-chars="0101☘01☘ALMALINUX☘MCCLOUTHOS"
-duration=10
+# Chars: Mix of 0/1, Katakana (if supported), and your Keywords
+CHARS="01ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ0101☘"
+WORDS=("ALMALINUX" "MCCLOUTHOS")
 
-# Get dimensions with hardcoded fallbacks if stty fails
-cols=$(stty size 2>/dev/null | awk '{print $2}')
-lines=$(stty size 2>/dev/null | awk '{print $1}')
-: ${cols:=80}
-: ${lines:=24}
-
-# Clean start
+# Setup Screen
 printf "\e[2J\e[H\e[?25l"
+cols=$(tput cols 2>/dev/null || echo 80)
+lines=$(tput lines 2>/dev/null || echo 24)
+
+# Tracking arrays for each column
+for ((i=0; i<cols; i++)); do
+    y[$i]=$((RANDOM % lines))     # Current head position
+    v[$i]=$((RANDOM % 3 + 1))      # Velocity/Speed
+    l[$i]=$((RANDOM % 15 + 5))     # Length of the trail
+done
 
 # --- The Rain Loop ---
-start_time=$(date +%s)
-while [ $(( $(date +%s) - start_time )) -lt $duration ]; do
-    col=$((RANDOM % cols))
-    len=$(( (RANDOM % lines) / 2 + 10 ))
-    
-    for ((j=0; j<len; j++)); do
-        row=$((j % lines))
+duration=15
+start=$(date +%s)
+
+while [ $(( $(date +%s) - start )) -lt $duration ]; do
+    for ((i=0; i<cols; i+=2)); do
+        # 1. Print the Lead (White)
+        printf "\e[${y[$i]};${i}H${WHITE}${CHARS:$((RANDOM%${#CHARS})):1}${NC}"
         
-        # Position cursor using ANSI
-        printf "\e[${row};${col}H"
-        
-        if [ $j -eq $((len-1)) ]; then
-            printf "${WHITE}${chars:$((RANDOM%${#chars})):1}${NC}"
-        else
-            if [ $((RANDOM % 20)) -eq 0 ]; then
-                printf "${GOLD}☘${NC}"
+        # 2. Print the Trail (Neon Green)
+        prev_y=$((y[$i] - 1))
+        if [ $prev_y -gt 0 ]; then
+            # Small chance to inject a Gold Clover or Keyword letter in the trail
+            if [ $((RANDOM % 50)) -eq 0 ]; then
+                printf "\e[${prev_y};${i}H${GOLD}☘${NC}"
             else
-                printf "${NEON}${chars:$((RANDOM%${#chars})):1}${NC}"
+                printf "\e[${prev_y};${i}H${NEON}${CHARS:$((RANDOM%${#CHARS})):1}${NC}"
             fi
         fi
-        sleep 0.001
+
+        # 3. Keyword Injection (Vertical Gold Words)
+        if [ $((RANDOM % 200)) -eq 0 ] && [ $((lines - y[$i])) -gt 12 ]; then
+            W=${WORDS[$((RANDOM%2))]}
+            for ((j=0; j<${#W}; j++)); do
+                printf "\e[$((y[$i]+j));${i}H${GOLD}${W:$j:1}${NC}"
+            done
+        fi
+
+        # 4. Erase the "tail end" to create movement
+        erase_y=$((y[$i] - l[$i]))
+        if [ $erase_y -gt 0 ]; then
+            printf "\e[${erase_y};${i}H "
+        fi
+
+        # 5. Advance the "Head"
+        y[$i]=$((y[$i] + 1))
+
+        # 6. Reset column if it goes off-screen
+        if [ ${y[$i]} -ge $lines ]; then
+            # Clean the remaining trail before reset
+            for ((j=0; j<l[$i]; j++)); do
+                printf "\e[$((y[$i]-j));${i}H "
+            done
+            y[$i]=1
+            l[$i]=$((RANDOM % 15 + 5))
+        fi
     done
+    sleep 0.03
 done
 
 # --- The Finale ---
