@@ -248,3 +248,31 @@ System detected your timezone to be '$time_zone' \n"
             timezone
             ;;
     esac
+
+	echo -ne "
+Please select keyboard layout from this list
+"
+    options=(us be fr)
+
+    select_option "${options[@]}"
+    keymap=${options[$?]}
+
+    echo -ne "Your keyboard layout: ${keymap} \n"
+    export KEYMAP=$keymap
+
+    # Apply the selected keymap using localectl
+    localectl set-keymap "$keymap"
+
+	echo -ne "
+Please select which system you want to install from this list
+"
+    # These are default key maps commonly supported on Rocky Linux
+    options=(server workstation)
+
+    select_option "${options[@]}"
+    system_choice=${options[$?]}
+
+    echo -ne "Your system of choice: ${system_choice} \n"
+
+    #./mcclouth-setup
+    export SYSTEM_OF_CHOICE=$system_choice
